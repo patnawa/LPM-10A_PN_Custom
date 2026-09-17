@@ -1,0 +1,57 @@
+╔════════════════════════════╗
+           FNIRSI Firmware Changelog
+╚════════════════════════════╝
+
+----------------------------------------
+
+V2.0.7 | 2026-06-10 (Supports V2.x.x hardware only)
+----------------------------------------
+
+[ FIXED ]
+- Fixed an issue where measuring speed after measuring length caused an error.
+- Fixed an issue where the device would shut down unexpectedly during length measurement.
+
+----------------------------------------
+
+V2.0.3 | 2026-03-06 (Supports V2.x.x hardware only)
+----------------------------------------
+
+[ FIXED ]
+- Fixed an anomaly where network cable speed and communication method results were overwritten during continuous testing in English-language environments.
+
+----------------------------------------
+
+V1.1.2 | 2025-11-18
+----------------------------------------
+
+[ FIXED ]
+- Resolved the issue of the application freezing when switching languages ​​multiple times, improving application stability and responsiveness.
+
+----------------------------------------
+
+V1.1.1 | 2025-10-27
+----------------------------------------
+
+[ FIXED ]
+- Fixed an issue with abnormal display when exiting Flash, ensuring interface stability.
+[ ADDED ]
+- Added a factory reset language function, supporting automatic restoration of the default language option after a reset.
+
+----------------------------------------
+
+V1.0.1 | 2025-10-09
+----------------------------------------
+
+[ OPTIMIZED ]
+- Modified UI operation, end flash expression, and length measurement function
+
+----------------------------------------
+
+V1.0.0 | 2025-09-09
+----------------------------------------
+
+Initial Release
+
+----------------------------------------
+
+© FNIRSI All Rights Reserved.

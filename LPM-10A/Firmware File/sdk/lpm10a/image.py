@@ -1,0 +1,195 @@
+"""
+LPM-10A firmware container: parse, patch, allocate, re-emit.
+
+Container layout (TX .bin):
+    0x0000  char name[32]      internal image name, checked by the bootloader
+    0x0020  u32  payload_off   always 0x1000
+    0x0024  u32  payload_len
+    0x0028  u32  payload_end   == payload_off + payload_len - 1
+    0x1000  payload            loaded at APP_BASE (0x0800A000)
+
+There is no CRC or signature anywhere in the container.
+
+New code goes in the "cave": the zero-filled tail between the end of the
+stock payload and the end of the final 2 KB flash sector.  Those bytes are
+already inside the sector the bootloader must erase to write the end of the
+payload, so extending payload_len into them does not touch any sector the
+bootloader would otherwise leave alone.
+"""
+import struct
+import hashlib
+
+from . import symbols as S
+from .thumb import assemble, verify
+
+
+class PatchError(Exception):
+    pass
+
+
+STOCK_HELP = """stock image not found:
+    {path}
+
+FNIRSI's firmware is not part of this repository.  Download the official
+LPM-10A V2.0.7 package from https://www.fnirsi.com (support / downloads),
+unzip it, and copy LPM-10A-TX_V2.0.7_260610.bin to the path above.
+sha256 must be 29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b"""
+
+
+def require_stock(path):
+    """Return `path`, or exit with instructions if the stock image is absent."""
+    import os
+    import sys
+    if not os.path.exists(path):
+        sys.exit(STOCK_HELP.format(path=path))
+    return path
+
+
+class Image:
+    def __init__(self, path):
+        self.path = require_stock(path)
+        self.data = bytearray(open(path, "rb").read())
+        self.original = bytes(self.data)
+        name = self.data[:0x20].split(b"\0")[0].decode()
+        off, length, end = struct.unpack_from("<III", self.data, 0x20)
+        if off != S.FILE_PAYLOAD_OFF or off + length - 1 != end:
+            raise PatchError("unexpected container layout")
+        self.name = name
+        self.payload_off = off
+        self.payload_len = length
+        self.orig_payload_len = length
+
+        # cave: end of payload .. end of the containing 2 KB sector
+        self.cave_start = S.APP_BASE + length
+        sector_end = (self.cave_start + S.SECTOR - 1) & ~(S.SECTOR - 1)
+        self.cave_end = min(sector_end, S.APP_BASE + len(self.data) - off)
+        self.cave_ptr = self.cave_start
+        if any(self.data[self.f(self.cave_start):self.f(self.cave_end)]):
+            raise PatchError("cave is not empty -- refusing to allocate")
+
+        self.log = []
+        self.syms = S.asm_symbols()
+        self._ram_ptr = S.RAM_SAFE_ARENA
+
+    # ---------------------------------------------------------- addressing
+    def f(self, addr):
+        """flash address -> file offset"""
+        return addr - S.APP_BASE + self.payload_off
+
+    def read(self, addr, n):
+        return bytes(self.data[self.f(addr):self.f(addr) + n])
+
+    # ---------------------------------------------------------- primitives
+    def poke(self, addr, expect_hex, new_bytes, why=""):
+        """Overwrite bytes, asserting what was there first."""
+        expect = bytes.fromhex(expect_hex.replace(" ", ""))
+        o = self.f(addr)
+        found = bytes(self.data[o:o + len(expect)])
+        if found != expect:
+            raise PatchError(
+                f"@0x{addr:08X}: expected {expect.hex()} but found {found.hex()}"
+            )
+        if len(new_bytes) != len(expect):
+            raise PatchError(f"@0x{addr:08X}: replacement must be the same length")
+        self.data[o:o + len(new_bytes)] = new_bytes
+        self.log.append((addr, expect, bytes(new_bytes), why, "code"))
+        return addr
+
+    def poke_blob(self, addr, expect_sha256, new_bytes, why=""):
+        """Replace a data table in place (fonts, lookup tables).  The stock
+        bytes are identified by hash rather than listed, and the log records
+        kind "blob" so the build report prints a summary instead of kilobytes
+        of hex."""
+        o = self.f(addr)
+        found = bytes(self.data[o:o + len(new_bytes)])
+        if hashlib.sha256(found).hexdigest() != expect_sha256:
+            raise PatchError(f"@0x{addr:08X}: stock table hash mismatch")
+        self.data[o:o + len(new_bytes)] = new_bytes
+        self.log.append((addr, found, bytes(new_bytes), why, "blob"))
+        return addr
+
+    def set_string(self, addr, text, why=""):
+        """Replace a NUL-terminated string in place; must fit its existing slot."""
+        o = self.f(addr)
+        j = o
+        while self.data[j] != 0:
+            j += 1
+        k = j
+        while k < len(self.data) and self.data[k] == 0:
+            k += 1
+        room = k - o - 1                      # usable chars, NUL not included
+        enc = text.encode("ascii")
+        if len(enc) > room:
+            raise PatchError(
+                f'@0x{addr:08X}: "{text}" needs {len(enc)} chars, slot holds {room}'
+            )
+        old = bytes(self.data[o:j])
+        self.data[o:k] = enc + b"\0" * (k - o - len(enc))
+        self.log.append((addr, old, enc, why or f'"{old.decode()}" -> "{text}"', "text"))
+        return addr
+
+    # ---------------------------------------------------------- allocation
+    def alloc_code(self, size, align=4):
+        self.cave_ptr = (self.cave_ptr + align - 1) & ~(align - 1)
+        if self.cave_ptr + size > self.cave_end:
+            raise PatchError(
+                f"code cave exhausted: need {size} bytes, "
+                f"{self.cave_end - self.cave_ptr} left"
+            )
+        addr = self.cave_ptr
+        self.cave_ptr += size
+        return addr
+
+    def alloc_ram(self, size, align=4):
+        self._ram_ptr = (self._ram_ptr + align - 1) & ~(align - 1)
+        if self._ram_ptr + size > S.RAM_SAFE_ARENA_END:
+            raise PatchError("RAM arena exhausted")
+        addr = self._ram_ptr
+        self._ram_ptr += size
+        return addr
+
+    def emit_code(self, source, extra_syms=None, why=""):
+        """Assemble `source` into the cave and return its address."""
+        syms = dict(self.syms)
+        syms.update(extra_syms or {})
+        # assemble twice: first to learn the size, then at the real address
+        probe = assemble(self.cave_start, source, syms)
+        addr = self.alloc_code(len(probe))
+        code = assemble(addr, source, syms)
+        if len(code) != len(probe):
+            code = assemble(addr, source, syms)
+        self.data[self.f(addr):self.f(addr) + len(code)] = code
+        self.log.append((addr, b"", bytes(code), why or "new code", "code"))
+        return addr
+
+    # ---------------------------------------------------------- finalise
+    def finalize(self):
+        """Extend payload_len to cover any allocated cave bytes."""
+        used = self.cave_ptr - S.APP_BASE
+        if used > self.payload_len:
+            self.payload_len = used
+            struct.pack_into("<I", self.data, 0x24, self.payload_len)
+            struct.pack_into("<I", self.data, 0x28,
+                             self.payload_off + self.payload_len - 1)
+        return self
+
+    def save(self, path):
+        self.finalize()
+        open(path, "wb").write(bytes(self.data))
+        return hashlib.sha256(bytes(self.data)).hexdigest()
+
+    # ---------------------------------------------------------- reporting
+    def diff_offsets(self):
+        return [i for i in range(len(self.data)) if self.data[i] != self.original[i]]
+
+    def summary(self):
+        d = self.diff_offsets()
+        lines = [
+            f"source          : {self.name}",
+            f"payload len     : 0x{self.orig_payload_len:X} -> 0x{self.payload_len:X}"
+            + ("  (extended into cave)" if self.payload_len != self.orig_payload_len else ""),
+            f"cave            : 0x{self.cave_start:08X}..0x{self.cave_end:08X} "
+            f"({self.cave_end - self.cave_start} bytes, {self.cave_ptr - self.cave_start} used)",
+            f"bytes changed   : {len(d)}",
+        ]
+        return "\n".join(lines)
