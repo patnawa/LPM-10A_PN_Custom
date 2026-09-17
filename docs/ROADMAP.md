@@ -72,10 +72,12 @@ Ranked by value against risk. All are byte patches in the same style as PN 1.0.
 
 ## 5. Receiver
 
-The probe firmware has its own audit in [`RX-AUDIT.md`](RX-AUDIT.md): an
-uncancellable low-battery shutdown, an exact-match tone decoder that stutters with
-clock drift, and no strength grading in digital mode. It is the next body of work
-after the transmitter is validated.
+The probe firmware has its own audit in [`RX-AUDIT.md`](RX-AUDIT.md) and its own
+toolkit (`LPM-10A/Firmware File/rx-sdk`). The uncancellable low-battery shutdown is
+fixed in `APP_LPM-10RX_PN1.0.bin`; the exact-match tone decoder (whose 5 ms sample is
+0.94 % shorter than the transmitter's slot by construction) and the missing strength
+grading in digital mode are the next body of work after the transmitter is validated. Before any receiver flash: find out how the
+probe enters its update mode and confirm the way back to stock.
 
 ## 6. Not planned
 

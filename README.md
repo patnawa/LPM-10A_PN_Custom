@@ -85,9 +85,9 @@ in the same cells so no screen layout changes.
 
 If the device refuses the file, rename it to exactly `LPM-10A-TX_V2.0.7_260610.bin` and copy
 it again; some bootloaders match on the filename (the name stored inside the image is the
-stock one for exactly this reason). The receiver firmware is not touched: keep
-the `APP_LPM-10RX_V3.0.0_260416.bin` from FNIRSI's package. Requires V2.x.x hardware, like
-stock V2.0.7.
+stock one for exactly this reason). This update does not touch the receiver (probe); the
+receiver build below is a separate file with its own, still unconfirmed, procedure. Requires
+V2.x.x hardware, like stock V2.0.7.
 
 ### First power-on checklist
 
@@ -174,15 +174,29 @@ LPM-10A/
     LPM-10A-TX_V2.0.7_260610.bin      stock image: NOT included, put FNIRSI's copy here to build
     MOD-README.txt                    change list, hashes, flashing, checklist
     FORMULA-AUDIT.md                  every measurement formula, with verdicts
-    sdk/                              the toolkit: patches, assembler, verifier, fonts
+    sdk/                              the transmitter toolkit: patches, assembler, verifier, fonts
+    APP_LPM-10RX_PN1.0.bin            receiver image (battery fix); flashing procedure unconfirmed
+    RX-README.txt                     receiver change list, hash, warnings
+    rx-sdk/                           the receiver toolkit: patches, verifier, disassembler
 docs/img/                             the images on this page
 ```
+
+## Receiver (probe)
+
+The probe has its own firmware, audit and toolkit:
+[`docs/RX-AUDIT.md`](docs/RX-AUDIT.md) and
+[`LPM-10A/Firmware File/rx-sdk`](LPM-10A/Firmware%20File/rx-sdk/README.md). The first receiver
+build, [`APP_LPM-10RX_PN1.0.bin`](LPM-10A/Firmware%20File/APP_LPM-10RX_PN1.0.bin), fixes one
+thing: a critical-battery shutdown that could not be cancelled once a single reading dipped
+below 3280 mV. It is emulation-verified (25 checks) and **must not be flashed yet**: FNIRSI
+does not document how the receiver enters its update mode, and the way back to stock has to
+be confirmed first. Details in
+[`LPM-10A/Firmware File/RX-README.txt`](LPM-10A/Firmware%20File/RX-README.txt).
 
 ## What next
 
 The prioritised list of what to test on hardware and what to build after that is in
-[`docs/ROADMAP.md`](docs/ROADMAP.md). The receiver (probe) firmware has been audited too:
-[`docs/RX-AUDIT.md`](docs/RX-AUDIT.md).
+[`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Known limitations
 
