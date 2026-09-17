@@ -181,7 +181,8 @@ docs/img/                             the images on this page
 ## What next
 
 The prioritised list of what to test on hardware and what to build after that is in
-[`docs/ROADMAP.md`](docs/ROADMAP.md).
+[`docs/ROADMAP.md`](docs/ROADMAP.md). The receiver (probe) firmware has been audited too:
+[`docs/RX-AUDIT.md`](docs/RX-AUDIT.md).
 
 ## Known limitations
 

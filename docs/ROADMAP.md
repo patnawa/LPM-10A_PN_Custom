@@ -70,10 +70,17 @@ Ranked by value against risk. All are byte patches in the same style as PN 1.0.
   non-initialised RAM arena and showing it on the About screen would turn a
   mystery reboot into a fixable bug.
 
-## 5. Not planned
+## 5. Receiver
 
-- Changing the tone carrier or cadence: the receiver firmware decodes the current
-  patterns; a change would need both sides and gains nothing for the user.
+The probe firmware has its own audit in [`RX-AUDIT.md`](RX-AUDIT.md): an
+uncancellable low-battery shutdown, an exact-match tone decoder that stutters with
+clock drift, and no strength grading in digital mode. It is the next body of work
+after the transmitter is validated.
+
+## 6. Not planned
+
+- Changing the tone carrier or cadence on the transmitter: the receiver decodes the
+  current patterns and the improvements worth making are on the receiver side.
 - A sixth Settings row: the five rows fill the screen; NVP lives on the Length
   screen for that reason.
 - Anything requiring the vendor source (task priorities, stack sizes, RTOS config).
