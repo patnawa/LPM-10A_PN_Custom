@@ -2,12 +2,13 @@
 
 # LPM-10A PN Custom Firmware
 
-**An unofficial, industrial-grade firmware for the FNIRSI LPM-10A network cable tester,
+**PN 1.0: an unofficial, industrial-grade firmware for the FNIRSI LPM-10A network cable tester,
 built by patching the official V2.0.7 image and proving every change by CPU emulation.**
 
-![firmware](https://img.shields.io/badge/firmware-V2.0.7--mod4-orange)
-![patches](https://img.shields.io/badge/patches-10-blue)
-![verified](https://img.shields.io/badge/verify.py-92%20checks%20pass-brightgreen)
+![version](https://img.shields.io/badge/version-PN%201.0-orange)
+![base](https://img.shields.io/badge/base-FNIRSI%20V2.0.7-lightgrey)
+![patches](https://img.shields.io/badge/patches-11-blue)
+![verified](https://img.shields.io/badge/verify.py-96%20checks%20pass-brightgreen)
 ![hardware](https://img.shields.io/badge/hardware%20test-pending-red)
 ![license](https://img.shields.io/badge/tooling%20license-MIT-lightgrey)
 
@@ -19,7 +20,7 @@ built by patching the official V2.0.7 image and proving every change by CPU emul
 
 > **Status: verified by emulation, not yet flashed to a real unit.**
 > Every change was checked by disassembly and by running the firmware's own code under a
-> Cortex-M emulator (92 checks). That proves the code does what each patch says; it does
+> Cortex-M emulator (96 checks). That proves the code does what each patch says; it does
 > not prove the LCD looks right. Flash at your own risk, and read
 > [How to go back to stock](#going-back-to-stock) first.
 
@@ -45,6 +46,7 @@ it, adds code in an unused flash tail, re-assembles, and verifies the result in 
 | Settings save | 204 bytes leaked per save | freed on both exit paths |
 | Fonts | thin serif 8×16 ASCII, Song-style Chinese | **Ubuntu Sans Mono** (8×16, 6×12) and **Droid Sans Fallback** (16×16), both open-licensed |
 | Language | Chinese/English picker on first boot | boots to English; both languages kept, machine-translated strings corrected |
+| Identity | About screen reports `Software:V2.0.7` | reports `Software:PN 1.0`; the bootloader-facing image name is untouched |
 
 Everything is also verified **correct and left alone** where stock was right: battery mV,
 PoE mV, link speed/duplex decoding, the 2.54 inch constant, the auto-off table. The full
@@ -72,22 +74,24 @@ in the same cells so no screen layout changes.
 
 1. Verify the download:
    ```
-   certutil -hashfile LPM-10A-TX_V2.0.7-mod_260610.bin SHA256
-   fb9e2e7336cba5d7020d20c7e5ab6663302477d37d1fcc4fe5fa1c2e5ae271f9
+   certutil -hashfile LPM-10A-TX_PN1.0.bin SHA256
+   6c1c8fa726857942e476f834b24cf94782db31fc6542dfa72e1f0baa7b67b1e0
    ```
 2. Power the tester off. Hold **M + Power** until the firmware update screen appears.
 3. Connect USB-C; a removable drive appears.
-4. Copy [`LPM-10A-TX_V2.0.7-mod_260610.bin`](LPM-10A/Firmware%20File/LPM-10A-TX_V2.0.7-mod_260610.bin)
+4. Copy [`LPM-10A-TX_PN1.0.bin`](LPM-10A/Firmware%20File/LPM-10A-TX_PN1.0.bin)
    onto that drive. Do not unplug during the update.
 5. Long-press Power to shut down, then power on normally.
 
 If the device refuses the file, rename it to exactly `LPM-10A-TX_V2.0.7_260610.bin` and copy
-it again; some bootloaders match on the filename. The receiver firmware is not touched: keep
+it again; some bootloaders match on the filename (the name stored inside the image is the
+stock one for exactly this reason). The receiver firmware is not touched: keep
 the `APP_LPM-10RX_V3.0.0_260416.bin` from FNIRSI's package. Requires V2.x.x hardware, like
 stock V2.0.7.
 
 ### First power-on checklist
 
+- Settings > About reads `Software:PN 1.0`.
 - Text everywhere is the new bold sans font, in Chinese mode too.
 - Length screen shows `NVP 69%` right of the Unit box; UP/DOWN change it and, after a
   test, the four readings follow.
@@ -125,8 +129,9 @@ so the factory state is bit-identical to stock.
 </div>
 
 The build input is FNIRSI's own image, which is **not in this repository**: download the
-official V2.0.7 package, unzip it, and put `LPM-10A-TX_V2.0.7_260610.bin` in
-`LPM-10A/Firmware File/`. Every tool checks its SHA-256
+official V2.0.7 package, unzip it, and put `LPM-10A-TX_V2.0.7_260610.bin` either in
+`LPM-10A/Firmware File/`, in a folder named `LPM-10A_FNIRSI_originals` next to the
+repository, or anywhere with `LPM10A_STOCK` pointing at it. Every tool checks its SHA-256
 (`29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b`) and refuses anything else.
 
 ```bash
@@ -135,8 +140,8 @@ pip install capstone unicorn        # pillow + pymupdf only to rebuild the fonts
 python test_thumb.py                # assembler self-test against Capstone
 python build.py --list              # the patch set
 python build.py                     # dry run: every byte it would change, disassembled
-python build.py --write             # emit LPM-10A-TX_V2.0.7-mod_260610.bin
-python verify.py                    # 92 checks
+python build.py --write             # emit LPM-10A-TX_PN1.0.bin
+python verify.py                    # 96 checks
 ```
 
 `build.py --only a,b` builds a subset; every patch is independent. `build.py` refuses to
@@ -154,6 +159,7 @@ What `verify.py` proves, section by section:
 | 11 | heap leak | both exit paths trapped at `vPortFree` |
 | 12–16 | NVP | 72 arithmetic vectors, key hook (clicks, repeat, clamps, other screens), message routing, rendered text, screen-entry draw |
 | 17 | fonts | the firmware's own glyph drawers render all 361 glyphs; pixels must equal the designed bitmaps |
+| 18 | identity | the version strings through the firmware's `sprintf`; the container name is byte-identical to stock |
 
 Each behavioural check runs the stock image too, so the report shows the defect and the fix
 side by side. The SDK internals (symbol database, assembler, cave allocator, font tool) are
@@ -164,13 +170,18 @@ documented in [`LPM-10A/Firmware File/sdk/README.md`](LPM-10A/Firmware%20File/sd
 ```
 LPM-10A/
   Firmware File/
-    LPM-10A-TX_V2.0.7-mod_260610.bin  PN Custom image (the build output)
+    LPM-10A-TX_PN1.0.bin              PN Custom image (the build output)
     LPM-10A-TX_V2.0.7_260610.bin      stock image: NOT included, put FNIRSI's copy here to build
     MOD-README.txt                    change list, hashes, flashing, checklist
     FORMULA-AUDIT.md                  every measurement formula, with verdicts
     sdk/                              the toolkit: patches, assembler, verifier, fonts
 docs/img/                             the images on this page
 ```
+
+## What next
+
+The prioritised list of what to test on hardware and what to build after that is in
+[`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Known limitations
 

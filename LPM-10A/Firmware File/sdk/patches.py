@@ -702,6 +702,30 @@ STOCK_FONT_SHA = {
 }
 
 
+# =====================================================================
+# Group: identity
+# =====================================================================
+
+VERSION = "PN 1.0"          # shown as "Software:PN 1.0" in About; max 7 characters
+
+
+@patch("version-string", f"Report the firmware version as {VERSION}",
+       risk="safe", group="identity")
+def p_version(img):
+    """
+    The About screen prints `Software:%s` with the string at 0x08011660 and
+    the UART boot log prints a second copy at 0x08012E6C ("Current Firmware
+    ...").  Both slots hold 7 characters.  Only these two user-visible
+    strings change: the container's internal image name
+    (APP_LPM-10A_V2.0.7_260610.bin) is what the bootloader checks before it
+    accepts an update, so it is left exactly as stock.
+    """
+    if len(VERSION.encode("ascii")) > 7:
+        raise PatchError("VERSION must be at most 7 characters")
+    img.set_string(0x08011660, VERSION)      # About screen
+    img.set_string(0x08012E6C, VERSION)      # boot log
+
+
 @patch("english-only", "Remove Chinese from the language menu",
        risk="untested", default=False, group="english")
 def p_english_only(img):

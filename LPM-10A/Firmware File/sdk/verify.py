@@ -23,6 +23,7 @@ Checks, in order:
  15  GUI message 0x3D routing and the rendered "NVP nn%" text
  16  NVP text drawn by the Length screen's header epilogue
  17  all three font tables rendered by the firmware's own glyph drawers
+ 18  version strings (About screen, boot log) and the untouched container name
 
 Every behavioural check runs the stock image too, so the report shows the
 before/after pair rather than a bare pass.
@@ -42,7 +43,7 @@ import patches                            # noqa: E402
 
 STOCK = require_stock(os.path.join(FW, "LPM-10A-TX_V2.0.7_260610.bin"))
 MOD = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
-    FW, "LPM-10A-TX_V2.0.7-mod_260610.bin")
+    FW, "LPM-10A-TX_PN1.0.bin")
 
 fails = 0
 
@@ -629,6 +630,17 @@ try:
     stock_px = draw_glyph(stock, 0x080171D4, 0, 0, ord("A"), 16)
     stock_tbl = fonts.unpack_table("ascii16", stock[0x08065D78 - S.APP_BASE + 0x1000:][:95 * 16])
     check(as_rows(stock_px, 8, 16) == stock_tbl[ord("A") - 0x20], "stock: harness reproduces the stock 'A' from the stock table")
+    print("\n18. identity: version strings and the bootloader-facing name")
+    for label, addr in (("About screen", 0x08011660), ("boot log", 0x08012E6C)):
+        e = Emu(mod)
+        r = e.run(SPRINTF, {"r0": 0x20003400, "r1": 0x08011668, "r2": addr}, count=20000)   # "Software:%s"
+        got = e.cstr(0x20003400)
+        check(got == f"Software:{patches.VERSION}", f'{label}: sprintf("Software:%s") -> "{got}"')
+    e = Emu(stock)
+    e.run(SPRINTF, {"r0": 0x20003400, "r1": 0x08011668, "r2": 0x08011660}, count=20000)
+    check(e.cstr(0x20003400) == "Software:V2.0.7", "stock: still reports V2.0.7", e.cstr(0x20003400))
+    check(mod[:0x20] == stock[:0x20], "container name unchanged for the bootloader",
+          mod[:0x20].split(b"\0")[0].decode())
 except ImportError:
     check(False, "unicorn not available")
 

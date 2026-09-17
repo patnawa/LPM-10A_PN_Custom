@@ -1,19 +1,21 @@
 ================================================================
- LPM-10A TX firmware V2.0.7-mod   (UNOFFICIAL community build)
+ LPM-10A PN Custom firmware  PN 1.0   (UNOFFICIAL build)
 ================================================================
 
-File      : LPM-10A-TX_V2.0.7-mod_260610.bin
+File      : LPM-10A-TX_PN1.0.bin
+Version   : PN 1.0  (Settings > About shows "Software:PN 1.0")
 Built from: LPM-10A-TX_V2.0.7_260610.bin  (official FNIRSI V2.0.7)
             sha256 29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b
-Result    : sha256 fb9e2e7336cba5d7020d20c7e5ab6663302477d37d1fcc4fe5fa1c2e5ae271f9
+Result    : sha256 6c1c8fa726857942e476f834b24cf94782db31fc6542dfa72e1f0baa7b67b1e0
 Size      : 389120 bytes (identical to stock)
-Changed   : 6420 bytes: 8132 of font data replaced in place, 588 bytes
+Changed   : 6430 bytes: 8132 of font data replaced in place, 588 bytes
             of new code in the unused tail of the last flash sector
             (payload_len in the header grows to match), the rest are
-            hooks and strings.
+            hooks and strings.  The image name stored inside the file
+            is left as stock because the bootloader checks it.
 
 NOT AN OFFICIAL FNIRSI RELEASE.  Verified by disassembly and CPU
-emulation (sdk/verify.py, 92 checks); NOT tested on hardware.
+emulation (sdk/verify.py, 96 checks); NOT tested on hardware.
 Use at your own risk.  Rebuild or audit it yourself with sdk/.
 
 The RX firmware APP_LPM-10RX_V3.0.0_260416.bin is NOT modified; use
@@ -24,7 +26,7 @@ Every measurement formula in the firmware was traced and checked;
 see FORMULA-AUDIT.md for the full list with verdicts.
 
 ----------------------------------------------------------------
- CHANGES  (mod 4, 2026-09-17)
+ CHANGES  (PN 1.0, 2026-09-17; development history mod 1..4)
 ----------------------------------------------------------------
 
 [FIXED] Auto Off switched the unit off in the middle of a cable trace.
@@ -38,7 +40,9 @@ see FORMULA-AUDIT.md for the full list with verdicts.
         presses.  That was wrong - stock does, on every key event -
         and that redundant patch has been removed.
 
-Carried over from mod 3:
+[CHANGED] Version reported as PN 1.0 (About screen and boot log).
+
+From mod 3:
 
 
 [ADDED] NVP calibration for length measurement.
@@ -69,7 +73,7 @@ Carried over from mod 3:
         its positions.  Both fonts are open-licensed (Ubuntu Font
         Licence 1.0 / Apache 2.0); see sdk/fonts.py.
 
-Carried over from mod 2:
+From mod 2:
 
 [CHANGED] Length is shown with one decimal (m / cm / ft).
 [FIXED] Length result stuck to the previous cable.
@@ -77,7 +81,7 @@ Carried over from mod 2:
 [CHANGED] Battery gauge has 10 steps instead of 4.
 [FIXED] 204 bytes of heap leaked on every settings save.
 
-Carried over from mod 1:
+From mod 1:
 
 [CHANGED] Boots straight to English.
 [CHANGED] Corrected machine-translated English text.
@@ -115,7 +119,7 @@ Carried over from mod 1:
   1. Power the tester off.
   2. Hold M + Power until the firmware update screen appears.
   3. Connect USB-C; a removable drive appears.
-  4. Copy LPM-10A-TX_V2.0.7-mod_260610.bin onto that drive.
+  4. Copy LPM-10A-TX_PN1.0.bin onto that drive.
   5. Do NOT unplug during the update.
   6. Long-press Power to shut down, then power on normally.
 
@@ -152,5 +156,5 @@ Carried over from mod 1:
  VERIFY THIS FILE
 ----------------------------------------------------------------
 
-  certutil -hashfile LPM-10A-TX_V2.0.7-mod_260610.bin SHA256
-  -> fb9e2e7336cba5d7020d20c7e5ab6663302477d37d1fcc4fe5fa1c2e5ae271f9
+  certutil -hashfile LPM-10A-TX_PN1.0.bin SHA256
+  -> 6c1c8fa726857942e476f834b24cf94782db31fc6542dfa72e1f0baa7b67b1e0

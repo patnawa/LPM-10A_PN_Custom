@@ -32,23 +32,37 @@ STOCK_HELP = """stock image not found:
 
 FNIRSI's firmware is not part of this repository.  Download the official
 LPM-10A V2.0.7 package from https://www.fnirsi.com (support / downloads),
-unzip it, and copy LPM-10A-TX_V2.0.7_260610.bin to the path above.
+unzip it, and either copy LPM-10A-TX_V2.0.7_260610.bin to the path above,
+put it in a folder named LPM-10A_FNIRSI_originals next to the repository,
+or point the LPM10A_STOCK environment variable at it.
 sha256 must be 29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b"""
+
+ORIGINALS_DIR = "LPM-10A_FNIRSI_originals"      # sibling of the repository root
 
 
 def require_stock(path):
-    """Return `path`, or exit with instructions if the stock image is absent."""
+    """Resolve the stock image: the given path, else $LPM10A_STOCK, else the
+    originals folder next to the repository.  Exits with instructions if none
+    exists, so the vendor file never has to live inside the project."""
     import os
     import sys
-    if not os.path.exists(path):
-        sys.exit(STOCK_HELP.format(path=path))
-    return path
+    name = os.path.basename(path)
+    here = os.path.dirname(os.path.abspath(__file__))          # .../sdk/lpm10a
+    repo = os.path.abspath(os.path.join(here, "..", "..", "..", ".."))
+    candidates = [path, os.environ.get("LPM10A_STOCK"),
+                  os.path.join(os.path.dirname(repo), ORIGINALS_DIR, name)]
+    for c in candidates:
+        if c and os.path.isfile(c):
+            if c != path:
+                print(f"stock image : {c}")
+            return c
+    sys.exit(STOCK_HELP.format(path=path))
 
 
 class Image:
     def __init__(self, path):
         self.path = require_stock(path)
-        self.data = bytearray(open(path, "rb").read())
+        self.data = bytearray(open(self.path, "rb").read())
         self.original = bytes(self.data)
         name = self.data[:0x20].split(b"\0")[0].decode()
         off, length, end = struct.unpack_from("<III", self.data, 0x20)

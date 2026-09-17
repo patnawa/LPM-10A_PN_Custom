@@ -33,13 +33,14 @@ Rebuilding the fonts (not needed for a build) also needs `pillow` and `pymupdf`.
 python test_thumb.py            # assembler self-test
 python build.py --list          # what patches exist
 python build.py                 # dry run: prints every byte it would change
-python build.py --write         # emit LPM-10A-TX_V2.0.7-mod_260610.bin
+python build.py --write         # emit LPM-10A-TX_PN1.0.bin
 python verify.py                # prove the result is what was intended
 ```
 
 The stock image `../LPM-10A-TX_V2.0.7_260610.bin` is **not part of the
 repository**: download FNIRSI's official V2.0.7 package and copy the file
-there. `build.py` refuses to run unless it hashes to the expected SHA-256, so
+there, or keep it in a folder named `LPM-10A_FNIRSI_originals` next to the
+repository, or set `LPM10A_STOCK` to its path (the tools try all three). `build.py` refuses to run unless it hashes to the expected SHA-256, so
 it can never be silently applied to a different release. `assets_out/` (the UI
 artwork exported from that image) and the `fonts_out/stock_*.png` glyph sheets
 are likewise not committed; `python assets.py export` and `python fonts.py
@@ -134,6 +135,7 @@ The assembler rejects anything it does not recognise rather than guessing, and
 | `batt-gauge` | low | ux | 10-step Li-ion battery gauge instead of 4 steps |
 | `settings-leak` | low | bugfix | Frees the 204-byte buffer leaked by every settings save |
 | `font-pro` | low | ux | Replaces all three fonts: 8x16 and 6x12 ASCII (Ubuntu Sans Mono) and the 171 Chinese glyphs (Droid Sans Fallback) |
+| `version-string` | safe | identity | About screen and boot log report `PN 1.0` (edit `VERSION` in patches.py, 7 characters max) |
 | `english-only` | untested | english | Removes Chinese from the language menu (off by default) |
 | `batt-grace` | low | tuning | Low-battery shutdown grace 30 s → 60 s (off by default) |
 
@@ -166,6 +168,7 @@ count inside its own declared range). Sections 4–17 execute the code:
 | 15 | NVP message | dispatcher routing for 0x10 / 0x3D / 0xFF; the text through the real `sprintf`, `gui_blit` args, colours |
 | 16 | screen entry | the picker epilogue draws the text and returns with the stack and r4–r7 intact |
 | 17 | fonts | the firmware's own glyph drawers render every glyph of all three tables; pixels must equal the designed bitmaps |
+| 18 | identity | both version strings through the firmware's `sprintf`; container name byte-identical to stock |
 
 Each behavioural check runs the stock image as well, so the report shows the
 defect and the fix side by side.
