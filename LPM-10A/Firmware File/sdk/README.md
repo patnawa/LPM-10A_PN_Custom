@@ -40,9 +40,10 @@ python verify.py                # prove the result is what was intended
 The stock image `../LPM-10A-TX_V2.0.7_260610.bin` is **not part of the
 repository**: download FNIRSI's official V2.0.7 package and copy the file
 there. `build.py` refuses to run unless it hashes to the expected SHA-256, so
-it can never be silently applied to a different release. `assets_out/` (the
-UI artwork exported from that image) is likewise not committed; regenerate it
-with `python assets.py export`.
+it can never be silently applied to a different release. `assets_out/` (the UI
+artwork exported from that image) and the `fonts_out/stock_*.png` glyph sheets
+are likewise not committed; `python assets.py export` and `python fonts.py
+export` regenerate them from the stock image.
 
 ---
 
