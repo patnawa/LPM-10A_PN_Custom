@@ -5,9 +5,9 @@
 **An unofficial, industrial-grade firmware for the FNIRSI LPM-10A network cable tester,
 built by patching the official V2.0.7 image and proving every change by CPU emulation.**
 
-![firmware](https://img.shields.io/badge/firmware-V2.0.7--mod3-orange)
+![firmware](https://img.shields.io/badge/firmware-V2.0.7--mod4-orange)
 ![patches](https://img.shields.io/badge/patches-10-blue)
-![verified](https://img.shields.io/badge/verify.py-84%20checks%20pass-brightgreen)
+![verified](https://img.shields.io/badge/verify.py-92%20checks%20pass-brightgreen)
 ![hardware](https://img.shields.io/badge/hardware%20test-pending-red)
 ![license](https://img.shields.io/badge/tooling%20license-MIT-lightgrey)
 
@@ -19,7 +19,7 @@ built by patching the official V2.0.7 image and proving every change by CPU emul
 
 > **Status: verified by emulation, not yet flashed to a real unit.**
 > Every change was checked by disassembly and by running the firmware's own code under a
-> Cortex-M emulator (84 checks). That proves the code does what each patch says; it does
+> Cortex-M emulator (92 checks). That proves the code does what each patch says; it does
 > not prove the LCD looks right. Flash at your own risk, and read
 > [How to go back to stock](#going-back-to-stock) first.
 
@@ -27,8 +27,8 @@ built by patching the official V2.0.7 image and proving every change by CPU emul
 
 The LPM-10A is a capable tester (Motorcomm YT8531 PHY, TDR length, PoE, wiremap) let down
 by its firmware: length shown in whole metres, no cable calibration, a low-battery
-shutdown armed by a single noisy ADC sample, an Auto-Off that switched the unit off while
-it was in use, a heap leak on every settings save, and the thin serif "dev-board" font.
+shutdown armed by a single noisy ADC sample, an Auto-Off that cut cable-tracing sessions
+short, a heap leak on every settings save, and the thin serif "dev-board" font.
 There is no vendor source, so this project works on the shipped binary: it disassembles
 it, adds code in an unused flash tail, re-assembles, and verifies the result in place.
 
@@ -41,7 +41,7 @@ it, adds code in an unused flash tail, re-assembles, and verifies the result in 
 | Length result | a new reading inside the tolerance band was replaced by the previous cable's value | the measured value is always shown |
 | Low battery | one sample < 3150 mV starts an uncancellable 30 s shutdown | needs 3 consecutive samples; cancels when the pack recovers ≥ 3250 mV |
 | Battery gauge | 4 steps | 10-step Li-ion curve, red at ≤ 20 % |
-| Auto Off | counted from power-on, never reset by keys | any key press resets it |
+| Auto Off | keeps counting while the SCAN tone or FLASH blink is running, so a trace ends with the unit switching itself off | held (and restarted) while a tone or blink session is active; unchanged elsewhere |
 | Settings save | 204 bytes leaked per save | freed on both exit paths |
 | Fonts | thin serif 8×16 ASCII, Song-style Chinese | **Ubuntu Sans Mono** (8×16, 6×12) and **Droid Sans Fallback** (16×16), both open-licensed |
 | Language | Chinese/English picker on first boot | boots to English; both languages kept, machine-translated strings corrected |
@@ -73,7 +73,7 @@ in the same cells so no screen layout changes.
 1. Verify the download:
    ```
    certutil -hashfile LPM-10A-TX_V2.0.7-mod_260610.bin SHA256
-   e16f289eb7b6df066e666d4a4bb35d7595c8f66e0968d63aece413ae632534e8
+   fb9e2e7336cba5d7020d20c7e5ab6663302477d37d1fcc4fe5fa1c2e5ae271f9
    ```
 2. Power the tester off. Hold **M + Power** until the firmware update screen appears.
 3. Connect USB-C; a removable drive appears.
@@ -136,7 +136,7 @@ python test_thumb.py                # assembler self-test against Capstone
 python build.py --list              # the patch set
 python build.py                     # dry run: every byte it would change, disassembled
 python build.py --write             # emit LPM-10A-TX_V2.0.7-mod_260610.bin
-python verify.py                    # 84 checks
+python verify.py                    # 92 checks
 ```
 
 `build.py --only a,b` builds a subset; every patch is independent. `build.py` refuses to
@@ -147,7 +147,7 @@ What `verify.py` proves, section by section:
 | § | check | how |
 |---|---|---|
 | 1–3 | container, byte footprint, full disassembly inventory | any byte changed without being declared by a patch fails |
-| 4–5 | auto-off reset, factory defaults | run the functions, read the counters |
+| 4–5 | auto-off hold, factory defaults | a key event through the stock dispatcher (proves stock already resets on keys); the 1 s housekeeping in SCAN/FLASH with the session flags on and off |
 | 6–7 | unit conversion, on-screen text | 36 vectors; the text comes out of the firmware's own `sprintf` |
 | 8 | sticky result | 50 m previous, 52 m readings: stock keeps 50, mod stores 52 |
 | 9–10 | battery debounce and gauge | sample sequences, ADC + GPIO for the cancel path, 18-point curve |
@@ -163,7 +163,6 @@ documented in [`LPM-10A/Firmware File/sdk/README.md`](LPM-10A/Firmware%20File/sd
 
 ```
 LPM-10A/
-  README.txt, CHANGELOG.txt           FNIRSI's release notes for V2.0.7
   Firmware File/
     LPM-10A-TX_V2.0.7-mod_260610.bin  PN Custom image (the build output)
     LPM-10A-TX_V2.0.7_260610.bin      stock image: NOT included, put FNIRSI's copy here to build

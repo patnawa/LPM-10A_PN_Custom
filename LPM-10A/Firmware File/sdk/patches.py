@@ -32,28 +32,66 @@ def patch(pid, title, risk, default=True, group="misc"):
 # Group: correctness fixes
 # =====================================================================
 
-@patch("autooff-keyreset", "Auto Off no longer fires while the unit is in use",
+@patch("autooff-hold", "Auto Off is held while a SCAN tone or FLASH blink session is running",
        risk="low", group="bugfix")
-def p_autooff(img):
+def p_autooff_hold(img):
     """
-    key_activity_notify() (0x080116BC) runs on every processed key action.  It
-    refreshed the backlight-dim timer at 0x20000150 but never cleared the
-    auto-off idle counter at 0x20000178, so Auto Off counted from power-on
-    rather than from the last user input.
+    Stock already resets the auto-off idle counter on every key event
+    (Action_key_Process ends with autooff_timer_reset, 0x08014ACE) and after
+    every Length / Speed result.  What it never does is pause the counter
+    while the unit is deliberately left alone to do a job: the SCAN tone and
+    the FLASH port-blink keep running while home_1s_housekeeping counts, so
+    with Auto Off at 5 / 10 / 15 min the tester switches itself off in the
+    middle of a cable trace.  Professional toners keep the tone alive until
+    it is stopped.
 
-    r1 already holds 0x20000150 at the tail of the function and the counter is
-    at r1+0x28, so the reset fits in the 6 bytes of dead tail (nop + branch +
-    alignment padding) without moving anything.
+    home_1s_housekeeping (0x0800F968, once per second) reads the system
+    state and stops counting when it is 0 (OFF).  The `movs r0,#0; bl
+    get_sysState` that fetches the state is redirected to a cave routine that
+    returns 0 instead of the real state while
+
+        state == SCAN  (5) and scan_state[0] != 0      (tone enabled), or
+        state == FLASH (8) and test_busy_flags[1] == 2 (blink running),
+
+    and in that case also clears the idle counter, so the full timeout is
+    available again once the session ends.  Everywhere else the state is
+    returned unchanged and the behaviour is stock.
+
+    (Mod 1's `autooff-keyreset` patch, which this replaces, added a second
+    key-press reset that stock did not need.  Its description was wrong.)
     """
     from lpm10a.thumb import assemble
-    site = 0x080116D6
-    code = assemble(site, """
+
+    hook = img.emit_code("""
+    autooff_state:              ; -> r0 = sysState, or 0 while a tone / blink session is running
+            push {r4, lr}
             movs r0, #0
-            strh r0, [r1, #0x28]     ; auto_off_ctr = 0
-            b    0x080116C8          ; -> pop {r4, pc}
-    """)
-    assert len(code) == 6
-    img.poke(site, "00bf f6e7 0000", code, "reset auto-off idle timer on key input")
+            bl   get_sysState
+            mov  r4, r0
+            cmp  r0, #5             ; SCAN
+            bne  not_scan
+            ldr  r1, =scan_state
+            ldrb r1, [r1]           ; [0] = tone enabled
+            cmp  r1, #0
+            beq  out
+            b    hold
+    not_scan:
+            cmp  r0, #8             ; FLASH
+            bne  out
+            ldr  r1, =test_busy_flags
+            ldrb r1, [r1, #1]       ; 2 = port blink running
+            cmp  r1, #2
+            bne  out
+    hold:   movs r4, #0             ; report OFF: no idle counting this second
+            ldr  r1, =auto_off_ctr
+            strh r4, [r1]           ; and restart the timeout for afterwards
+    out:    mov  r0, r4
+            pop  {r4, pc}
+    """, why="auto-off: hold while SCAN tone / FLASH blink is active")
+
+    site = 0x0800F974
+    img.poke(site, "0020 fff7f5fe", assemble(site, f"bl 0x{hook:08X}\n nop"),
+             "home_1s_housekeeping: state via the hold check")
 
 
 # =====================================================================

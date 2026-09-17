@@ -113,7 +113,8 @@ FUNCS = {
     0x0800F968: "home_1s_housekeeping",   # auto-off countdown
     0x0800F9C0: "autooff_timer_reset",    # auto_off_ctr = 0
     0x0800F9CC: "backlight_dim_update",
-    0x080116BC: "key_activity_notify",    # runs on every key action
+    0x080116BC: "key_activity_notify",    # runs on every dispatched action (backlight dim timer)
+    # note: Action_key_Process (0x080149FC) ends with autooff_timer_reset for EVERY key event
     0x080130A8: "test_in_progress",       # 1 while a measurement is running
 
     # --- power / battery -----------------------------------------------------
@@ -240,7 +241,7 @@ VARS = {
     0x20000076: ("leng_led_phase", 1),
     0x200000AC: ("poe_task_handle", 4),
     0x200000B0: ("poe_queue", 4),
-    0x200000D0: ("scan_state", 4),
+    0x200000D0: ("scan_state", 4),            # [0] tone enabled, [1] cadence 1/2, [3] display toggle
     0x200000D8: ("scan_tick", 4),
     0x2000013C: ("sysState", 1),              # 0=off 2=home 4..11=function screens
     0x20000140: ("home_task_handle", 4),
@@ -264,7 +265,7 @@ VARS = {
     0x20000200: ("xFreeBytesRemaining", 4),
     0x2000020C: ("xNumberOfSuccessfulFrees", 4),
     0x2000021C: ("cnt_baseline", 0x24),       # wiremap open-circuit reference
-    0x200002B4: ("test_busy_flags", 2),       # [0]=flash busy [1]=leng/speed busy
+    0x200002B4: ("test_busy_flags", 2),       # [0]=length 0/1/2/3 [1]=speed/flash: 1 running, 2 = FLASH blink active, 3 done
     0x200002B6: ("phy_status_reg11", 2),      # last PHY reg 0x11 read (speed/duplex)
     0x200002B8: ("leng_last_result_cm", 8),   # 4 channels
     0x200002C0: ("leng_unit_idx", 1),         # index into unit table at 0x2000005C (ZI -> 0 at boot)

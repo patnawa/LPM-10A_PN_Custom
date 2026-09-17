@@ -123,7 +123,7 @@ The assembler rejects anything it does not recognise rather than guessing, and
 
 | id | risk | group | what |
 |---|---|---|---|
-| `autooff-keyreset` | low | bugfix | Auto Off no longer powers the unit down while it is being used |
+| `autooff-hold` | low | bugfix | Auto Off is held (and restarted) while a SCAN tone or FLASH blink session is running; stock already resets it on every key event |
 | `boot-english` | low | english | Boot straight to English; no Chinese/English picker |
 | `english-strings` | safe | english | Corrects the machine-translated UI text |
 | `length-decimal` | low | measure | Length in **m / cm / ft with one decimal**, scaled by the NVP setting; the unit is remembered (stock: whole metres, inches, and cm forced on every screen entry) |
@@ -151,7 +151,7 @@ count inside its own declared range). Sections 4–17 execute the code:
 
 | § | check | how |
 |---|---|---|
-| 4 | auto-off reset on key | run `key_activity_notify`, read the idle counter |
+| 4 | auto-off | a key event through `Action_key_Process` resets the counter on stock too (the corrected claim); the 1 s housekeeping holds in SCAN/FLASH only while the session flags are set |
 | 5 | factory defaults | run the defaults writer, read the settings page image |
 | 6 | unit conversion | run `length_convert` for 12 values × 3 units against a Python reference |
 | 7 | on-screen text | run the cave formatter **through the firmware's own `sprintf`** and read the string |
@@ -248,7 +248,9 @@ they need a rebuild from vendor source:
   never report "unstable"; the intended threshold is not recoverable.
 
 Fixed since the first mod: single-sample low-battery shutdown, the settings
-save heap leak, the sticky length result, whole-metre display.
+save heap leak, the sticky length result, whole-metre display, Auto Off
+during tone / blink sessions. Mod 1's `autooff-keyreset` was removed: stock
+already resets the idle counter at the end of `Action_key_Process`.
 
 ## Fonts
 

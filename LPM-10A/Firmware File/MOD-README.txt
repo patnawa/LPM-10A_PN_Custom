@@ -5,15 +5,15 @@
 File      : LPM-10A-TX_V2.0.7-mod_260610.bin
 Built from: LPM-10A-TX_V2.0.7_260610.bin  (official FNIRSI V2.0.7)
             sha256 29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b
-Result    : sha256 e16f289eb7b6df066e666d4a4bb35d7595c8f66e0968d63aece413ae632534e8
+Result    : sha256 fb9e2e7336cba5d7020d20c7e5ab6663302477d37d1fcc4fe5fa1c2e5ae271f9
 Size      : 389120 bytes (identical to stock)
-Changed   : 6368 bytes: 8132 of font data replaced in place, 528 bytes
+Changed   : 6420 bytes: 8132 of font data replaced in place, 588 bytes
             of new code in the unused tail of the last flash sector
             (payload_len in the header grows to match), the rest are
             hooks and strings.
 
 NOT AN OFFICIAL FNIRSI RELEASE.  Verified by disassembly and CPU
-emulation (sdk/verify.py, 84 checks); NOT tested on hardware.
+emulation (sdk/verify.py, 92 checks); NOT tested on hardware.
 Use at your own risk.  Rebuild or audit it yourself with sdk/.
 
 The RX firmware APP_LPM-10RX_V3.0.0_260416.bin is NOT modified; use
@@ -24,8 +24,22 @@ Every measurement formula in the firmware was traced and checked;
 see FORMULA-AUDIT.md for the full list with verdicts.
 
 ----------------------------------------------------------------
- CHANGES  (mod 3, 2026-09-17)
+ CHANGES  (mod 4, 2026-09-17)
 ----------------------------------------------------------------
+
+[FIXED] Auto Off switched the unit off in the middle of a cable trace.
+        The idle timer kept counting while the SCAN tone or the FLASH
+        port-blink was running, so with Auto Off at 5 / 10 / 15 min
+        the tester powered itself down mid-trace.  The timer is now
+        held, and restarted, while a tone or blink session is active.
+        Everywhere else Auto Off behaves exactly as stock.
+
+        Correction: mod 1 claimed stock never reset Auto Off on key
+        presses.  That was wrong - stock does, on every key event -
+        and that redundant patch has been removed.
+
+Carried over from mod 3:
+
 
 [ADDED] NVP calibration for length measurement.
         Professional testers let you set the cable's Nominal Velocity
@@ -65,7 +79,6 @@ Carried over from mod 2:
 
 Carried over from mod 1:
 
-[FIXED] Auto Off powered the unit down while it was in use.
 [CHANGED] Boots straight to English.
 [CHANGED] Corrected machine-translated English text.
 
@@ -113,6 +126,8 @@ Carried over from mod 1:
 
   First things to check on a real unit (none of this has been):
     - Text everywhere is the new bold sans font; Chinese mode too.
+    - SCAN with the tone on, or FLASH blinking, for longer than the
+      Auto Off setting: the unit must stay on.
     - Length screen: "NVP 69%" right of the Unit box; UP / DOWN
       change it and, after a test, the four readings follow.
     - Leave the Length screen and come back: unit and NVP kept.
@@ -138,4 +153,4 @@ Carried over from mod 1:
 ----------------------------------------------------------------
 
   certutil -hashfile LPM-10A-TX_V2.0.7-mod_260610.bin SHA256
-  -> e16f289eb7b6df066e666d4a4bb35d7595c8f66e0968d63aece413ae632534e8
+  -> fb9e2e7336cba5d7020d20c7e5ab6663302477d37d1fcc4fe5fa1c2e5ae271f9

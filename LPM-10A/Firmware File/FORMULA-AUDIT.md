@@ -241,7 +241,7 @@ PC10 low = charging, PA15 low = standby (charge complete). GPIO reads. **OK**
 
 | item | value | verdict |
 |---|---|---|
-| Auto-off table 0x08064D72 | `{0, 300, 600, 900}` s = OFF / 5 / 10 / 15 min | **OK** (and now reset by any key: `autooff-keyreset`) |
+| Auto-off table 0x08064D72 | `{0, 300, 600, 900}` s = OFF / 5 / 10 / 15 min; stock resets the counter on every key event (`Action_key_Process` tail) | **FIXED**: the counter also ran during SCAN tone / FLASH blink sessions; `autooff-hold` pauses it there |
 | Battery table 0x08064D7A | `{4000, 3800, 3600}` mV | superseded by `batt-gauge` |
 | Backlight dim | `setting × 200 ms` of inactivity (`backlight_dim_update`) | **OK** |
 | Watchdog `iwdg_init` 0x0801B17E | writes **prescaler** = /32 (the function the SDK had named `iwdg_set_reload` writes IWDG+0x04 = PR, not RLR); RLR stays 0xFFF → ≈ 3.3 s at 40 kHz LSI | **NOTE**: a hard fault resets the unit in ~3.3 s |

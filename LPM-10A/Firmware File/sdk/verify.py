@@ -9,7 +9,7 @@ Checks, in order:
   2  only the intended bytes differ from stock
   3  the whole image still disassembles into the same function inventory
      (a desync here would mean a patch shifted or corrupted code)
-  4  behavioural check of the auto-off fix under CPU emulation
+  4  auto-off: stock key-path reset (corrected claim) and the hold during tone / blink
   5  behavioural check of the boot-language default under CPU emulation
   6  length unit conversion (m / cm / ft, fixed point) against a reference model
   7  length on-screen text, produced by the firmware's own sprintf
@@ -149,7 +149,7 @@ except ImportError:
     check(False, "capstone not available")
 
 # ---------------------------------------------------------------- 4 & 5
-print("\n4. behaviour under emulation")
+print("\n4. auto-off: what stock really does, and the hold during tone / blink")
 try:
     from unicorn import Uc, UC_ARCH_ARM, UC_MODE_THUMB, UC_MODE_MCLASS
     from unicorn.arm_const import UC_ARM_REG_SP, UC_ARM_REG_LR, UC_ARM_REG_R0, UC_ARM_REG_PC
@@ -171,18 +171,56 @@ try:
         uc.emu_start(entry | 1, MAGIC, count=400)
         return uc
 
-    def setup_idle(uc):
-        uc.mem_write(0x2000013C, b"\x02")                       # sysState = HOME
+    # 4a. the corrected fact: stock resets the idle counter on every key event
+    #     (Action_key_Process -> autooff_timer_reset), so no key-reset patch is needed.
+    KEYBUF4 = 0x20003300
+    for label, buf in (("stock", stock), ("mod", mod)):
+        uc = Uc(UC_ARCH_ARM, UC_MODE_THUMB | UC_MODE_MCLASS)
+        o, ln = struct.unpack_from("<II", buf, 0x20)
+        uc.mem_map(0x08000000, 0x80000); uc.mem_map(0x20000000, 0x10000); uc.mem_map(MAGIC & ~0xFFF, 0x1000)
+        uc.mem_write(S.APP_BASE, buf[o:o + ln])
+        uc.mem_write(0x2000013C, bytes([4]))                     # sysState = CABLE (UP is unbound there)
         uc.mem_write(0x20000178, struct.pack("<H", 250))        # idle 250 s
-        uc.mem_write(0x200001A0, struct.pack("<I", 1234567))    # ms clock
-
-    for label, buf, want in (("stock", stock, 250), ("mod", mod, 0)):
-        uc = run(buf, S.FUNCS and 0x080116BC, setup_idle, r0=0x64)
+        uc.mem_write(KEYBUF4, bytes([2, 3]))                     # UP, click
+        uc.reg_write(UC_ARM_REG_SP, 0x2000E000); uc.reg_write(UC_ARM_REG_LR, MAGIC | 1)
+        uc.reg_write(UC_ARM_REG_R0, KEYBUF4)
+        uc.emu_start(0x080149FC | 1, MAGIC, count=200000)
         ctr = struct.unpack("<H", uc.mem_read(0x20000178, 2))[0]
-        dim = struct.unpack("<I", uc.mem_read(0x20000150, 4))[0]
-        ok = ctr == want and dim == 1234567 and uc.reg_read(UC_ARM_REG_PC) == (MAGIC & ~1)
-        check(ok, f"key press, {label:5}: auto-off 250 -> {ctr}",
-              "(expected: unchanged)" if want else "(expected: reset)")
+        check(ctr == 0 and uc.reg_read(UC_ARM_REG_PC) == (MAGIC & ~1),
+              f"{label:5}: any key event through Action_key_Process resets auto-off 250 -> {ctr}")
+
+    # 4b. the fix: the once-per-second housekeeping holds while a session runs
+    HOUSEKEEP = 0x0800F968
+    def tick(buf, state, tone=0, busy1=0, ctr=100, idx=1):
+        uc = Uc(UC_ARCH_ARM, UC_MODE_THUMB | UC_MODE_MCLASS)
+        o, ln = struct.unpack_from("<II", buf, 0x20)
+        uc.mem_map(0x08000000, 0x80000); uc.mem_map(0x20000000, 0x10000); uc.mem_map(MAGIC & ~0xFFF, 0x1000)
+        uc.mem_write(S.APP_BASE, buf[o:o + ln])
+        uc.mem_write(0x20000C78 + 0xA2, bytes([idx]))            # auto_off_idx (1 = 5 min)
+        uc.mem_write(0x2000013C, bytes([state]))
+        uc.mem_write(0x200000D0, bytes([tone]))                  # scan_state[0]: tone enabled
+        uc.mem_write(0x200002B5, bytes([busy1]))                 # test_busy_flags[1]: 2 = blink running
+        uc.mem_write(0x20000178, struct.pack("<H", ctr))
+        uc.reg_write(UC_ARM_REG_SP, 0x2000E000); uc.reg_write(UC_ARM_REG_LR, MAGIC | 1)
+        uc.emu_start(HOUSEKEEP | 1, MAGIC, count=5000)
+        return struct.unpack("<H", uc.mem_read(0x20000178, 2))[0]
+    cases = [  # (state, tone, busy1, stock expected, mod expected, label)
+        (5, 1, 0, 101, 0,   "SCAN, tone on         "),
+        (5, 0, 0, 101, 101, "SCAN, tone off        "),
+        (8, 0, 2, 101, 0,   "FLASH, blink running  "),
+        (8, 0, 0, 101, 101, "FLASH, blink finished "),
+        (2, 1, 2, 101, 101, "HOME (flags stale)    "),
+        (7, 0, 0, 101, 101, "LENGTH                "),
+    ]
+    for state, tone, busy1, want_s, want_m, label in cases:
+        got_s, got_m = tick(stock, state, tone, busy1), tick(mod, state, tone, busy1)
+        check((got_s, got_m) == (want_s, want_m),
+              f"{label} idle 100 s -> stock {got_s:3}, mod {got_m:3}",
+              "(held, counter restarted)" if want_m == 0 else "(counts as before)")
+    got = tick(mod, 5, 1, 0, ctr=299)
+    check(got == 0, "SCAN tone on at 299 s of a 300 s timeout: no power-off, counter cleared", f"{got}")
+    got = tick(mod, 5, 1, 0, idx=0)
+    check(got == 100, "Auto Off = OFF: routine returns before the hook, counter untouched", f"{got}")
 
     print("\n5. factory defaults under emulation")
     for label, buf, want in (("stock", stock, 1), ("mod", mod, 0)):
