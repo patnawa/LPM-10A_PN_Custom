@@ -108,7 +108,7 @@ see FORMULA-AUDIT.md for the full list with verdicts.
 
         Calibrate: short cable (3 m) -> set Zero; long cable (15 m+)
         -> set NVP; re-check the short one.  On the unit tested expect
-        Zero around 0.5 m and NVP around 68 %.
+        Zero around 0.4 m and NVP around 68 %.
 
         Below about 2 m the PHY's value is unreliable (1 m came back
         as 2.4 m or as "Out of range"); the stock blind zone, which
@@ -219,7 +219,7 @@ From mod 1:
 
   Checked on a real unit up to PN 2.1 (2026-09-18): the bootloader
   accepted the file under its own name; every item below passed, and
-  Zero 0.5 m / NVP 68 % read a 2.9 m cable right.
+  Zero 0.4 m / NVP 68 % read a 2.9 m cable right.
     - Cable Test: Back returns to the Switch / Far end choice from
       the wiremap layout and from a result; the red error line is
       readable above the button.

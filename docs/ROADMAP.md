@@ -49,7 +49,7 @@ a 1 m cable read 2.4 m or *Out of range*. Conclusions:
 - the error is mostly a fixed **offset of roughly +0.4 to +0.6 m** (the PHY's own
   signal path) plus a scale within a few percent; NVP alone cannot fix both.
   PN 1.1 adds a **Zero** setting (`length = (raw − Zero) × NVP / 69`); this unit
-  should calibrate around Zero 0.5 m, NVP 68 %,
+  calibrates at Zero 0.4 m, NVP 68 % (0.5 m before the four-run average),
 - below about 2 m the PHY's value is unusable, so the ≤ 2 m blind zone stays,
 - the ±0.2–0.3 m spread between readings is the PHY's resolution; PN 1.2 averages
   four runs to halve it (confirmed need: after calibration the 14 m cable still

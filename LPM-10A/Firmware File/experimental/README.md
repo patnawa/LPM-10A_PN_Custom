@@ -15,7 +15,7 @@ On the tested unit a 1 m cable came back as raw 2.0–2.4 m or as nothing: the
 PHY's short-range result exists but is unreliable, and stock discards it
 below 2 m. To find out whether short cables can be measured at all:
 
-1. Flash the experimental image. Keep Zero and NVP as calibrated (0.5 m / 68 %).
+1. Flash the experimental image. Keep Zero and NVP as calibrated (0.4 m / 68 %).
 2. Measure cables of known length 0.5, 1.0, 1.5, 2.0 and 3.0 m, five times each,
    far end unplugged, and record all four pairs each time.
 3. Send the table. If the readings are monotonic and repeatable (even if

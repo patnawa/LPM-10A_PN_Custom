@@ -139,7 +139,8 @@ remove: on the unit measured, at NVP 69 %, a 2.9 m cable read 3.1–3.5 m (mean
 another, and a 14 m cable read 14.4–15.0 m (mean 14.7). Fitting the means gives
 reading ≈ 1.00–1.02 × length + 0.4–0.6 m; the ±0.2 m spread is the PHY's own
 resolution. As a worked example, raw 3.34 m / 14.7 m with Zero 0.4 m and NVP
-67 % read 2.9 m / 13.9 m (68 %: 14.1 m), which verify.py §12 checks. A 1 m cable returned 2.4 m or nothing, so the ≤ 2 m blind zone
+67 % read 2.9 m / 13.9 m (68 %: 14.1 m), which verify.py §12 checks; the unit
+indeed settled at Zero 0.4 m / NVP 68 % once PN 1.2's four-run average was in. A 1 m cable returned 2.4 m or nothing, so the ≤ 2 m blind zone
 (§1.2) is genuine and is kept.
 
 69 % is the reference: the PHY's own calibration, whatever velocity it

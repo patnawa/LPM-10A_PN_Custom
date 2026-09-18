@@ -25,7 +25,7 @@ on hardware on 2026-09-18.**
 > **Status: PN 2.1 passed every function on a real unit on 2026-09-18**: the Thai interface
 > on every screen, the two Cable Test fixes (Back returns to the Switch / Far end choice; the
 > red "Result error!!" is no longer hidden under the Test Retry button), and everything
-> from PN 1.x (Zero 0.5 m / NVP 68 % read a 2.9 m cable right). Verified by emulation too:
+> from PN 1.x (Zero 0.4 m / NVP 68 % read a 2.9 m cable right). Verified by emulation too:
 > 181 checks, 56 screen states compared pixel for pixel. What still fails is the PHY's own
 > limit, not the firmware: cables of about 2 m and under cannot be measured, see
 > [Known limitations](#known-limitations).
@@ -180,7 +180,7 @@ reason PN runs the diagnostic four times and averages.
 
 Two things in the tested unit's readings were not NVP:
 
-- a constant **+0.5 m at every length**, the delay through the PHY's own front end and the
+- a constant **+0.4 m at every length**, the delay through the PHY's own front end and the
   connector before the pulse reaches the cable. A factor cannot remove a constant, so PN 1.1
   added **Zero**, an offset subtracted before the NVP scaling;
 - the **blind zone**: below about 2 m the echo returns while the outgoing pulse is still
@@ -221,7 +221,9 @@ more):
 2. Measure the long cable. Long-press OK to select NVP, then UP / DOWN until it reads right.
 3. Re-check the short cable; adjust Zero once more if needed.
 
-On the unit measured, Zero 0.5 m and NVP 68 % read the 2.9 m cable right; every unit and
+On the unit measured, Zero 0.4 m and NVP 68 % read the 2.9 m cable right (with the four-run
+average of PN 1.2 the earlier 0.5 m settled to 0.4 m, exactly what the two-cable formula
+below predicts); every unit and
 cable batch will differ, which is the point of having the controls. The remaining
 reading-to-reading scatter (±0.3 m at 14 m) is the PHY's, not the calibration's; PN 1.2
 averages four runs per pair to halve it. Below about 2 m the PHY's
@@ -271,10 +273,10 @@ Zero = R₁ − L₁ × 69 / NVP
 ```
 
 Tested unit: L₁ = 2.9 m read 3.34 m, L₂ = 14 m read 14.7 m → NVP ≈ 67 %, Zero ≈ 0.4 m;
-dialled in on the screen it settled at **Zero 0.5 m, NVP 68 %**, which is within the
-PHY's per-run scatter (±0.2 m at 3 m, ±0.3 m at 14 m). Worked example with those settings
-and the diagram's run mean: 1470 cm → 1470 − 50 = 1420 → (1420 × 68 + 34) / 69 = 1399 →
-(1399 + 5) / 10 = 140 → **14.0 m**.
+dialled in on the screen it settled at **Zero 0.4 m, NVP 68 %** (0.5 m before the four-run
+average, both within the PHY's per-run scatter of ±0.2 m at 3 m and ±0.3 m at 14 m). Worked
+example with those settings and the diagram's run mean: 1470 cm → 1470 − 40 = 1430 →
+(1430 × 68 + 34) / 69 = 1409 → (1409 + 5) / 10 = 141 → **14.1 m**.
 
 Stock had none of steps 4–6: its only re-run was a single retry when the four post-vote
 pairs were not all identical, showing that second run as is. It showed whole metres
