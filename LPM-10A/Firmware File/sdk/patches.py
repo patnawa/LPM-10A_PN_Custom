@@ -1056,6 +1056,24 @@ def p_english_only(img):
 # Group: tuning
 # =====================================================================
 
+@patch("blind-zone-50cm", "EXPERIMENT: lower the length blind zone from 2.0 m to 0.5 m",
+       risk="untested", default=False, group="tuning")
+def p_blind_zone(img):
+    """
+    Stock zeroes every pair whose raw diagnostic result is <= 200 cm
+    (0x0801253A: cmp r0,#0xC8; bgt), so cables of 2 m or less read "Out of
+    range".  On the tested unit a 1 m cable came back as raw ~200..240 cm
+    or nothing, i.e. the PHY's short-range result is unreliable but not
+    absent.  This experiment moves the cut to 50 cm so that whatever the
+    PHY reports for 0.5..2 m cables becomes visible (after the four-run
+    average, Zero and NVP).  Purpose: measure cables of 0.5, 1, 1.5, 2 and
+    3 m several times each and decide whether a short-range correction is
+    possible.  Not in the default build: below 2 m the numbers are not to
+    be trusted until that data exists.
+    """
+    img.poke(0x0801253A, "c828", bytes.fromhex("3228"), "blind zone: raw <= 200 cm -> raw <= 50 cm")
+
+
 @patch("batt-grace", "Low-battery shutdown grace 30s -> 60s",
        risk="low", default=False, group="tuning")
 def p_batt_grace(img):

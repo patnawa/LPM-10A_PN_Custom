@@ -5,6 +5,7 @@ LPM-10A firmware build tool.
     python build.py --list                 show available patches
     python build.py                        dry run with the default patch set
     python build.py --write                emit LPM-10A-TX_PN1.3.bin
+    python build.py --with blind-zone-50cm --out ../experimental/x.bin --write
     python build.py --only a,b --write     build a specific set
     python build.py --all --write          include patches marked untested
 
@@ -43,6 +44,7 @@ def main():
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--all", action="store_true", help="include risk=untested")
     ap.add_argument("--only", help="comma-separated patch ids")
+    ap.add_argument("--with", dest="extra", help="comma-separated non-default patch ids to add to the default set")
     ap.add_argument("--out", default=OUT)
     args = ap.parse_args()
 
@@ -63,7 +65,12 @@ def main():
             print(f"unknown patch id(s): {', '.join(sorted(missing))}")
             return 2
     else:
-        sel = [p for p in patches.REGISTRY if p.default or args.all]
+        extra = {x.strip() for x in args.extra.split(",")} if args.extra else set()
+        missing = extra - {p.pid for p in patches.REGISTRY}
+        if missing:
+            print(f"unknown patch id(s): {', '.join(sorted(missing))}")
+            return 2
+        sel = [p for p in patches.REGISTRY if p.default or args.all or p.pid in extra]
 
     # ---- load and check provenance
     img = Image(STOCK)
