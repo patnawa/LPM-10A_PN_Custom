@@ -16,8 +16,10 @@ hold during FLASH, which PN 1.0–2.2 keyed on the wrong state number, actually 
 flashed the same day: the bootloader took the 4 KB longer file, but the port blink stopped
 after three or four cycles. PN 2.4 (the blink re-asserts the power-up while waiting and
 power-cycles the PHY again after 4 s without a link) was flashed the same day and its FLASH
-passed: the blink keeps going, the tester's LED orange during the session. The PoE screen's
-report is still open, and the on / off times seen on the switch would be welcome.
+passed: the blink keeps going, the tester's LED orange during the session. The PoE screen
+could not be tested with a supply (no PoE switch or injector available); its no-supply path
+("Detecting..." → "No PoE") needs no equipment and is the one still worth a look. The on /
+off times seen on the switch during FLASH would be welcome too.
 
 ### Earlier: PN 1.0 first power-on
 

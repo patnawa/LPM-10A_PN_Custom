@@ -35,8 +35,9 @@ PN 2.3 was flashed the same day: the bootloader took the longer file,
 but its port blink stopped after three or four cycles; PN 2.4 fixed
 it and its FLASH passed on the unit the same day (the blink keeps
 going, the tester's LED shows orange during the session).  The PoE
-screen still awaits its report.  Use at your own risk.  Rebuild or
-audit it yourself with sdk/.
+screen's supply paths could not be tested (no PoE switch or injector
+at hand) and stay emulation-verified only.  Use at your own risk.
+Rebuild or audit it yourself with sdk/.
 
 This file only updates the transmitter.  A separate receiver build,
 APP_LPM-10RX_PN1.0.bin (see RX-README.txt), exists but must not be
@@ -305,7 +306,9 @@ From mod 1:
   Zero 0.4 m / NVP 68 % read a 2.9 m cable right.  PN 2.3: the
   bootloader accepted the 4 KB longer file and the unit runs; its
   FLASH stopped after three or four cycles; PN 2.4's FLASH passed
-  (the blink keeps going, the tester's LED orange).  Still to check:
+  (the blink keeps going, the tester's LED orange).  The PoE items
+  with a supply could not be checked: no PoE switch or injector was
+  available.  Still to check:
     - PoE screen without a cable: "Detecting..." in the Standard row,
       then "No PoE" and a blue LED after about 3.5 s; leave and
       re-enter: the same again (stock stayed blank).
