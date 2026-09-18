@@ -84,6 +84,7 @@ class Image:
         self.log = []
         self.syms = S.asm_symbols()
         self._ram_ptr = S.RAM_SAFE_ARENA
+        self.ram_allocs = []            # (addr, size) in allocation order
 
     # ---------------------------------------------------------- addressing
     def f(self, addr):
@@ -160,6 +161,7 @@ class Image:
             raise PatchError("RAM arena exhausted")
         addr = self._ram_ptr
         self._ram_ptr += size
+        self.ram_allocs.append((addr, size))
         return addr
 
     def emit_code(self, source, extra_syms=None, why=""):

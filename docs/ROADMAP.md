@@ -7,7 +7,8 @@ the bootloader accepted the file under its own name, the fonts, the NVP control,
 the remembered unit and NVP across power cycles, the Auto-Off hold with the
 probe still hearing the tone, the non-sticky result, the responsive settings
 menu and the 10-step gauge. The length calibration (step 2) was done in the same
-session and produced PN 1.1; see below.
+session and produced PN 1.1 (Zero calibration, confirmed on the unit) and PN 1.2
+(run averaging); see below.
 
 ## 1. Hardware validation checklist (re-run after each release)
 
@@ -17,7 +18,7 @@ for each item, including "looks fine", because the negative results matter too:
 | what | why it matters |
 |---|---|
 | Bootloader accepts the file | the payload is 864 bytes longer than stock (it accepted PN 1.0's 528); a refusal means the bootloader checks length |
-| About screen: `Software:PN 1.1` and the GitHub URL line | proves the string patches and both fonts in one look |
+| About screen: `Software:PN 1.2` and the GitHub URL line | proves the string patches and both fonts in one look |
 | Length screen: `ZERO 0.0m` left of the Unit box, `NVP 69%` right of it, nothing overlaps | the positions came from the layout table, not from a photo |
 | UP/DOWN change the white value, OK long press swaps it, the four readings follow | proves the key hook, the GUI message and the live redraw |
 | Leave Length, come back, power-cycle: unit, NVP and Zero kept | proves the settings bytes survive the power-off flash write |
@@ -40,8 +41,9 @@ a 1 m cable read 2.4 m or *Out of range*. Conclusions:
   PN 1.1 adds a **Zero** setting (`length = (raw − Zero) × NVP / 69`); this unit
   should calibrate around Zero 0.5 m, NVP 68 %,
 - below about 2 m the PHY's value is unusable, so the ≤ 2 m blind zone stays,
-- the ±0.2 m spread between readings is the PHY's resolution; averaging two runs
-  (item 3 below) would halve it.
+- the ±0.2–0.3 m spread between readings is the PHY's resolution; PN 1.2 averages
+  four runs to halve it (confirmed need: after calibration the 14 m cable still
+  scattered).
 
 Still useful: the same two-cable measurement on a second unit, to learn whether
 the 0.4 m offset is per-unit or per-design (if per-design it becomes the factory
@@ -61,9 +63,10 @@ Ranked by value against risk. All are byte patches in the same style as PN 1.x.
    (`poe_measure_mv`) but only draws a class bar. Drawing "48.2 V" next to it is a
    small, verifiable change. Also fix the dead "unstable supply" check, whose
    threshold is impossible (40 000 against byte data).
-4. **Average two CSD runs** when the four pairs disagree, instead of the single retry.
-   Costs about a second per measurement, removes most of the flicker between
-   consecutive readings.
+4. ~~Average CSD runs~~ Done in PN 1.2: four runs averaged per pair, every test.
+   Confirm on hardware that repeated tests of one cable now agree to about ±0.15 m
+   at 14 m and that the longer test time is acceptable; `AVG_RUNS` in `patches.py`
+   is the knob.
 5. **Battery voltage, NVP and Zero on the About screen.** All three values exist in RAM;
    three more text lines.
 6. **Save settings when leaving the Length screen**, not only at power-off, so a dead

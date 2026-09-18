@@ -33,7 +33,7 @@ Rebuilding the fonts (not needed for a build) also needs `pillow` and `pymupdf`.
 python test_thumb.py            # assembler self-test
 python build.py --list          # what patches exist
 python build.py                 # dry run: prints every byte it would change
-python build.py --write         # emit LPM-10A-TX_PN1.1.bin
+python build.py --write         # emit LPM-10A-TX_PN1.2.bin
 python verify.py                # prove the result is what was intended
 ```
 
@@ -130,12 +130,13 @@ The assembler rejects anything it does not recognise rather than guessing, and
 | `english-strings` | safe | english | Corrects the machine-translated UI text |
 | `length-decimal` | low | measure | Length in **m / cm / ft with one decimal**, Zero- and NVP-corrected; the unit is remembered (stock: whole metres, inches, and cm forced on every screen entry) |
 | `nvp-calibration` | low | measure | **NVP 50–99 % and Zero 0.0–2.0 m**: UP/DOWN adjust the white value on the Length screen, holding OK for a second swaps them, shown as `ZERO 0.0m` / `NVP 69%`, results redraw live, both persisted, Factory Reset clears both |
+| `length-average` | low | measure | Each Test Start runs the PHY's cable diagnostic **4 times** (`AVG_RUNS`) and shows per-pair means; halves the ±0.3 m run-to-run scatter, test takes 4× longer. Code lives in the dead body of the stock `length_convert` |
 | `length-no-sticky` | low | bugfix | The measured length is always displayed; stock kept the previous cable's reading if the new one was inside the tolerance band |
 | `batt-debounce` | low | bugfix | Low-battery shutdown needs 3 consecutive samples < 3150 mV and is cancelled when the pack recovers to ≥ 3250 mV |
 | `batt-gauge` | low | ux | 10-step Li-ion battery gauge instead of 4 steps |
 | `settings-leak` | low | bugfix | Frees the 204-byte buffer leaked by every settings save |
 | `font-pro` | low | ux | Replaces all three fonts: 8x16 and 6x12 ASCII (Ubuntu Sans Mono) and the 171 Chinese glyphs (Droid Sans Fallback) |
-| `version-string` | safe | identity | About screen and boot log report `PN 1.1` (edit `VERSION` in patches.py, 7 characters max) |
+| `version-string` | safe | identity | About screen and boot log report `PN 1.2` (edit `VERSION` in patches.py, 7 characters max) |
 | `about-url` | safe | identity | About screen shows `github.com/patnawa/LPM-10A_PN_Custom` (string in the cave, 6x12 font, 216 px) where the vendor site was; edit `REPO_URL` in patches.py, 36 characters max |
 | `english-only` | untested | english | Removes Chinese from the language menu (off by default) |
 | `batt-grace` | low | tuning | Low-battery shutdown grace 30 s → 60 s (off by default) |
@@ -143,8 +144,8 @@ The assembler rejects anything it does not recognise rather than guessing, and
 `risk=untested` patches are excluded unless you pass `--all`; they are things
 that look right on paper but need a real device to confirm. Everything else
 is verified by emulation; the PN 1.0 set has also passed the first-power-on
-checklist on a real unit (2026-09-18). **The PN 1.1 additions (Zero, About
-URL) have not been flashed yet.**
+checklist on a real unit (2026-09-18). PN 1.1's Zero + NVP calibration was confirmed there too. **The PN 1.2 run
+averaging has not been flashed yet.**
 
 The reasoning behind each measurement change, and the formulas that were
 checked and found correct, are in [`../FORMULA-AUDIT.md`](../FORMULA-AUDIT.md).
@@ -163,6 +164,7 @@ fresh in-memory build. Sections 4–18 execute the code:
 | 6 | unit conversion | run `length_convert` for 12 values × 3 units against a Python reference |
 | 7 | on-screen text | run the cave formatter **through the firmware's own `sprintf`** and read the string |
 | 8 | sticky result | run the store loop with a 50 m previous result and 52 m readings |
+| 8b | run averaging | simulated CSD runs through the real re-run block: per-pair means, out-of-range runs left out, stale accumulator ignored, the timeout tick re-stamped per run, r4–r7 and sp intact, every arena write inside the patch's own allocation, all arena allocations disjoint; stock's single retry for comparison |
 | 9 | battery debounce | feed sample sequences to the arming check; feed ADC + GPIO to the cancel check |
 | 10 | battery gauge | sweep mV through the curve; run the drawing switch and read segment count / colour |
 | 11 | heap leak | run both exit paths and trap the `vPortFree` call |

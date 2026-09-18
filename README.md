@@ -2,14 +2,14 @@
 
 # LPM-10A PN Custom Firmware
 
-**PN 1.1: an unofficial, industrial-grade firmware for the FNIRSI LPM-10A network cable tester,
+**PN 1.2: an unofficial, industrial-grade firmware for the FNIRSI LPM-10A network cable tester,
 built by patching the official V2.0.7 image, proving every change by CPU emulation, and
-validated on a real unit (PN 1.0; the PN 1.1 additions await their own flash).**
+validated on a real unit (PN 1.0 and the PN 1.1 calibration; the PN 1.2 averaging awaits its flash).**
 
-![version](https://img.shields.io/badge/version-PN%201.1-orange)
+![version](https://img.shields.io/badge/version-PN%201.2-orange)
 ![base](https://img.shields.io/badge/base-FNIRSI%20V2.0.7-lightgrey)
-![patches](https://img.shields.io/badge/patches-12-blue)
-![verified](https://img.shields.io/badge/verify.py-142%20checks%20pass-brightgreen)
+![patches](https://img.shields.io/badge/patches-13-blue)
+![verified](https://img.shields.io/badge/verify.py-153%20checks%20pass-brightgreen)
 ![hardware](https://img.shields.io/badge/hardware%20test-PN%201.0%20passed-brightgreen)
 ![license](https://img.shields.io/badge/tooling%20license-MIT-lightgrey)
 
@@ -20,8 +20,10 @@ validated on a real unit (PN 1.0; the PN 1.1 additions await their own flash).**
 ---
 
 > **Status: PN 1.0 passed every item of the first-power-on checklist on a real unit
-> (2026-09-18).** PN 1.1 adds the Zero calibration that the hardware test showed was
-> needed; that addition is verified by emulation (142 checks) and awaits its own flash.
+> (2026-09-18), and PN 1.1's Zero + NVP calibration was confirmed there the same day
+> (Zero 0.5 m, NVP 68 % read a 2.9 m cable right).** PN 1.2 adds run-averaging against
+> the PHY's reading-to-reading scatter; it is verified by emulation (153 checks) and
+> awaits its own flash.
 > Flash at your own risk, and read [How to go back to stock](#going-back-to-stock) first.
 
 ## Why
@@ -39,6 +41,7 @@ it, adds code in an unused flash tail, re-assembles, and verifies the result in 
 |---|---|---|
 | Length display | whole metres ("55"), inches, cm forced on every screen entry | **m / cm / ft with one decimal** ("55.4"), unit remembered across power cycles |
 | Cable calibration | none; the PHY's fixed constant | **Zero 0.0–2.0 m and NVP 50–99 %** on the Length screen, live redraw, saved; 0.0 m / 69 % = factory |
+| Length stability | one CSD run shown as is (±0.3 m scatter at 14 m) | **four runs averaged per pair**; a test takes four times longer |
 | Length result | a new reading inside the tolerance band was replaced by the previous cable's value | the measured value is always shown |
 | Low battery | one sample < 3150 mV starts an uncancellable 30 s shutdown | needs 3 consecutive samples; cancels when the pack recovers ≥ 3250 mV |
 | Battery gauge | 4 steps | 10-step Li-ion curve, red at ≤ 20 % |
@@ -46,7 +49,7 @@ it, adds code in an unused flash tail, re-assembles, and verifies the result in 
 | Settings save | 204 bytes leaked per save | freed on both exit paths |
 | Fonts | thin serif 8×16 ASCII, Song-style Chinese | **Ubuntu Sans Mono** (8×16, 6×12) and **Droid Sans Fallback** (16×16), both open-licensed |
 | Language | Chinese/English picker on first boot | boots to English; both languages kept, machine-translated strings corrected |
-| Identity | About screen reports `Software:V2.0.7` and `http://www.fnirsi.cn` | reports `Software:PN 1.1` and this repository's URL; the bootloader-facing image name is untouched |
+| Identity | About screen reports `Software:V2.0.7` and `http://www.fnirsi.cn` | reports `Software:PN 1.2` and this repository's URL; the bootloader-facing image name is untouched |
 
 Everything is also verified **correct and left alone** where stock was right: battery mV,
 PoE mV, link speed/duplex decoding, the 2.54 inch constant, the auto-off table. The full
@@ -74,12 +77,12 @@ in the same cells so no screen layout changes.
 
 1. Verify the download:
    ```
-   certutil -hashfile LPM-10A-TX_PN1.1.bin SHA256
-   315f3214b605d812979cbafa7e9cc59c542467ac398d4baaa1d308915cc32604
+   certutil -hashfile LPM-10A-TX_PN1.2.bin SHA256
+   a2e62e0fc330d739a1b6d162a01d77a660a387fdb140e2a98ff491121bd9506d
    ```
 2. Power the tester off. Hold **M + Power** until the firmware update screen appears.
 3. Connect USB-C; a removable drive appears.
-4. Copy [`LPM-10A-TX_PN1.1.bin`](LPM-10A/Firmware%20File/LPM-10A-TX_PN1.1.bin)
+4. Copy [`LPM-10A-TX_PN1.2.bin`](LPM-10A/Firmware%20File/LPM-10A-TX_PN1.2.bin)
    onto that drive. Do not unplug during the update.
 5. Long-press Power to shut down, then power on normally.
 
@@ -91,17 +94,19 @@ V2.x.x hardware, like stock V2.0.7.
 
 ### First power-on checklist
 
-The PN 1.0 items passed on a real unit on 2026-09-18 (the bootloader accepted the file
-under its own name). The Zero and About-URL items are new in PN 1.1 and still need their
-first check:
+The PN 1.0 and PN 1.1 items passed on a real unit on 2026-09-18 (the bootloader accepted
+the file under its own name; Zero and NVP calibrate as designed). The averaged length test
+is new in PN 1.2 and still needs its first check:
 
-- Settings > About reads `Software:PN 1.1` and shows `github.com/patnawa/LPM-10A_PN_Custom`.
+- Settings > About reads `Software:PN 1.2` and shows `github.com/patnawa/LPM-10A_PN_Custom`.
 - Text everywhere is the new bold sans font, in Chinese mode too.
 - Length screen shows `ZERO 0.0m` left of the Unit box and `NVP 69%` right of it; UP/DOWN
   change the white one, a long press of OK swaps which is white, and after a test the four
   readings follow.
 - Leave the Length screen and return, then power-cycle: unit, NVP and Zero are kept.
 - Measure two cables of different length back to back; the second must not repeat the first.
+- A length test now takes about four times as long as before and repeated tests of the same
+  cable agree to within about ±0.15 m at 14 m (they scattered ±0.3 m before).
 - SCAN with the tone on for longer than Auto Off: the unit stays on and the probe still
   finds the tone.
 - The battery icon shows intermediate levels while discharging.
@@ -142,8 +147,10 @@ more):
 2. Measure the long cable. Long-press OK to select NVP, then UP / DOWN until it reads right.
 3. Re-check the short cable; adjust Zero once more if needed.
 
-On the unit measured, expect Zero around 0.5 m and NVP around 68 %; every unit and cable
-batch will differ, which is the point of having the controls. Below about 2 m the PHY's
+On the unit measured, Zero 0.5 m and NVP 68 % read the 2.9 m cable right; every unit and
+cable batch will differ, which is the point of having the controls. The remaining
+reading-to-reading scatter (±0.3 m at 14 m) is the PHY's, not the calibration's; PN 1.2
+averages four runs per pair to halve it. Below about 2 m the PHY's
 value is unreliable: a 1 m cable came back as 2.4 m or as *Out of range*. The stock blind
 zone (raw readings of 2 m or less are discarded, before the Zero is subtracted) is kept, so
 short readings are not to be trusted.
@@ -169,8 +176,8 @@ pip install capstone unicorn        # pillow + pymupdf only to rebuild the fonts
 python test_thumb.py                # assembler self-test against Capstone
 python build.py --list              # the patch set
 python build.py                     # dry run: every byte it would change, disassembled
-python build.py --write             # emit LPM-10A-TX_PN1.1.bin
-python verify.py                    # 142 checks
+python build.py --write             # emit LPM-10A-TX_PN1.2.bin
+python verify.py                    # 153 checks
 ```
 
 `build.py --only a,b` builds a subset; every patch is independent. `build.py` refuses to
@@ -183,7 +190,7 @@ What `verify.py` proves, section by section:
 | 1–3 | container, byte footprint, full disassembly inventory | any byte changed without being declared by a patch fails |
 | 4–5 | auto-off hold, factory defaults | a key event through the stock dispatcher (proves stock already resets on keys); the 1 s housekeeping in SCAN/FLASH with the session flags on and off |
 | 6–7 | unit conversion, on-screen text | 36 vectors; the text comes out of the firmware's own `sprintf` |
-| 8 | sticky result | 50 m previous, 52 m readings: stock keeps 50, mod stores 52 |
+| 8 | sticky result, run averaging | 50 m previous, 52 m readings: stock keeps 50, mod stores 52; four simulated CSD runs through the real re-run block: per-pair means, out-of-range runs left out, stale accumulator ignored, registers and stack intact; stock's single retry for comparison |
 | 9–10 | battery debounce and gauge | sample sequences, ADC + GPIO for the cancel path, 18-point curve |
 | 11 | heap leak | both exit paths trapped at `vPortFree` |
 | 12–16 | Zero + NVP | 477 arithmetic vectors including the measured unit's numbers, key hook (clicks, repeat, clamps, OK long press, other screens), message routing, both rendered texts with their colours, screen-entry draw, Factory Reset defaults compared with stock byte for byte |
@@ -199,7 +206,7 @@ documented in [`LPM-10A/Firmware File/sdk/README.md`](LPM-10A/Firmware%20File/sd
 ```
 LPM-10A/
   Firmware File/
-    LPM-10A-TX_PN1.1.bin              PN Custom image (the build output)
+    LPM-10A-TX_PN1.2.bin              PN Custom image (the build output)
     LPM-10A-TX_V2.0.7_260610.bin      stock image: NOT included, put FNIRSI's copy here to build
     MOD-README.txt                    change list, hashes, flashing, checklist
     FORMULA-AUDIT.md                  every measurement formula, with verdicts

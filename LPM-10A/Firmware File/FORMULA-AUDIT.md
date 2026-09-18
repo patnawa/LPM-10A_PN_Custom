@@ -52,6 +52,14 @@ n = 1 → the lower two pairs are merged if within tolerance
 retry once if the four pairs still differ (0x08012AE0), then accept
 ```
 
+PN 1.2 (`length-average`): the block at 0x08012AE0 now runs the whole
+sequence `AVG_RUNS` = 4 times and replaces each pair's value with the mean of
+the runs in which it produced a reading (a 0 from the blind-zone cut is left
+out; a pair that never reads stays 0). The four-pair vote above still runs
+once per run, and the 20 s timeout is restarted per run. Measured scatter of a
+single run at 14 m was ±0.3 m; the mean of four halves it. Verified in verify.py §8b with simulated runs through the
+real re-run block, on stock and mod.
+
 `length_tolerance_cm` 0x08015D18: `< 1000 cm → 100 · < 10000 → 300 · < 20000 → 500 · else 600`.
 
 Verdict **OK** — this is a consensus filter, not a formula, and the branches

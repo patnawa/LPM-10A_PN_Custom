@@ -13,7 +13,7 @@ Checks, in order:
   5  behavioural check of the boot-language default under CPU emulation
   6  length unit conversion (m / cm / ft, fixed point) against a reference model
   7  length on-screen text, produced by the firmware's own sprintf
-  8  length result is no longer sticky
+  8  length result is no longer sticky; 8b the per-pair average over several CSD runs
   9  low-battery debounce (3 samples) and recovery / charger cancel
  10  10-step battery gauge and its drawing switch
  11  settings save frees its staging buffer on both exit paths
@@ -378,6 +378,93 @@ try:
         got = [e.r16(LAST + 2 * i) for i in range(4)]
         check(got == want, f"{label:5}: 50.00 m then 52 m cable -> stored {[g/100 for g in got]}",
               "(sticky)" if label == "stock" else "(new value kept)")
+
+    print("\n8b. length: the four pairs are averaged over several CSD runs (mod)")
+    SITE, RERUN, ACCEPT, AFTER_INC = 0x08012AE0, 0x08011A6E, 0x08012B86, 0x08012B12
+    TICKS = 0x0801C5B0                                # xTaskGetTickCount
+    ACC = _probe.avg_acc
+    ACC_SIZE = dict(_probe.ram_allocs)[ACC]
+    N = patches.AVG_RUNS
+    from unicorn import UC_HOOK_MEM_WRITE
+
+    def test_runs(buf, runs, seed_acc=None):
+        """Feed one set of four post-vote values per CSD run through the block at 0x08012AE0.
+        Returns (path per run, final results, count, regs_ok, sp_ok)."""
+        e = Emu(buf)
+        F = 0x2000E000 - 0x5C
+        if seed_acc:
+            e.w(ACC, seed_acc)
+        e.w32(F + 0x24, 0)                            # retry / run counter as the sequence starts
+        e.w32(F + 0x20, 0x1000)                       # start tick as stamped by the sequence
+        e.stops.update({AFTER_INC, ACCEPT})
+        e.traps.add(TICKS)
+        arena_writes = set()
+        e.uc.hook_add(UC_HOOK_MEM_WRITE, lambda uc, acc, addr, size, val, ud: arena_writes.update(range(addr, addr + size)),
+                      begin=S.RAM_SAFE_ARENA, end=S.RAM_SAFE_ARENA_END)
+        test_runs.arena_writes = arena_writes
+        test_runs.ticks = []
+        path, final = [], None
+        for k, vals in enumerate(runs):
+            for i, v in enumerate(vals):
+                e.w16(F + 0x4C + 2 * i, v)
+            e.uc.reg_write(UC_ARM_REG_R0, 0x5000 + k)  # what the trapped xTaskGetTickCount returns
+            e.uc.reg_write(UC_ARM_REG_SP, F)
+            e.uc.reg_write(UC_ARM_REG_LR, MAGIC | 1)
+            for r, v in ((UC_ARM_REG_R4, 0x44444444), (UC_ARM_REG_R5, 0x55555555), (UC_ARM_REG_R6, 0x66666666), (UC_ARM_REG_R7, 0x77777777)):
+                e.uc.reg_write(r, v)
+            e.uc.emu_start(SITE | 1, MAGIC, count=20000)
+            pc = e.uc.reg_read(UC_ARM_REG_PC)
+            test_runs.ticks.append(struct.unpack("<I", e.uc.mem_read(F + 0x20, 4))[0])
+            regs = tuple(e.uc.reg_read(r) for r in (UC_ARM_REG_R4, UC_ARM_REG_R5, UC_ARM_REG_R6, UC_ARM_REG_R7))
+            sp_ok = e.uc.reg_read(UC_ARM_REG_SP) == F
+            regs_ok = regs == (0x44444444, 0x55555555, 0x66666666, 0x77777777)
+            if pc == AFTER_INC:
+                path.append(("rerun", e.uc.mem_read(F + 0x24, 4)[0], regs_ok, sp_ok))
+                continue
+            if pc == ACCEPT:
+                final = [e.r16(F + 0x4C + 2 * i) for i in range(4)]
+                path.append(("accept", e.uc.mem_read(F + 0x24, 4)[0], regs_ok, sp_ok))
+                break
+            path.append((f"pc=0x{pc:08X}", None, regs_ok, sp_ok))
+            break
+        return path, final
+
+    runs = [(1440, 1460, 1500, 1480), (1470, 1450, 1490, 1500), (1450, 1470, 1480, 1460), (1460, 1440, 1510, 1470)]
+    path, final = test_runs(mod, runs)
+    want = [sum(r[i] for r in runs) // N for i in range(4)]
+    ok = ([p[0] for p in path] == ["rerun"] * (N - 1) + ["accept"] and final == want
+          and all(p[2] and p[3] for p in path) and [p[1] for p in path][:N - 1] == list(range(1, N)))
+    check(ok, f"mod: {N} runs of a 14 m cable -> per-pair means {[f/100 for f in final] if final else None}, counter 1..{N - 1} then accept, r4-r7 and sp intact",
+          "" if ok else f"{path} {final}")
+    check(test_runs.ticks == [0x5000 + k for k in range(N)],
+          "mod: the 20 s timeout start tick is re-stamped from xTaskGetTickCount on every run", f"{[hex(t) for t in test_runs.ticks]}")
+    check(test_runs.arena_writes and test_runs.arena_writes <= set(range(ACC, ACC + ACC_SIZE)),
+          f"mod: every RAM-arena write of the hook lies inside its own {ACC_SIZE}-byte allocation at 0x{ACC:08X} (no aliasing with other patches)",
+          f"{sorted(hex(a) for a in test_runs.arena_writes - set(range(ACC, ACC + ACC_SIZE)))[:4]}")
+    allocs = sorted(_probe.ram_allocs)
+    check(all(a + sz <= b for (a, sz), (b, _) in zip(allocs, allocs[1:])), "RAM arena allocations of all patches are disjoint", f"{[(hex(a), sz) for a, sz in allocs]}")
+    hook_new = next(new for addr, old, new, why, kind in EXPECTED_EDITS if addr == patches.DEAD_BODY)
+    hook_lit = struct.unpack_from("<I", mod, patches.DEAD_BODY + len(hook_new) - 4 - S.APP_BASE + 0x1000)[0]
+    check(hook_lit == ACC and len(hook_new) <= patches.DEAD_BODY_END - patches.DEAD_BODY,
+          f"the hook's accumulator literal is the allocated address; hook is {len(hook_new)} of {patches.DEAD_BODY_END - patches.DEAD_BODY} bytes",
+          f"0x{hook_lit:08X}")
+    runs2 = [(1440, 0, 1500, 0), (1470, 1450, 0, 0), (0, 1470, 1480, 0), (1460, 1440, 1510, 0)]
+    path, final = test_runs(mod, runs2)
+    check(final == [(1440 + 1470 + 1460) // 3, (1450 + 1470 + 1440) // 3, (1500 + 1480 + 1510) // 3, 0],
+          "mod: a pair that read 0 (out of range) in some runs is averaged over the others; a pair that never read stays 0",
+          f"{final}")
+    path, final = test_runs(mod, [(334, 335, 333, 334)] * N)
+    check(final == [334, 335, 333, 334] and len(path) == N, "mod: identical runs come back unchanged (no rounding drift)", f"{final}")
+    path, final = test_runs(mod, runs, seed_acc=b"\xff" * 20)
+    check(final == want, "mod: stale accumulator from a previous test (or power-on garbage) is ignored on run 0", f"{final}")
+    path, final = test_runs(mod, [(300, 300, 300, 300)] * N)
+    check(final == [300] * N and len(path) == N, f"mod: it always takes {N} runs, even when all four pairs agree", f"{[p[0] for p in path]}")
+    # stock, for the record: accepts when the four agree, otherwise retries once
+    path, final = test_runs(stock, [(1440, 1460, 1500, 1480), (1470, 1450, 1490, 1500)])
+    check([p[0] for p in path] == ["rerun", "accept"] and final == [1470, 1450, 1490, 1500],
+          "stock: disagreeing pairs -> one retry, then the second run is shown as is", f"{[p[0] for p in path]} {final}")
+    path, final = test_runs(stock, [(1440, 1440, 1440, 1440)])
+    check([p[0] for p in path] == ["accept"], "stock: agreeing pairs -> the first run is shown as is")
 
     print("\n9. battery: low-voltage debounce and recovery (mod)")
     ADC_PTR, ADC_BUF = 0x20000170, 0x20000F00        # adc_raw_read: *(u16*)(*(u32*)0x20000170)

@@ -1,25 +1,28 @@
 ================================================================
- LPM-10A PN Custom firmware  PN 1.1   (UNOFFICIAL build)
+ LPM-10A PN Custom firmware  PN 1.2   (UNOFFICIAL build)
 ================================================================
 
-File      : LPM-10A-TX_PN1.1.bin
-Version   : PN 1.1  (Settings > About shows "Software:PN 1.1")
+File      : LPM-10A-TX_PN1.2.bin
+Version   : PN 1.2  (Settings > About shows "Software:PN 1.2")
 Built from: LPM-10A-TX_V2.0.7_260610.bin  (official FNIRSI V2.0.7)
             sha256 29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b
-Result    : sha256 315f3214b605d812979cbafa7e9cc59c542467ac398d4baaa1d308915cc32604
+Result    : sha256 a2e62e0fc330d739a1b6d162a01d77a660a387fdb140e2a98ff491121bd9506d
 Size      : 389120 bytes (identical to stock)
-Changed   : 6685 bytes differ from stock: 5702 of them inside the
+Changed   : 6803 bytes differ from stock: 5702 of them inside the
             8132 bytes of font tables (rewritten in place), 775 inside
             the 864 bytes of new code in the unused tail of the last
-            flash sector (payload_len in the header grows by 864), 4
-            in the header length fields, 204 in hooks and strings.
+            flash sector (payload_len in the header grows by 864), 114
+            in the dead body of the stock length_convert (reused as
+            code), 4 in the header length fields, 208 in hooks and
+            strings.
             The image name stored inside the file
             is left as stock because the bootloader checks it.
 
 NOT AN OFFICIAL FNIRSI RELEASE.  Verified by disassembly and CPU
-emulation (sdk/verify.py, 142 checks).  PN 1.0 passed the full
-first-power-on checklist on a real unit on 2026-09-18; the Zero
-calibration and About URL added in PN 1.1 have not been flashed yet.
+emulation (sdk/verify.py, 153 checks).  PN 1.0 passed the full
+first-power-on checklist on a real unit on 2026-09-18 and PN 1.1's
+Zero + NVP calibration was confirmed there; the run averaging added
+in PN 1.2 has not been flashed yet.
 Use at your own risk.  Rebuild or audit it yourself with sdk/.
 
 This file only updates the transmitter.  A separate receiver build,
@@ -32,8 +35,23 @@ Every measurement formula in the firmware was traced and checked;
 see FORMULA-AUDIT.md for the full list with verdicts.
 
 ----------------------------------------------------------------
- CHANGES  (PN 1.1, 2026-09-18; PN 1.0 2026-09-17; history mod 1..4)
+ CHANGES  (PN 1.2 and 1.1, 2026-09-18; PN 1.0 2026-09-17; mod 1..4)
 ----------------------------------------------------------------
+
+[CHANGED] Length test averages four CSD runs (PN 1.2).
+        The PHY's cable diagnostic scatters by about +/-0.3 m from
+        run to run at 14 m (measured: 14.4 / 14.6 / 15.0 / 14.8 on the
+        same cable).  Zero and NVP correct the mean, not the scatter.
+        Each Test Start now runs the diagnostic four times and shows,
+        per pair, the mean of the runs in which that pair produced a
+        reading; the scatter halves.  The test takes four times
+        longer; the 20 s timeout is restarted for every run, so a slow
+        diagnostic cannot time the whole test out.
+        Stock ran once, or twice when the four pairs disagreed.
+        The number of runs is a build-time constant (AVG_RUNS in
+        sdk/patches.py).
+
+[CHANGED] Version reported as PN 1.2.
 
 [ADDED] Zero calibration for length measurement (PN 1.1).
         The PHY's reading includes its own signal path.  On the unit
@@ -58,8 +76,7 @@ see FORMULA-AUDIT.md for the full list with verdicts.
         discards raw readings of 2 m or less before the Zero is
         subtracted, stays.
 
-[CHANGED] Version reported as PN 1.1.  The About screen shows this
-        project's address, github.com/patnawa/LPM-10A_PN_Custom, on the
+[CHANGED] The About screen shows this project's address (PN 1.1), github.com/patnawa/LPM-10A_PN_Custom, on the
         line where the vendor site was (6x12 font so it fits).
 
 [FIXED] Auto Off switched the unit off in the middle of a cable trace.
@@ -152,7 +169,7 @@ From mod 1:
   1. Power the tester off.
   2. Hold M + Power until the firmware update screen appears.
   3. Connect USB-C; a removable drive appears.
-  4. Copy LPM-10A-TX_PN1.1.bin onto that drive.
+  4. Copy LPM-10A-TX_PN1.2.bin onto that drive.
   5. Do NOT unplug during the update.
   6. Long-press Power to shut down, then power on normally.
 
@@ -161,9 +178,11 @@ From mod 1:
   bootloaders match on the filename.  The name stored inside the
   file is unchanged either way.
 
-  Checked on a real unit with PN 1.0 (2026-09-18): the bootloader
-  accepted the file under its own name; every item below passed.
-  Check them again after PN 1.1:
+  Checked on a real unit with PN 1.0 and PN 1.1 (2026-09-18): the
+  bootloader accepted the file under its own name; every item below
+  passed, and Zero 0.5 m / NVP 68 % read a 2.9 m cable right.  New in
+  PN 1.2, still to check: a length test takes about four times as
+  long, and repeated tests of one cable agree much better.
     - Text everywhere is the new bold sans font; Chinese mode too.
     - SCAN with the tone on, or FLASH blinking, for longer than the
       Auto Off setting: the unit must stay on; the probe still hears it.

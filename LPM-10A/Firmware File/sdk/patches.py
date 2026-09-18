@@ -593,6 +593,127 @@ def p_length_no_sticky(img):
              "always accept the new length reading")
 
 
+AVG_RUNS = 4     # CSD runs averaged per Test Start (1 = one run shown as is); build-time constant
+DEAD_BODY = 0x0801977A          # stock length_convert body, unreachable since length-decimal
+DEAD_BODY_END = 0x080197EC      # its literal pool ends here; 114 bytes
+
+
+@patch("length-average", f"Length test averages {AVG_RUNS} CSD runs per pair before it is shown",
+       risk="low", group="measure")
+def p_length_average(img):
+    """
+    The PHY's cable diagnostic scatters by about +/-0.2..0.3 m from run to
+    run (measured on a real unit: a 14 m cable read 14.4 / 14.6 / 15.0 /
+    14.8 m).  Zero and NVP correct the mean, not the scatter.  Stock runs the
+    diagnostic once (twice if the four pairs disagree) and shows that run.
+
+    This patch runs the whole CSD sequence AVG_RUNS times and shows, per
+    pair, the mean of the runs in which that pair produced a reading (a 0,
+    i.e. "out of range" after the blind-zone cut, is left out; a pair that
+    never reads stays 0).  Averaging 4 runs halves the scatter.  The test
+    takes AVG_RUNS times longer.  The stock 20 s timeout is measured from a
+    start tick in the frame ([sp+0x20], stamped once at 0x080119F8); the
+    hook re-stamps it on every run, so each run gets its own 20 s and a
+    slow diagnostic cannot turn a 4-run test into "Test timeout".
+
+    Mechanics.  APP_LENG_Test_Sequence already contains a re-run loop: at
+    0x08012AE0 it reads the retry counter [sp+0x24], accepts the result when
+    the counter is >= 1 or the four pairs agree, otherwise increments it and
+    jumps back to 0x08011A6E (the start of the sequence, same stack frame).
+    The first three instructions of that block
+        0x08012AE0  ldr r0,[sp,#0x24]; cmp r0,#1; bge 0x08012B86
+    become `bl avg_hook; b 0x08012B0A`.  The hook uses the same counter as
+    the run index and accumulates the four post-vote values (u16[4] at
+    sp+0x4C) into a RAM-arena accumulator.  While fewer than AVG_RUNS runs
+    are done it returns, and the `b 0x08012B0A` takes the stock retry path
+    (counter++, a log line, re-entry at 0x08011A6E with the same frame).
+    After AVG_RUNS runs it writes the per-pair means back into the frame and
+    continues at the stock accept path 0x08012B86 directly.  The stock
+    "retry when the pairs disagree" test is thereby bypassed (each run's
+    four-pair vote still happens before the hook).  r4-r7 are pushed and
+    popped; the sequence itself saves only lr and does not use them.
+
+    The code lives in the body of the stock length_convert (0x0801977A..
+    0x080197EB), which the length-decimal patch made unreachable (its entry
+    is a b.w to the cave and it has no other caller); the cave itself is
+    full.  With AVG_RUNS = 1 there is one run, shown as is (stock's retry on
+    disagreeing pairs is gone in every configuration).
+
+    Trade-off, documented rather than hidden: an outlier run is averaged in
+    (weight 1/AVG_RUNS) where stock would have retried once and shown the
+    retry; the per-run four-pair vote still rejects single-pair outliers.
+    """
+    from lpm10a.thumb import assemble
+    if not 1 <= AVG_RUNS <= 8:
+        raise PatchError("AVG_RUNS must be 1..8")
+    if img.read(0x08019774, 4) != bytes.fromhex("4ef0aeba"):
+        raise PatchError("length-average needs length-decimal (the stock length_convert body must be dead)")
+    acc = img.alloc_ram(20)     # u32 acc[4] + u8 n[4]
+    code = assemble(DEAD_BODY, f"""
+    avg_hook:                   ; entered by bl from 0x08012AE0; frame: [sp+0x24] run, sp+0x4C u16[4]
+            push {{r4, r5, r6, r7, lr}}
+            bl   xTaskGetTickCount
+            str  r0, [sp, #0x34]    ; restart the 20 s timeout for this run ([sp+0x20] of the sequence)
+            ldr  r4, =ACC           ; u32 acc[4], then u8 n[4] at +16
+            mov  r3, r4
+            adds r3, #16
+            mov  r5, sp
+            adds r5, #0x60          ; &results[0]  (0x4C + 20 pushed)
+            ldr  r0, [sp, #0x38]    ; run index (the stock retry counter)
+            cmp  r0, #0
+            bne  accum
+            str  r0, [r4, #16]      ; first run: n[0..3] = 0 (acc is assigned, not added, when n == 0)
+    accum:  mov  r6, r5
+            movs r7, #4
+    loop1:  ldrh r0, [r6]
+            cbz  r0, next1          ; out of range in this run: not counted
+            ldrb r1, [r3]
+            cbz  r1, first
+            ldr  r2, [r4]
+            add  r0, r2
+    first:  str  r0, [r4]
+            adds r1, #1
+            strb r1, [r3]
+    next1:  adds r6, #2
+            adds r4, #4
+            adds r3, #1
+            subs r7, #1
+            bne  loop1
+            ldr  r0, [sp, #0x38]
+            adds r0, #1
+            cmp  r0, #{AVG_RUNS}
+            bhs  final
+            pop  {{r4, r5, r6, r7, pc}}   ; back to the site: stock counter++ and re-run
+    final:  subs r4, #16            ; back to acc[0] (loop1 advanced r4 by 16 and r3 by 4)
+            subs r3, #4
+            mov  r6, r5
+            movs r7, #4
+    loop2:  ldrb r1, [r3]
+            cbz  r1, zero2
+            ldr  r0, [r4]
+            udiv r0, r0, r1         ; mean of the runs that read this pair
+            b    st2
+    zero2:  movs r0, #0
+    st2:    strh r0, [r6]
+            adds r6, #2
+            adds r4, #4
+            adds r3, #1
+            subs r7, #1
+            bne  loop2
+            pop  {{r4, r5, r6, r7}}
+            add  sp, #4             ; drop the saved lr: the sequence's own lr is in its frame
+            b.w  0x08012B86         ; accept: store and display
+    """, dict(img.syms, ACC=acc))
+    if DEAD_BODY + len(code) > DEAD_BODY_END:
+        raise PatchError(f"length-average: {len(code)} bytes do not fit the {DEAD_BODY_END - DEAD_BODY}-byte dead body")
+    stock_body = img.read(DEAD_BODY, len(code)).hex()
+    img.poke(DEAD_BODY, stock_body, code, f"average of {AVG_RUNS} CSD runs (in the dead length_convert body)")
+    site = 0x08012AE0
+    img.poke(site, "0998 0128 4fda", assemble(site, f"bl 0x{DEAD_BODY:08X}\n b 0x08012B0A"),
+             "APP_LENG_Test_Sequence: accumulate each run; below AVG_RUNS runs re-run via the stock retry path")
+    img.avg_acc = acc
+
+
 # =====================================================================
 # Group: power / battery robustness
 # =====================================================================
@@ -830,7 +951,7 @@ STOCK_FONT_SHA = {
 # Group: identity
 # =====================================================================
 
-VERSION = "PN 1.1"          # shown as "Software:PN 1.1" in About; max 7 characters
+VERSION = "PN 1.2"          # shown as "Software:PN 1.2" in About; max 7 characters
 
 
 @patch("version-string", f"Report the firmware version as {VERSION}",
