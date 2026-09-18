@@ -1,14 +1,14 @@
 ================================================================
- LPM-10A PN Custom firmware  PN 2.1   (UNOFFICIAL build)
+ LPM-10A PN Custom firmware  PN 2.2   (UNOFFICIAL build)
 ================================================================
 
-File      : LPM-10A-TX_PN2.1.bin
-Version   : PN 2.1  (Settings > About shows "Software:PN 2.1")
+File      : LPM-10A-TX_PN2.2.bin
+Version   : PN 2.2  (Settings > About shows "Software:PN 2.2")
 Built from: LPM-10A-TX_V2.0.7_260610.bin  (official FNIRSI V2.0.7)
             sha256 29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b
-Result    : sha256 13679b1edaba91f7e475acbb119491f9731fce794d68d9947772268ace1c11c6
+Result    : sha256 94f1b15e8b331dd38d5576734661a1337711df493983146868d6d98a380b88c7
 Size      : 389120 bytes (identical to stock)
-Changed   : 7999 bytes differ from stock: the three font tables
+Changed   : 8016 bytes differ from stock: the three font tables
             (8132 bytes, rewritten in place; the Chinese table now
             holds 118 Thai cells and, in its 53 unused slots, the Thai
             strings and drawers), 864 bytes of new code in the unused
@@ -20,10 +20,10 @@ Changed   : 7999 bytes differ from stock: the three font tables
             is left as stock because the bootloader checks it.
 
 NOT AN OFFICIAL FNIRSI RELEASE.  Verified by disassembly and CPU
-emulation (sdk/verify.py, 181 checks).  PN 2.1 was flashed to a real
+emulation (sdk/verify.py, 184 checks).  PN 2.1 was flashed to a real
 unit on 2026-09-18 and every function was tested there, the Thai
-interface and the two Cable Test fixes included.  Use at your own
-risk.  Rebuild or audit it yourself with sdk/.
+interface and the two Cable Test fixes included; PN 2.2's blind-pair
+text awaits its flash.  Use at your own risk.  Rebuild or audit it yourself with sdk/.
 
 This file only updates the transmitter.  A separate receiver build,
 APP_LPM-10RX_PN1.0.bin (see RX-README.txt), exists but must not be
@@ -35,8 +35,19 @@ Every measurement formula in the firmware was traced and checked;
 see FORMULA-AUDIT.md for the full list with verdicts.
 
 ----------------------------------------------------------------
- CHANGES  (PN 2.1, 2.0, 1.3, 1.2, 1.1: 2026-09-18; PN 1.0 2026-09-17)
+ CHANGES  (PN 2.2, 2.1, 2.0, 1.3, 1.2, 1.1: 2026-09-18; PN 1.0 2026-09-17)
 ----------------------------------------------------------------
+
+[CHANGED] Length: a pair the PHY could not time reads "< 2 m" (PN 2.2).
+        The cable diagnostic cannot time an echo from inside its
+        blind zone (about 2 m) and returns 0 for that pair; stock and
+        PN 2.1 printed "1-2 = 0.0 m" next to the pairs that did read,
+        which looks like a fault.  Seen with a 1 m cable: three pairs
+        blind, pair 4-5 a raw 2.2 m (1.7 m after Zero and NVP).  A
+        blind pair now prints "< 2 m" ("< 200 cm", "< 7 ft"; Thai
+        "< 2 เมตร").  All four blind still says "Out of range".  On a
+        long cable a "< 2 m" pair beside pairs reading the full
+        length is a pair open within the first two metres.
 
 [FIXED]   Cable Test: Back returns to the Switch / Far end choice (PN 2.1).
         Stock's Back key left the screen from every step; from the
@@ -67,7 +78,7 @@ see FORMULA-AUDIT.md for the full list with verdicts.
         a Factory Reset; PN 1.x skipped it, which left a factory-reset
         unit in Chinese.  docs/THAI-UI.md shows every screen.
 
-[CHANGED] Version reported as PN 2.1.
+[CHANGED] Version reported as PN 2.2.
 
 [CHANGED] SCAN modes named by what they transmit (PN 1.3).
         "Noiseless" ("Silent" since PN 1.0) is now "Digital": the
@@ -208,7 +219,7 @@ From mod 1:
   1. Power the tester off.
   2. Hold M + Power until the firmware update screen appears.
   3. Connect USB-C; a removable drive appears.
-  4. Copy LPM-10A-TX_PN2.1.bin onto that drive.
+  4. Copy LPM-10A-TX_PN2.2.bin onto that drive.
   5. Do NOT unplug during the update.
   6. Long-press Power to shut down, then power on normally.
 
@@ -219,7 +230,9 @@ From mod 1:
 
   Checked on a real unit up to PN 2.1 (2026-09-18): the bootloader
   accepted the file under its own name; every item below passed, and
-  Zero 0.4 m / NVP 68 % read a 2.9 m cable right.
+  Zero 0.4 m / NVP 68 % read a 2.9 m cable right.  New in PN 2.2,
+  still to check: a 1 m cable reads "< 2 m" on the blind pairs (or
+  "Out of range" when all four are blind), never "0.0 m".
     - Cable Test: Back returns to the Switch / Far end choice from
       the wiremap layout and from a result; the red error line is
       readable above the button.

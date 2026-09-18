@@ -71,19 +71,29 @@ STUB_RET0 = {
 _ref_cache = {}
 
 
-def reference_image(without=("thai-ui", "cable-back")):
-    """The default PN build minus the given patches, as container bytes (built in memory
-    from the stock image; the mock-up model needs the Chinese strings in place, and
-    cable-back's code lives in the Thai region so it goes too: it draws nothing)."""
+def reference_image(without=("thai-ui",)):
+    """The default PN build minus the given patches, as container bytes, built in memory
+    from the stock image: the mock-up model needs the Chinese strings in place.  Patches
+    that put their code in the Thai patch's region (cable-back, length-blind-text) get a
+    stand-in region in flash beyond the image (0x08068000.., emulation only), so the
+    reference draws exactly what the real build draws in English."""
     key = tuple(without)
     if key not in _ref_cache:
         from lpm10a.image import Image, require_stock
         import patches
         img = Image(require_stock(os.path.join(FW_DIR, "LPM-10A-TX_V2.0.7_260610.bin")))
+        extra = 0x800
+        img.data += b"\0" * extra
+        img.add_region("thai", APP + (len(img.data) - extra - img.payload_off), APP + (len(img.data) - img.payload_off))
         for p in patches.REGISTRY:
             if p.default and p.pid not in without:
                 p(img)
         img.finalize()
+        used = img.regions["thai"][2] - APP
+        if used > img.payload_len:                       # cover the stand-in region in the header
+            img.payload_len = used
+            struct.pack_into("<I", img.data, 0x24, img.payload_len)
+            struct.pack_into("<I", img.data, 0x28, img.payload_off + img.payload_len - 1)
         _ref_cache[key] = bytes(img.data)
     return _ref_cache[key]
 

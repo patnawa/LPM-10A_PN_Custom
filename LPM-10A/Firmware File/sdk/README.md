@@ -43,7 +43,7 @@ needs `uharfbuzz`.
 python test_thumb.py            # assembler self-test
 python build.py --list          # what patches exist
 python build.py                 # dry run: prints every byte it would change
-python build.py --write         # emit LPM-10A-TX_PN2.1.bin
+python build.py --write         # emit LPM-10A-TX_PN2.2.bin
 python verify.py                # prove the result is what was intended
 ```
 
@@ -146,7 +146,8 @@ The assembler rejects anything it does not recognise rather than guessing, and
 | `batt-gauge` | low | ux | 10-step Li-ion battery gauge instead of 4 steps |
 | `settings-leak` | low | bugfix | Frees the 204-byte buffer leaked by every settings save |
 | `font-pro` | low | ux | Replaces all three fonts: 8x16 and 6x12 ASCII (Ubuntu Sans Mono) and the 171 Chinese glyphs (Droid Sans Fallback; superseded by the Thai cells when `thai-ui` is on) |
-| `version-string` | safe | identity | About screen and boot log report `PN 2.1` (edit `VERSION` in patches.py, 7 characters max) |
+| `version-string` | safe | identity | About screen and boot log report `PN 2.2` (edit `VERSION` in patches.py, 7 characters max) |
+| `length-blind-text` | low | measure | A pair the PHY could not time prints `< 2` / `< 200` / `< 7` (m / cm / ft) instead of `0.0`; the formatter is a copy of length-decimal's with the zero case, in the Thai region |
 | `cable-back` | low | ux | Cable Test: Back returns to the Switch / Far end selector from the armed and result screens (stock left the screen); code lives in the Thai region |
 | `cable-error-visible` | low | ux | Cable Test: the red "Result error!!" line moves above the Test Retry button (stock drew the button over it); the button moves 9 px down |
 | `scan-labels` | safe | identity | SCAN screen modes labelled `Digital` (0xB6B6 coded pattern) and `825 Hz` (keyed tone) instead of `Noiseless` / `Normal` |
@@ -158,7 +159,8 @@ The assembler rejects anything it does not recognise rather than guessing, and
 that look right on paper but need a real device to confirm. Everything else
 is verified by emulation; the PN 1.0 set has also passed the first-power-on
 checklist on a real unit (2026-09-18), PN 1.3 passed every function there and so did
-PN 2.0 with the Thai interface and PN 2.1 with the two Cable Test fixes. `english-only` was dropped: the
+PN 2.0 with the Thai interface and PN 2.1 with the two Cable Test fixes. **PN 2.2's
+blind-pair text has not been flashed yet.** `english-only` was dropped: the
 string it blanked was a log message, not the menu entry.
 
 The reasoning behind each measurement change, and the formulas that were
@@ -192,7 +194,7 @@ fresh in-memory build. Sections 4–18 execute the code:
 | 17 | fonts | the firmware's own glyph drawers render every glyph of all three tables; pixels must equal the designed bitmaps |
 | 18 | identity | both version strings through the firmware's `sprintf`; container name byte-identical to stock |
 | 18b | About URL | the About line's `gui_blit` call: geometry (12, 184, 216, 12), 12-px font, the URL text, stock colours; the stock draw for comparison |
-| 19 | Thai UI | the cell table and every cell through the stock glyph drawer; all 64 stubs resolved through RELOC to the wording table; the hook table against `wording.py`; the three routines byte-identical to `thai/drawers.py` assembled; the three jumps; the drawer unit test; then all 56 screen states in Thai pixel-identical to the model, all 56 in English pixel-identical to the same build without `thai-ui`, every Thai string drawn at least once |
+| 19 | Thai UI | the cell table and every cell through the stock glyph drawer; all 64 stubs resolved through RELOC to the wording table; the hook table against `wording.py`; the three routines byte-identical to `thai/drawers.py` assembled; the three jumps; the drawer unit test; then all 57 screen states in Thai pixel-identical to the model, all 57 in English pixel-identical to the same build without `thai-ui` (which gets a stand-in region beyond the image for the patches whose code lives in the Thai region), every Thai string drawn at least once |
 | 20 | Cable Test Back | action 7 through the key dispatcher in every function state, mod and stock |
 
 Each behavioural check runs the stock image as well, so the report shows the

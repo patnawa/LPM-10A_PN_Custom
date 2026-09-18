@@ -2,16 +2,16 @@
 
 # LPM-10A PN Custom Firmware
 
-**PN 2.1: an unofficial, industrial-grade firmware for the FNIRSI LPM-10A network cable tester,
+**PN 2.2: an unofficial, industrial-grade firmware for the FNIRSI LPM-10A network cable tester,
 built by patching the official V2.0.7 image, proving every change by CPU emulation, and
 validated on a real unit: PN 2.1, complete Thai user interface included, passed every function
 on hardware on 2026-09-18.**
 
-![version](https://img.shields.io/badge/version-PN%202.1-orange)
+![version](https://img.shields.io/badge/version-PN%202.2-orange)
 ![base](https://img.shields.io/badge/base-FNIRSI%20V2.0.7-lightgrey)
-![patches](https://img.shields.io/badge/patches-16-blue)
+![patches](https://img.shields.io/badge/patches-17-blue)
 ![languages](https://img.shields.io/badge/UI-English%20%2F%20%E0%B9%84%E0%B8%97%E0%B8%A2-blue)
-![verified](https://img.shields.io/badge/verify.py-181%20checks%20pass-brightgreen)
+![verified](https://img.shields.io/badge/verify.py-184%20checks%20pass-brightgreen)
 ![hardware](https://img.shields.io/badge/hardware%20test-PN%202.1%20passed-brightgreen)
 ![license](https://img.shields.io/badge/tooling%20license-MIT-lightgrey)
 [![release](https://img.shields.io/github/v/release/patnawa/LPM-10A_PN_Custom?label=download)](https://github.com/patnawa/LPM-10A_PN_Custom/releases/latest)
@@ -25,8 +25,9 @@ on hardware on 2026-09-18.**
 > **Status: PN 2.1 passed every function on a real unit on 2026-09-18**: the Thai interface
 > on every screen, the two Cable Test fixes (Back returns to the Switch / Far end choice; the
 > red "Result error!!" is no longer hidden under the Test Retry button), and everything
-> from PN 1.x (Zero 0.4 m / NVP 68 % read a 2.9 m cable right). Verified by emulation too:
-> 181 checks, 56 screen states compared pixel for pixel. What still fails is the PHY's own
+> from PN 1.x (Zero 0.4 m / NVP 68 % read a 2.9 m cable right). **PN 2.2** changes one
+> thing: a pair the PHY could not time shows `< 2 m` instead of `0.0 m` (emulation-verified,
+> 184 checks, 57 screen states, awaiting its flash). What still fails is the PHY's own
 > limit, not the firmware: cables of about 2 m and under cannot be measured, see
 > [Known limitations](#known-limitations).
 > Flash at your own risk, and read [How to go back to stock](#going-back-to-stock) first.
@@ -47,7 +48,7 @@ it, adds code in an unused flash tail, re-assembles, and verifies the result in 
 | Length display | whole metres ("55"), inches, cm forced on every screen entry | **m / cm / ft with one decimal** ("55.4"), unit remembered across power cycles |
 | Cable calibration | none; the PHY's fixed constant | **Zero 0.0–2.0 m and NVP 50–99 %** on the Length screen, live redraw, saved; 0.0 m / 69 % = factory |
 | Length stability | one CSD run shown as is (±0.3 m scatter at 14 m) | **four runs averaged per pair**; a test takes four times longer |
-| Length result | a new reading inside the tolerance band was replaced by the previous cable's value | the measured value is always shown |
+| Length result | a new reading inside the tolerance band was replaced by the previous cable's value; a pair the PHY could not time printed `0.0` | the measured value is always shown; a blind pair reads **`< 2 m`** (`< 200 cm`, `< 7 ft`), so a pair open within the first two metres of a long cable is named as such (PN 2.2) |
 | Low battery | one sample < 3150 mV starts an uncancellable 30 s shutdown | needs 3 consecutive samples; cancels when the pack recovers ≥ 3250 mV |
 | Battery gauge | 4 steps | 10-step Li-ion curve, red at ≤ 20 % |
 | Auto Off | keeps counting while the SCAN tone or FLASH blink is running, so a trace ends with the unit switching itself off | held (and restarted) while a tone or blink session is active; unchanged elsewhere |
@@ -56,7 +57,7 @@ it, adds code in an unused flash tail, re-assembles, and verifies the result in 
 | Language | Chinese / English, picker on first boot | **ไทย / English** on every screen (PN 2.0); picker on first boot and after a factory reset; machine-translated English corrected |
 | SCAN modes | labelled "Noiseless" and "Normal" | labelled **Digital** (the 0xB6B6 coded pattern the probe decodes) and **825 Hz** (a plain keyed tone for any analogue probe) |
 | Cable Test | Back leaves the screen from every step; "Result error!!" is painted under the Test Retry button | **Back returns to the Switch / Far end choice** from the armed and result screens (PN 2.1); the error line sits above the button, which moved 9 px down |
-| Identity | About screen reports `Software:V2.0.7` and `http://www.fnirsi.cn` | reports `Software:PN 2.1` and this repository's URL; the bootloader-facing image name is untouched |
+| Identity | About screen reports `Software:V2.0.7` and `http://www.fnirsi.cn` | reports `Software:PN 2.2` and this repository's URL; the bootloader-facing image name is untouched |
 
 <img src="docs/img/about_screen.png" alt="About screen: stock and PN Custom" width="760">
 
@@ -94,12 +95,12 @@ The firmware file is attached to every release on the
 
 1. Verify the download:
    ```
-   certutil -hashfile LPM-10A-TX_PN2.1.bin SHA256
-   13679b1edaba91f7e475acbb119491f9731fce794d68d9947772268ace1c11c6
+   certutil -hashfile LPM-10A-TX_PN2.2.bin SHA256
+   94f1b15e8b331dd38d5576734661a1337711df493983146868d6d98a380b88c7
    ```
 2. Power the tester off. Hold **M + Power** until the firmware update screen appears.
 3. Connect USB-C; a removable drive appears.
-4. Copy [`LPM-10A-TX_PN2.1.bin`](LPM-10A/Firmware%20File/LPM-10A-TX_PN2.1.bin)
+4. Copy [`LPM-10A-TX_PN2.2.bin`](LPM-10A/Firmware%20File/LPM-10A-TX_PN2.2.bin)
    onto that drive. Do not unplug during the update.
 5. Long-press Power to shut down, then power on normally.
 
@@ -111,7 +112,9 @@ V2.x.x hardware, like stock V2.0.7.
 
 ### First power-on checklist
 
-Every item below passed on a real unit on 2026-09-18 (PN 2.1). For a second unit:
+Every item below passed on a real unit on 2026-09-18 (PN 2.1). New in PN 2.2 and still to
+be checked: a 1 m cable reads `< 2 m` on the pairs the PHY could not time (or *Out of
+range* when it timed none), never `0.0 m`. For a second unit:
 
 - Cable Test: choose Switch or Far end, OK to the wiremap layout, then Back: the choice
   comes back (not Home). Back once more: Home. The same from a result.
@@ -126,7 +129,7 @@ Every item below passed on a real unit on 2026-09-18 (PN 2.1). For a second unit
 - Length in Thai: "กำลังทดสอบ" with the dots to its right, then the four readings with
   เมตร / ซม. / ฟุต; unplug the cable for "เกินช่วงการวัด".
 - Switch back to English: every screen is exactly as PN 1.3.
-- Settings > About reads `Software:PN 2.1` and shows `github.com/patnawa/LPM-10A_PN_Custom`.
+- Settings > About reads `Software:PN 2.2` and shows `github.com/patnawa/LPM-10A_PN_Custom`.
 - Length screen shows `ZERO 0.0m` left of the Unit box and `NVP 69%` right of it; UP/DOWN
   change the white one, a long press of OK swaps which is white, and after a test the four
   readings follow.
@@ -258,7 +261,8 @@ the Motorcomm YT8531 PHY and reads four results in centimetres, one per pair
 | 4. Run average | **PN 1.2** | `mean_i = floor(Σ runs_i / n_i)` over the 4 runs, counting only runs where pair *i* read non-zero; `n_i = 0 → 0` | halves the per-run scatter (±0.2 m at 3 m, ±0.3 m at 14 m on the tested unit); the 20 s timeout restarts per run; replaces stock's single retry |
 | 5. Zero | **PN 1.1** | `cm0 = cm − 10 × Zero`; `cm0 ≤ 0 → 0` | Zero in 0.1 m steps, 0.0–2.0 m, settings byte 0xC5; a byte above 20 (unset) = no offset |
 | 6. NVP | **PN 1.0** | `cm' = (cm0 × NVP + 34) / 69` | 50–99 %, settings byte 0xA6; any byte outside that range (0 = factory) is the identity, and so is 69 % inside it |
-| 7. Unit | **PN 1.0** | m: `(cm' + 5) / 10` tenths · cm: `cm'` · ft: `(cm' × 1000 + 1524) / 3048` tenths | integer division, rounded; a pair only 1–4 cm above the Zero rounds to 0.0 and counts as out of range |
+| 7. Unit | **PN 1.0** | m: `(cm' + 5) / 10` tenths · cm: `cm'` · ft: `(cm' × 1000 + 1524) / 3048` tenths | integer division, rounded; a pair only 1–4 cm above the Zero rounds to 0 and counts as blind |
+| 8. Blind pair | **PN 2.2** | a converted value of 0 prints `< 2` / `< 200` / `< 7` (m / cm / ft) instead of `0.0`; all four zero still gives *Out of range* | the PHY zeroes any pair whose echo came back inside its ~2 m blind zone; on a long cable such a pair is open within the first two metres |
 | 8. Display | **PN 1.0** | `sprintf("%s = %d.%d")` for m and ft, `"%s = %d"` for cm; "Out of range" only when all four are 0 | the firmware's own `sprintf` |
 
 Why the two calibration controls: the PHY's number is `v_assumed × t / 2`, where the time
@@ -346,8 +350,8 @@ pip install capstone unicorn        # pillow + pymupdf only to rebuild the fonts
 python test_thumb.py                # assembler self-test against Capstone
 python build.py --list              # the patch set
 python build.py                     # dry run: every byte it would change, disassembled
-python build.py --write             # emit LPM-10A-TX_PN2.1.bin
-python verify.py                    # 181 checks
+python build.py --write             # emit LPM-10A-TX_PN2.2.bin
+python verify.py                    # 184 checks
 ```
 
 `build.py --only a,b` builds a subset; every patch is independent. `build.py` refuses to
@@ -359,14 +363,14 @@ What `verify.py` proves, section by section:
 |---|---|---|
 | 1–3 | container, byte footprint, full disassembly inventory | any byte changed without being declared by a patch fails |
 | 4–5 | auto-off hold, factory defaults | a key event through the stock dispatcher (proves stock already resets on keys); the 1 s housekeeping in SCAN/FLASH with the session flags on and off |
-| 6–7 | unit conversion, on-screen text | 36 vectors; the text comes out of the firmware's own `sprintf` |
+| 6–7 | unit conversion, on-screen text | 36 vectors plus the three blind-pair texts; the text comes out of the firmware's own `sprintf` |
 | 8 | sticky result, run averaging | 50 m previous, 52 m readings: stock keeps 50, mod stores 52; four simulated CSD runs through the real re-run block: per-pair means, out-of-range runs left out, stale accumulator ignored, registers and stack intact; stock's single retry for comparison |
 | 9–10 | battery debounce and gauge | sample sequences, ADC + GPIO for the cancel path, 18-point curve |
 | 11 | heap leak | both exit paths trapped at `vPortFree` |
 | 12–16 | Zero + NVP | 513 arithmetic vectors including the measured unit's numbers, key hook (clicks, repeat, clamps, OK long press, other screens), message routing, both rendered texts with their colours, screen-entry draw, Factory Reset defaults compared with stock byte for byte |
 | 17 | fonts | the firmware's own glyph drawers render all 361 glyphs; pixels must equal the designed bitmaps |
 | 18 | identity | the version strings through the firmware's `sprintf`; the container name is byte-identical to stock; the SCAN labels and the About URL line drawn through the stock code with `gui_blit` trapped |
-| 19 | Thai UI | the cell table, every one of the 64 string stubs resolved through the redirect table, the hook table, the three routines byte-identical to their assembled source, the drawer unit test; then **all 56 screen states drawn by the built firmware in Thai compared pixel for pixel with the design model, all 56 in English compared with the same build without the Thai patch**, and every Thai string drawn at least once |
+| 19 | Thai UI | the cell table, every one of the 64 string stubs resolved through the redirect table, the hook table, the three routines byte-identical to their assembled source, the drawer unit test; then **all 57 screen states drawn by the built firmware in Thai compared pixel for pixel with the design model, all 57 in English compared with the same build without the Thai patch**, and every Thai string drawn at least once |
 | 20 | Cable Test Back | the key dispatcher with action 7 in every function state, mod and stock: only CABLE_TEST with the layout shown re-enters the screen; everything else keeps stock's target |
 
 Each behavioural check runs the stock image too, so the report shows the defect and the fix
@@ -378,7 +382,7 @@ documented in [`LPM-10A/Firmware File/sdk/README.md`](LPM-10A/Firmware%20File/sd
 ```
 LPM-10A/
   Firmware File/
-    LPM-10A-TX_PN2.1.bin              PN Custom image (the build output)
+    LPM-10A-TX_PN2.2.bin              PN Custom image (the build output)
     LPM-10A-TX_V2.0.7_260610.bin      stock image: NOT included, put FNIRSI's copy here to build
     MOD-README.txt                    change list, hashes, flashing, checklist
     FORMULA-AUDIT.md                  every measurement formula, with verdicts
@@ -433,7 +437,9 @@ Things that need vendor source or hardware, so they are documented rather than p
   returns before the pulse has finished, so the YT8531 reports nothing usable; confirmed on
   hardware with a 1 m cable on PN 1.3 and again on PN 2.1, where three pairs returned
   nothing and pair 4-5 returned a raw 2.2 m, shown as 1.7 m after Zero and NVP: an
-  artefact of the overlapping pulse and echo, not a length). This is why the Length screen cannot tell which pair
+  artefact of the overlapping pulse and echo, not a length; on other runs all four pairs
+  returned nothing and the screen said *Out of range*, which for a 1 m cable is the honest
+  answer). Since PN 2.2 a blind pair reads `< 2 m` rather than `0.0 m`. This is why the Length screen cannot tell which pair
   of a short patch cable is broken; the Cable Test (wiremap) screen can. An experimental
   build that lowers stock's 2.0 m cut-off to 0.5 m exists to collect raw readings, see
   [`experimental/README.md`](LPM-10A/Firmware%20File/experimental/README.md).

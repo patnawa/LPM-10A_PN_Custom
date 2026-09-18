@@ -97,7 +97,7 @@ def sc_flash_note(s):
 
 def sc_length_idle(s, unit=0):
     s.w8(0x200002C0, unit)
-    s.w8(0x20000C78 + 0xA6, 68); s.w8(0x20000C78 + 0xC5, 5)
+    s.w8(0x20000C78 + 0xA6, 68); s.w8(0x20000C78 + 0xC5, 4)      # the tested unit's calibration
     s.set_state(7)
     s.post(0x19); s.drain()
 
@@ -219,6 +219,7 @@ SCREENS = [
     ("length_testing", "Length: testing", sc_length_testing, {}),
     ("length_result", "Length: result", sc_length_result, {}),
     ("length_out_of_range", "Length: out of range", sc_length_result, dict(cm=(0, 0, 0, 0))),
+    ("length_blind_pairs", "Length: 1 m cable, three pairs blind", sc_length_result, dict(cm=(0, 0, 215, 0))),
     ("length_timeout", "Length: timeout", sc_length_timeout, {}),
     ("qc_test", "QC Test", sc_qc_test, {}),
     ("qc_test_uncalibrated", "QC Test: not calibrated", sc_qc_uncal, {}),

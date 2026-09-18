@@ -961,7 +961,7 @@ STOCK_FONT_SHA = {
 # Group: identity
 # =====================================================================
 
-VERSION = "PN 2.1"          # shown as "Software:PN 2.1" in About; max 7 characters
+VERSION = "PN 2.2"          # shown as "Software:PN 2.2" in About; max 7 characters
 
 
 @patch("version-string", f"Report the firmware version as {VERSION}",
@@ -1300,6 +1300,70 @@ def p_cable_error(img):
     img.poke(0x0801E322, "1801", bytes.fromhex("2101"), "Cable Test button record: y 280 -> 289")
     for site in (0x0800C484, 0x0800C496):
         img.poke(site, "40f21d11", bytes.fromhex("40f22611"), "Cable Test button label y 285 -> 294")
+
+
+@patch("length-blind-text", "Length: a pair the PHY could not time shows '< 2 m' instead of '0.0 m'",
+       risk="low", group="measure")
+def p_length_blind(img):
+    """
+    The PHY's cable diagnostic cannot time an echo from inside its blind zone
+    (about 2 m): stock zeroes such a pair, and the result rows then print
+    "1-2 = 0.0 m" next to the pairs that did read, which looks like a fault
+    or a zero-length pair.  Seen on hardware with a 1 m cable: three pairs
+    blind, pair 4-5 a raw 2.2 m (1.7 m after Zero and NVP).
+
+    A zero now prints as "1-2 = < 2" (m), "< 200" (cm) or "< 7" (ft); the
+    stock code still appends the unit label after the text, so the row reads
+    "1-2 = < 2 m" / "1-2 = < 2 เมตร".  All four pairs zero still gives "Out of
+    range" as before (that test runs before any row is printed).  On a long
+    cable a "< 2 m" pair beside pairs that read the full length is a pair
+    open within the first two metres, which the old "0.0 m" hid.
+
+    Implementation: length-decimal's cave formatter (called from the one
+    sprintf site 0x08019B12) is replaced by a copy with the zero case; the new
+    copy lives in the Thai patch's region (the cave is full), the old one is
+    left unreferenced.  The wrapper still returns sprintf's length, which the
+    stock code uses to place the unit label.
+    """
+    from lpm10a.thumb import assemble
+    syms = dict(sprintf=0x0800A38C | 1, leng_unit_idx=0x200002C0)
+    fmt = img.emit_code_anywhere("""
+    length_sprintf2:            ; r0=buf r1="%s = %d" r2=name r3=value (tenths for m/ft, cm for cm)
+            push {r4, r5, lr}
+            sub  sp, #4
+            ldr  r4, =leng_unit_idx
+            ldrb r4, [r4]
+            cbz  r3, blind
+            cmp  r4, #1
+            beq  plain              ; cm: stock format
+            movs r4, #10
+            udiv r5, r3, r4         ; integer part
+            mls  r4, r5, r4, r3     ; tenths = value - int*10
+            str  r4, [sp]           ; 5th vararg
+            mov  r3, r5
+            ldr  r1, =fmt_dec
+    plain:  bl   sprintf
+            add  sp, #4
+            pop  {r4, r5, pc}
+    blind:                      ; the echo came back inside the PHY's blind zone
+            movs r3, #2             ; m
+            cbz  r4, bfmt
+            movs r3, #200           ; cm
+            cmp  r4, #1
+            beq  bfmt
+            movs r3, #7             ; ft
+    bfmt:   ldr  r1, =fmt_blind
+            b    plain
+    fmt_dec:
+            .asciz "%s = %d.%d"
+    fmt_blind:
+            .asciz "%s = < %d"
+    """, extra_syms=syms, why="length_result_draw: decimal formatter with the blind-zone text")
+    site = 0x08019B12
+    old = img.read(site, 4)
+    if (old[1] & 0xF8) != 0xF0 or (old[3] & 0xD0) != 0xD0:
+        raise PatchError("length-blind-text needs length-decimal's bl at 0x08019B12")
+    img.poke(site, old.hex(), assemble(site, f"bl 0x{fmt:08X}"), "sprintf site -> formatter with '< 2 m'")
 
 
 # =====================================================================

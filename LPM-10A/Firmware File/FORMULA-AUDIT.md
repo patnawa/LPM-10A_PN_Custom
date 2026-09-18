@@ -140,7 +140,10 @@ another, and a 14 m cable read 14.4–15.0 m (mean 14.7). Fitting the means give
 reading ≈ 1.00–1.02 × length + 0.4–0.6 m; the ±0.2 m spread is the PHY's own
 resolution. As a worked example, raw 3.34 m / 14.7 m with Zero 0.4 m and NVP
 67 % read 2.9 m / 13.9 m (68 %: 14.1 m), which verify.py §12 checks; the unit
-indeed settled at Zero 0.4 m / NVP 68 % once PN 1.2's four-run average was in. A 1 m cable returned 2.4 m or nothing, so the ≤ 2 m blind zone
+indeed settled at Zero 0.4 m / NVP 68 % once PN 1.2's four-run average was in.
+A pair the PHY zeroed (its echo inside the blind zone) prints `< 2` / `< 200` /
+`< 7` for m / cm / ft since PN 2.2 (`length-blind-text`, verify.py §7); with a
+1 m cable the unit showed three such pairs and a raw 2.2 m on the fourth. A 1 m cable returned 2.4 m or nothing, so the ≤ 2 m blind zone
 (§1.2) is genuine and is kept.
 
 69 % is the reference: the PHY's own calibration, whatever velocity it

@@ -2,7 +2,7 @@
 
 > **Status: shipped in PN 2.0, passed on a real unit on 2026-09-18, every screen (PN 2.1 too).**
 > The pictures below are what the firmware draws: `verify.py` §19 runs the built image's
-> own drawing code through the real GUI dispatcher for 56 screen states and compares the
+> own drawing code through the real GUI dispatcher for 57 screen states and compares the
 > pixels with this design; it also proves the English screens are pixel-identical to the
 > same build without the Thai patch (i.e. the patch changes nothing in English).
 
@@ -61,6 +61,7 @@ centred; "left" means it starts at the same pixel as the Chinese one.
 | | m / cm / ft | 英寸 / 厘米 / 米 (stock never relabelled these) | เมตร / ซม. / ฟุต | centred, and after each result |
 | | Testing … | 测试中 | กำลังทดสอบ … | left; the dots move from x = 68 to x = 82 |
 | | Out of range. | 超出测量范围 | เกินช่วงการวัด | left |
+| | 1-2 = < 2 (blind pair, PN 2.2) | (none) | 1-2 = < 2 เมตร | ASCII line, Thai unit label |
 | | Test timeout!! | (English only) | หมดเวลาทดสอบ!! | hook: the line is wiped, then drawn from x = 12 |
 | QC Test | Test error / Please remove cable / Then long press 'Right' / To Initialize | 测试出错 / 请移除网线后 / 长按右键校准 | ทดสอบผิดพลาด / โปรดถอดสายออก / กดปุ่มขวาค้างเพื่อปรับเทียบ | centred |
 | SPEED | Speed / Link Type | 速率 / 双工模式 | ความเร็ว / ดูเพล็กซ์ | centred in the label box |
@@ -126,7 +127,7 @@ adversarially before release (like every PN change).
    shipped one and every cell renders through the stock glyph drawer as designed; all 64
    stubs resolve to this wording; the routines are byte-identical to their assembled
    sources and the three jumps are in place; the hook table matches `wording.py`; the
-   drawer unit test; then every one of 56 screen states drawn by the built firmware in
+   drawer unit test; then every one of 57 screen states drawn by the built firmware in
    Thai is pixel-identical to the model (a build without the Thai patch with the Chinese
    drawers intercepted and the Thai text drawn from the same cells), every state in
    English is pixel-identical to that build, and every Thai string is drawn at least

@@ -356,7 +356,8 @@ try:
     for unit, cm, want in ((0, 5540, "1-2 = 55.4"), (0, 250, "1-2 = 2.5"), (0, 65535, "1-2 = 655.4"),
                            (1, 5540, "3-6 = 5540"), (2, 5540, "4-5 = 181.8"), (2, 30480, "4-5 = 1000.0"),
                            (0, 9999, "7-8 = 100.0"), (2, 201, "7-8 = 6.6"), (0, 1004, "7-8 = 10.0"),
-                           (0, 1005, "7-8 = 10.1")):
+                           (0, 1005, "7-8 = 10.1"),
+                           (0, 0, "1-2 = < 2"), (1, 0, "3-6 = < 200"), (2, 0, "4-5 = < 7")):   # blind-zone pairs
         e = Emu(mod)
         e.w(UNIT, bytes([unit]))
         e.w(NAME, want.split(" =")[0].encode() + b"\0")
@@ -1089,14 +1090,11 @@ if any(_p.pid == "thai-ui" and _p.default for _p in patches.REGISTRY):
               "" if n_fail == 0 else buf.getvalue()[-300:])
         # 19f. every screen: the built image drawing Thai by itself == the model; English == the reference build
         from thai import compare as TC
-        ref = Image(STOCK)
-        for _p in patches.REGISTRY:
-            if _p.default and _p.pid not in ("thai-ui", "cable-back"):     # cable-back lives in the Thai region
-                _p(ref)
+        from thai.engine import reference_image
         with tempfile.TemporaryDirectory() as td:
             ref_path = os.path.join(td, "ref.bin")
             mod_path = os.path.join(td, "mod.bin")
-            ref.save(ref_path)
+            open(ref_path, "wb").write(reference_image())       # every default patch but thai-ui
             open(mod_path, "wb").write(mod)
             bad = TC.compare(mod_path, ref_path)
         n_scr = len(TC.ALL_SCREENS)
