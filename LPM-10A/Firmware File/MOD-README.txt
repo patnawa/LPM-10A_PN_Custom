@@ -32,9 +32,11 @@ emulation (sdk/verify.py, 235 checks).  PN 2.2 was flashed to a real
 unit on 2026-09-18 and every function was tested there, the Thai
 interface, the Cable Test fixes and the blind-pair text included.
 PN 2.3 was flashed the same day: the bootloader took the longer file,
-but its port blink stopped after three or four cycles; PN 2.4 is the
-fix and awaits its flash, as does the PoE screen's report.  Use at
-your own risk.  Rebuild or audit it yourself with sdk/.
+but its port blink stopped after three or four cycles; PN 2.4 fixed
+it and its FLASH passed on the unit the same day (the blink keeps
+going, the tester's LED shows orange during the session).  The PoE
+screen still awaits its report.  Use at your own risk.  Rebuild or
+audit it yourself with sdk/.
 
 This file only updates the transmitter.  A separate receiver build,
 APP_LPM-10RX_PN1.0.bin (see RX-README.txt), exists but must not be
@@ -302,8 +304,8 @@ From mod 1:
   accepted the file under its own name; every item below passed, and
   Zero 0.4 m / NVP 68 % read a 2.9 m cable right.  PN 2.3: the
   bootloader accepted the 4 KB longer file and the unit runs; its
-  FLASH stopped after three or four cycles (fixed in PN 2.4).  Still
-  to check:
+  FLASH stopped after three or four cycles; PN 2.4's FLASH passed
+  (the blink keeps going, the tester's LED orange).  Still to check:
     - PoE screen without a cable: "Detecting..." in the Standard row,
       then "No PoE" and a blue LED after about 3.5 s; leave and
       re-enter: the same again (stock stayed blank).
@@ -320,6 +322,7 @@ From mod 1:
       switch re-links, the same on time every cycle; note the times
       you see (gigabit and 100 Mb switch if both are at hand).  On a
       managed switch the LED may show amber (spanning tree).
+      [PN 2.4: passed]
     - FLASH left blinking for longer than Auto Off: the unit stays on
       (PN 1.0 .. 2.2 held Auto Off in SCAN only).
     - A 1 m cable reads "< 2 m" on the blind pairs (or "Out of

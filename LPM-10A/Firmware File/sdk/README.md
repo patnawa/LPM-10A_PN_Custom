@@ -174,8 +174,8 @@ is verified by emulation; the PN 1.0 set has also passed the first-power-on
 checklist on a real unit (2026-09-18), PN 1.3 passed every function there and so did
 PN 2.0 with the Thai interface, PN 2.1 with the two Cable Test fixes and PN 2.2 with
 the blind-pair text; PN 2.3 flashed and ran (the bootloader took the 4 KB longer file) but
-its FLASH blink stalled after a few cycles, fixed in PN 2.4, which awaits its flash along
-with the PoE screen's report. `english-only` was dropped: the
+its FLASH blink stalled after a few cycles, fixed in PN 2.4, whose FLASH passed on the unit
+the same day; the PoE screen still awaits its report. `english-only` was dropped: the
 string it blanked was a log message, not the menu entry.
 
 The reasoning behind each measurement change, and the formulas that were

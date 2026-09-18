@@ -33,7 +33,9 @@ port blink that stopped after a few cycles on the unit.**
 > but the port blink stopped after three or four cycles. **PN 2.4** is the fix (the blink
 > re-asserts the PHY's power-up while it waits and power-cycles it again after 4 s without a
 > link, so nothing can stall it), verified by emulation (235 checks, 61 screen states
-> compared pixel for pixel) and **awaiting its flash**; the PoE screen awaits its report. What
+> compared pixel for pixel) and **its FLASH passed on the unit the same day**: the port keeps
+> blinking, the tester's LED shows orange while it does; the PoE screen still awaits its
+> report. What
 > still fails is the PHY's own limit, not the firmware: cables of about 2 m and under
 > cannot be measured, see [Known limitations](#known-limitations). Flash at your own risk,
 > and read [How to go back to stock](#going-back-to-stock) first.
@@ -125,9 +127,9 @@ V2.x.x hardware, like stock V2.0.7.
 
 ### First power-on checklist
 
-Every item below passed on a real unit on 2026-09-18 (PN 2.2); the PoE and FLASH items are
-PN 2.3 / 2.4's and still need their pass (PN 2.3's FLASH stopped after three or four
-cycles, which PN 2.4 fixes):
+Every item below passed on a real unit on 2026-09-18 (PN 2.2); PN 2.4's FLASH passed the
+same day (PN 2.3's had stopped after three or four cycles); the PoE items still need their
+pass:
 
 - PoE screen without a cable: "Detecting..." / "กำลังตรวจหา..." in the Standard row, then
   "No PoE" / "ไม่พบ PoE" and a blue LED after about 3.5 s; leave and re-enter: the same
@@ -142,7 +144,8 @@ cycles, which PN 2.4 fixes):
   switch re-links, the same on time every cycle (stock: the on time varied with the switch);
   on a managed switch the LED may show amber (spanning tree) rather than green. Note the
   on / off times you see, on a gigabit and a 100 Mb switch if both are at hand; the green dot
-  on the tester's screen follows the port within a second.
+  on the tester's screen follows the port within a second. (PN 2.4: passed, the blink keeps
+  going; the tester's LED shows orange during the session.)
 - FLASH left blinking for longer than the Auto Off setting: the unit stays on (PN 1.0–2.2
   did not hold Auto Off here, only in SCAN).
 
