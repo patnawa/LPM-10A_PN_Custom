@@ -4,7 +4,7 @@ LPM-10A firmware build tool.
 
     python build.py --list                 show available patches
     python build.py                        dry run with the default patch set
-    python build.py --write                emit LPM-10A-TX_PN1.2.bin
+    python build.py --write                emit LPM-10A-TX_PN1.3.bin
     python build.py --only a,b --write     build a specific set
     python build.py --all --write          include patches marked untested
 
@@ -26,7 +26,7 @@ import patches                                       # noqa: E402
 FW_DIR = os.path.dirname(HERE)
 STOCK = os.path.join(FW_DIR, "LPM-10A-TX_V2.0.7_260610.bin")
 STOCK_SHA = "29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b"
-OUT = os.path.join(FW_DIR, "LPM-10A-TX_PN1.2.bin")
+OUT = os.path.join(FW_DIR, "LPM-10A-TX_PN1.3.bin")
 
 
 def disasm_region(data, payload_off, addr, n):

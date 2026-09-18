@@ -33,7 +33,7 @@ Rebuilding the fonts (not needed for a build) also needs `pillow` and `pymupdf`.
 python test_thumb.py            # assembler self-test
 python build.py --list          # what patches exist
 python build.py                 # dry run: prints every byte it would change
-python build.py --write         # emit LPM-10A-TX_PN1.2.bin
+python build.py --write         # emit LPM-10A-TX_PN1.3.bin
 python verify.py                # prove the result is what was intended
 ```
 
@@ -136,7 +136,8 @@ The assembler rejects anything it does not recognise rather than guessing, and
 | `batt-gauge` | low | ux | 10-step Li-ion battery gauge instead of 4 steps |
 | `settings-leak` | low | bugfix | Frees the 204-byte buffer leaked by every settings save |
 | `font-pro` | low | ux | Replaces all three fonts: 8x16 and 6x12 ASCII (Ubuntu Sans Mono) and the 171 Chinese glyphs (Droid Sans Fallback) |
-| `version-string` | safe | identity | About screen and boot log report `PN 1.2` (edit `VERSION` in patches.py, 7 characters max) |
+| `version-string` | safe | identity | About screen and boot log report `PN 1.3` (edit `VERSION` in patches.py, 7 characters max) |
+| `scan-labels` | safe | identity | SCAN screen modes labelled `Digital` (0xB6B6 coded pattern) and `825 Hz` (keyed tone) instead of `Noiseless` / `Normal` |
 | `about-url` | safe | identity | About screen shows `github.com/patnawa/LPM-10A_PN_Custom` (string in the cave, 6x12 font, 216 px) where the vendor site was; edit `REPO_URL` in patches.py, 36 characters max |
 | `english-only` | untested | english | Removes Chinese from the language menu (off by default) |
 | `batt-grace` | low | tuning | Low-battery shutdown grace 30 s → 60 s (off by default) |
@@ -145,7 +146,7 @@ The assembler rejects anything it does not recognise rather than guessing, and
 that look right on paper but need a real device to confirm. Everything else
 is verified by emulation; the PN 1.0 set has also passed the first-power-on
 checklist on a real unit (2026-09-18). PN 1.1's Zero + NVP calibration was confirmed there too. **The PN 1.2 run
-averaging has not been flashed yet.**
+averaging and the PN 1.3 labels have not been flashed yet.**
 
 The reasoning behind each measurement change, and the formulas that were
 checked and found correct, are in [`../FORMULA-AUDIT.md`](../FORMULA-AUDIT.md).

@@ -135,7 +135,6 @@ def p_english(img):
         (0x0801188F, " Factory Reset will"),      # was " Factory Reset should"
         (0x080118A8, "erase all your settings"),  # was "reset all of your modiy"
         # Misc wording
-        (0x080142B4, "Silent"),          # was "Noiseless"
         (0x08019C10, "Out of range"),    # was "Out of range."
         (0x080679D4, "Test error"),      # was "Test exception!!"
     ]
@@ -952,7 +951,7 @@ STOCK_FONT_SHA = {
 # Group: identity
 # =====================================================================
 
-VERSION = "PN 1.2"          # shown as "Software:PN 1.2" in About; max 7 characters
+VERSION = "PN 1.3"          # shown as "Software:PN 1.3" in About; max 7 characters
 
 
 @patch("version-string", f"Report the firmware version as {VERSION}",
@@ -1008,6 +1007,35 @@ def p_about_url(img):
     img.poke(site, "6aa0 1021", assemble(site, f"bl 0x{about:08X}"), "About: URL string and 12-px font")
     img.poke(0x08011498, "a022", bytes.fromhex("d822"), "About: URL width 216 px")
     img.poke(0x080114A0, "2820", bytes.fromhex("0c20"), "About: URL x = 12 (centred)")
+
+
+@patch("scan-labels", "SCAN screen: the two modes are labelled 'Digital' and '825 Hz' instead of 'Noiseless' / 'Normal'",
+       risk="safe", group="identity")
+def p_scan_labels(img):
+    """
+    The SCAN (tone) screen offers two transmit modes.  Stock calls them
+    "Noiseless" and "Normal", which says nothing about what goes down the
+    wire.  What the code does (TIM2 at 9 901 Hz, verify.py §4 and the tone
+    analysis in docs/RX-AUDIT.md):
+
+      mode 1 "Noiseless": the 454 kHz carrier keyed in the 16-slot pattern
+             0xB6B6, 50 ticks = 5.05 ms per slot: the digitally coded
+             signal the LPM-10RX probe decodes in its digital mode.
+      mode 2 "Normal":    the carrier keyed on/off every 6 ticks, i.e. a
+             continuous 825 Hz square-wave tone (9 901 / 12) for any
+             analogue probe.  (The 100 ms "phase" flag in that routine
+             toggles a byte that both branches treat identically.)
+
+    So the labels become "Digital" and "825 Hz".  Both are English-only
+    strings drawn by gui_blit; the Chinese labels are untouched.  "825 Hz"
+    is six characters like "Normal", so its blit is unchanged; "Digital" is
+    seven, so its blit moves from x 84 / w 72 to x 92 / w 56 to stay
+    centred on 120 like stock.
+    """
+    img.set_string(0x080142B4, "Digital")      # was "Noiseless" (PN 1.0..1.2 said "Silent")
+    img.set_string(0x080142C8, "825 Hz")       # was "Normal"
+    img.poke(0x080141E4, "4822", bytes.fromhex("3822"), "SCAN mode 1 label width 72 -> 56")
+    img.poke(0x080141EC, "5420", bytes.fromhex("5c20"), "SCAN mode 1 label x 84 -> 92")
 
 
 @patch("english-only", "Remove Chinese from the language menu",

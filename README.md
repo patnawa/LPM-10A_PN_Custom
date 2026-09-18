@@ -2,14 +2,14 @@
 
 # LPM-10A PN Custom Firmware
 
-**PN 1.2: an unofficial, industrial-grade firmware for the FNIRSI LPM-10A network cable tester,
+**PN 1.3: an unofficial, industrial-grade firmware for the FNIRSI LPM-10A network cable tester,
 built by patching the official V2.0.7 image, proving every change by CPU emulation, and
-validated on a real unit (PN 1.0 and the PN 1.1 calibration; the PN 1.2 averaging awaits its flash).**
+validated on a real unit (PN 1.0 and the PN 1.1 calibration; the PN 1.2 averaging and the PN 1.3 labels await their flash).**
 
-![version](https://img.shields.io/badge/version-PN%201.2-orange)
+![version](https://img.shields.io/badge/version-PN%201.3-orange)
 ![base](https://img.shields.io/badge/base-FNIRSI%20V2.0.7-lightgrey)
-![patches](https://img.shields.io/badge/patches-13-blue)
-![verified](https://img.shields.io/badge/verify.py-153%20checks%20pass-brightgreen)
+![patches](https://img.shields.io/badge/patches-14-blue)
+![verified](https://img.shields.io/badge/verify.py-155%20checks%20pass-brightgreen)
 ![hardware](https://img.shields.io/badge/hardware%20test-PN%201.0%20passed-brightgreen)
 ![license](https://img.shields.io/badge/tooling%20license-MIT-lightgrey)
 [![release](https://img.shields.io/github/v/release/patnawa/LPM-10A_PN_Custom?label=download)](https://github.com/patnawa/LPM-10A_PN_Custom/releases/latest)
@@ -23,8 +23,8 @@ validated on a real unit (PN 1.0 and the PN 1.1 calibration; the PN 1.2 averagin
 > **Status: PN 1.0 passed every item of the first-power-on checklist on a real unit
 > (2026-09-18), and PN 1.1's Zero + NVP calibration was confirmed there the same day
 > (Zero 0.5 m, NVP 68 % read a 2.9 m cable right).** PN 1.2 adds run-averaging against
-> the PHY's reading-to-reading scatter; it is verified by emulation (153 checks) and
-> awaits its own flash.
+> the PHY's reading-to-reading scatter and PN 1.3 names the tone modes by what they send;
+> both are verified by emulation (155 checks) and await their flash.
 > Flash at your own risk, and read [How to go back to stock](#going-back-to-stock) first.
 
 ## Why
@@ -50,7 +50,8 @@ it, adds code in an unused flash tail, re-assembles, and verifies the result in 
 | Settings save | 204 bytes leaked per save | freed on both exit paths |
 | Fonts | thin serif 8×16 ASCII, Song-style Chinese | **Ubuntu Sans Mono** (8×16, 6×12) and **Droid Sans Fallback** (16×16), both open-licensed |
 | Language | Chinese/English picker on first boot | boots to English; both languages kept, machine-translated strings corrected |
-| Identity | About screen reports `Software:V2.0.7` and `http://www.fnirsi.cn` | reports `Software:PN 1.2` and this repository's URL; the bootloader-facing image name is untouched |
+| SCAN modes | labelled "Noiseless" and "Normal" | labelled **Digital** (the 0xB6B6 coded pattern the probe decodes) and **825 Hz** (a plain keyed tone for any analogue probe) |
+| Identity | About screen reports `Software:V2.0.7` and `http://www.fnirsi.cn` | reports `Software:PN 1.3` and this repository's URL; the bootloader-facing image name is untouched |
 
 <img src="docs/img/about_screen.png" alt="About screen: stock and PN Custom" width="760">
 
@@ -85,12 +86,12 @@ The firmware file is attached to every release on the
 
 1. Verify the download:
    ```
-   certutil -hashfile LPM-10A-TX_PN1.2.bin SHA256
-   a2e62e0fc330d739a1b6d162a01d77a660a387fdb140e2a98ff491121bd9506d
+   certutil -hashfile LPM-10A-TX_PN1.3.bin SHA256
+   e2f4d3a226ad6eaffef046b537130154f1147b2044c0108c4358b1c63619ad5a
    ```
 2. Power the tester off. Hold **M + Power** until the firmware update screen appears.
 3. Connect USB-C; a removable drive appears.
-4. Copy [`LPM-10A-TX_PN1.2.bin`](LPM-10A/Firmware%20File/LPM-10A-TX_PN1.2.bin)
+4. Copy [`LPM-10A-TX_PN1.3.bin`](LPM-10A/Firmware%20File/LPM-10A-TX_PN1.3.bin)
    onto that drive. Do not unplug during the update.
 5. Long-press Power to shut down, then power on normally.
 
@@ -106,7 +107,7 @@ The PN 1.0 and PN 1.1 items passed on a real unit on 2026-09-18 (the bootloader 
 the file under its own name; Zero and NVP calibrate as designed). The averaged length test
 is new in PN 1.2 and still needs its first check:
 
-- Settings > About reads `Software:PN 1.2` and shows `github.com/patnawa/LPM-10A_PN_Custom`.
+- Settings > About reads `Software:PN 1.3` and shows `github.com/patnawa/LPM-10A_PN_Custom`.
 - Text everywhere is the new bold sans font, in Chinese mode too.
 - Length screen shows `ZERO 0.0m` left of the Unit box and `NVP 69%` right of it; UP/DOWN
   change the white one, a long press of OK swaps which is white, and after a test the four
@@ -278,8 +279,8 @@ pip install capstone unicorn        # pillow + pymupdf only to rebuild the fonts
 python test_thumb.py                # assembler self-test against Capstone
 python build.py --list              # the patch set
 python build.py                     # dry run: every byte it would change, disassembled
-python build.py --write             # emit LPM-10A-TX_PN1.2.bin
-python verify.py                    # 153 checks
+python build.py --write             # emit LPM-10A-TX_PN1.3.bin
+python verify.py                    # 155 checks
 ```
 
 `build.py --only a,b` builds a subset; every patch is independent. `build.py` refuses to
@@ -297,7 +298,7 @@ What `verify.py` proves, section by section:
 | 11 | heap leak | both exit paths trapped at `vPortFree` |
 | 12–16 | Zero + NVP | 513 arithmetic vectors including the measured unit's numbers, key hook (clicks, repeat, clamps, OK long press, other screens), message routing, both rendered texts with their colours, screen-entry draw, Factory Reset defaults compared with stock byte for byte |
 | 17 | fonts | the firmware's own glyph drawers render all 361 glyphs; pixels must equal the designed bitmaps |
-| 18 | identity | the version strings through the firmware's `sprintf`; the container name is byte-identical to stock; the About URL line's geometry, font and text at the `gui_blit` call |
+| 18 | identity | the version strings through the firmware's `sprintf`; the container name is byte-identical to stock; the SCAN labels and the About URL line drawn through the stock code with `gui_blit` trapped |
 
 Each behavioural check runs the stock image too, so the report shows the defect and the fix
 side by side. The SDK internals (symbol database, assembler, cave allocator, font tool) are
@@ -308,7 +309,7 @@ documented in [`LPM-10A/Firmware File/sdk/README.md`](LPM-10A/Firmware%20File/sd
 ```
 LPM-10A/
   Firmware File/
-    LPM-10A-TX_PN1.2.bin              PN Custom image (the build output)
+    LPM-10A-TX_PN1.3.bin              PN Custom image (the build output)
     LPM-10A-TX_V2.0.7_260610.bin      stock image: NOT included, put FNIRSI's copy here to build
     MOD-README.txt                    change list, hashes, flashing, checklist
     FORMULA-AUDIT.md                  every measurement formula, with verdicts

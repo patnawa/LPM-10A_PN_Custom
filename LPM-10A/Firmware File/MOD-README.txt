@@ -1,28 +1,28 @@
 ================================================================
- LPM-10A PN Custom firmware  PN 1.2   (UNOFFICIAL build)
+ LPM-10A PN Custom firmware  PN 1.3   (UNOFFICIAL build)
 ================================================================
 
-File      : LPM-10A-TX_PN1.2.bin
-Version   : PN 1.2  (Settings > About shows "Software:PN 1.2")
+File      : LPM-10A-TX_PN1.3.bin
+Version   : PN 1.3  (Settings > About shows "Software:PN 1.3")
 Built from: LPM-10A-TX_V2.0.7_260610.bin  (official FNIRSI V2.0.7)
             sha256 29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b
-Result    : sha256 a2e62e0fc330d739a1b6d162a01d77a660a387fdb140e2a98ff491121bd9506d
+Result    : sha256 e2f4d3a226ad6eaffef046b537130154f1147b2044c0108c4358b1c63619ad5a
 Size      : 389120 bytes (identical to stock)
-Changed   : 6803 bytes differ from stock: 5702 of them inside the
+Changed   : 6811 bytes differ from stock: 5702 of them inside the
             8132 bytes of font tables (rewritten in place), 775 inside
             the 864 bytes of new code in the unused tail of the last
             flash sector (payload_len in the header grows by 864), 114
             in the dead body of the stock length_convert (reused as
-            code), 4 in the header length fields, 208 in hooks and
+            code), 4 in the header length fields, 216 in hooks and
             strings.
             The image name stored inside the file
             is left as stock because the bootloader checks it.
 
 NOT AN OFFICIAL FNIRSI RELEASE.  Verified by disassembly and CPU
-emulation (sdk/verify.py, 153 checks).  PN 1.0 passed the full
+emulation (sdk/verify.py, 155 checks).  PN 1.0 passed the full
 first-power-on checklist on a real unit on 2026-09-18 and PN 1.1's
-Zero + NVP calibration was confirmed there; the run averaging added
-in PN 1.2 has not been flashed yet.
+Zero + NVP calibration was confirmed there; the run averaging (PN 1.2)
+and the tone-mode labels (PN 1.3) have not been flashed yet.
 Use at your own risk.  Rebuild or audit it yourself with sdk/.
 
 This file only updates the transmitter.  A separate receiver build,
@@ -35,8 +35,18 @@ Every measurement formula in the firmware was traced and checked;
 see FORMULA-AUDIT.md for the full list with verdicts.
 
 ----------------------------------------------------------------
- CHANGES  (PN 1.2 and 1.1, 2026-09-18; PN 1.0 2026-09-17; mod 1..4)
+ CHANGES  (PN 1.3, 1.2, 1.1: 2026-09-18; PN 1.0 2026-09-17; mod 1..4)
 ----------------------------------------------------------------
+
+[CHANGED] SCAN modes named by what they transmit (PN 1.3).
+        "Noiseless" ("Silent" since PN 1.0) is now "Digital": the
+        454 kHz carrier keyed in the 16-slot 0xB6B6 pattern, 5.05 ms
+        per slot, which the LPM-10RX probe decodes in its digital
+        mode.  "Normal" is now "825 Hz": the carrier keyed on and off
+        at 825 Hz, a plain tone for any analogue probe.  Labels only;
+        the signals are unchanged.
+
+[CHANGED] Version reported as PN 1.3.
 
 [CHANGED] Length test averages four CSD runs (PN 1.2).
         The PHY's cable diagnostic scatters by about +/-0.3 m from
@@ -51,7 +61,7 @@ see FORMULA-AUDIT.md for the full list with verdicts.
         The number of runs is a build-time constant (AVG_RUNS in
         sdk/patches.py).
 
-[CHANGED] Version reported as PN 1.2.
+[CHANGED] Version reported as PN 1.2 (superseded by PN 1.3).
 
 [ADDED] Zero calibration for length measurement (PN 1.1).
         The PHY's reading includes its own signal path.  On the unit
@@ -169,7 +179,7 @@ From mod 1:
   1. Power the tester off.
   2. Hold M + Power until the firmware update screen appears.
   3. Connect USB-C; a removable drive appears.
-  4. Copy LPM-10A-TX_PN1.2.bin onto that drive.
+  4. Copy LPM-10A-TX_PN1.3.bin onto that drive.
   5. Do NOT unplug during the update.
   6. Long-press Power to shut down, then power on normally.
 

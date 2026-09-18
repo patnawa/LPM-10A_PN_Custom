@@ -23,7 +23,7 @@ Checks, in order:
  15  GUI message 0x3D routing and the rendered "NVP nn%" / "ZERO n.nm" texts
  16  both texts drawn by the Length screen's header epilogue; Factory Reset clears Zero
  17  all three font tables rendered by the firmware's own glyph drawers
- 18  version strings (About screen, boot log), the untouched container name, the About URL line
+ 18  version strings (About screen, boot log), the untouched container name, the SCAN labels, the About URL line
 
 Every behavioural check runs the stock image too, so the report shows the
 before/after pair rather than a bare pass.
@@ -882,6 +882,34 @@ try:
     check(e.cstr(0x20003400) == "Software:V2.0.7", "stock: still reports V2.0.7", e.cstr(0x20003400))
     check(mod[:0x20] == stock[:0x20], "container name unchanged for the bootloader",
           mod[:0x20].split(b"\0")[0].decode())
+
+    print("\n18c. SCAN screen: mode labels through the stock draw code (mod and stock)")
+    LANG_IS = 0x0800FD2C                              # (2) -> non-zero when the UI language is Chinese
+
+    def scan_labels(buf):
+        seen = []
+        for start, end in ((0x080141C0, 0x080141F2), (0x0801425E, 0x08014294)):
+            e = Emu(buf)
+            e.traps.update({GUI_BLIT, LANG_IS})       # LANG_IS trapped returns r0 = 0: English
+
+            def hook(uc, addr, size, ud, e=e, seen=seen):
+                if addr == GUI_BLIT:
+                    args = tuple(uc.reg_read(r) for r in (UC_ARM_REG_R0, UC_ARM_REG_R1, UC_ARM_REG_R2, UC_ARM_REG_R3))
+                    fs, sp_ = struct.unpack("<II", uc.mem_read(uc.reg_read(UC_ARM_REG_SP), 8))
+                    seen.append((args, fs, e.cstr(sp_)))
+                elif addr == LANG_IS:
+                    uc.reg_write(UC_ARM_REG_R0, 0)
+            e.uc.hook_add(UC_HOOK_CODE, hook)
+            e.uc.reg_write(UC_ARM_REG_SP, 0x2000E000 - 0x1C)
+            e.uc.emu_start(start | 1, end, count=2000)
+        return seen
+    got = scan_labels(mod)
+    want = [((92, 221, 56, 16), 16, "Digital"), ((96, 260, 48, 16), 16, "825 Hz")]
+    check(got == want, 'mod: mode 1 "Digital" at (92, 221, 56, 16), mode 2 "825 Hz" at (96, 260, 48, 16), both centred on x = 120',
+          "" if got == want else f"{got}")
+    got = scan_labels(stock)
+    check(got == [((84, 221, 72, 16), 16, "Noiseless"), ((96, 260, 48, 16), 16, "Normal")],
+          'stock: "Noiseless" at (84, 221, 72, 16), "Normal" at (96, 260, 48, 16)', f"{got}")
 
     print("\n18b. About screen: the URL line (mod)")
     def about_line(buf):
