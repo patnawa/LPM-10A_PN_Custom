@@ -431,7 +431,9 @@ Things that need vendor source or hardware, so they are documented rather than p
 
 - Cables of about 2 m and under read "Out of range" (the PHY's TDR blind zone: the echo
   returns before the pulse has finished, so the YT8531 reports nothing usable; confirmed on
-  hardware with a 1 m cable on PN 1.3). This is why the Length screen cannot tell which pair
+  hardware with a 1 m cable on PN 1.3 and again on PN 2.1, where three pairs returned
+  nothing and pair 4-5 returned a raw 2.2 m, shown as 1.7 m after Zero and NVP: an
+  artefact of the overlapping pulse and echo, not a length). This is why the Length screen cannot tell which pair
   of a short patch cable is broken; the Cable Test (wiremap) screen can. An experimental
   build that lowers stock's 2.0 m cut-off to 0.5 m exists to collect raw readings, see
   [`experimental/README.md`](LPM-10A/Firmware%20File/experimental/README.md).

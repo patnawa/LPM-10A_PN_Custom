@@ -44,7 +44,9 @@ responsible patch can be isolated in two or three flashes.
 
 Measured at NVP 69 %: a 2.9 m cable read 3.1–3.5 m in one session and 3.45–3.66 m
 (converted back from readings at 66 %) in another, a 14 m cable read 14.4–15.0 m,
-a 1 m cable read 2.4 m or *Out of range*. Conclusions:
+a 1 m cable read 2.4 m or *Out of range* (on PN 2.1 with Zero 0.4 / NVP 68: pairs 1-2,
+3-6, 7-8 blind, pair 4-5 = 1.7 m, i.e. a raw 2.2 m; the screen shows the blind pairs as
+0.0 m, which is misleading and is the next thing to fix). Conclusions:
 
 - the error is mostly a fixed **offset of roughly +0.4 to +0.6 m** (the PHY's own
   signal path) plus a scale within a few percent; NVP alone cannot fix both.
