@@ -203,13 +203,14 @@ Not a physical formula; the constants are the vendor's tuning. **NOTE**
 
 ### 3.3 Class / protocol — `poe_class_detect` 0x08019D40 → 0x0801A26C
 
-Two comparator inputs (PB6, PB7) give class code 3 / 4 / 6 / 8, mapped to
+Two comparator inputs (PA6, PA7 on GPIOA 0x40010800: both high → 3, PA6 only
+→ 4, PA7 only → 6, both low → 8) give class code 3 / 4 / 6 / 8, mapped to
 IEEE 802.3af / at / bt / bt. The "Power Level" bar draws one segment per
 class step; there is no wattage arithmetic. **OK** for what it is.
 
 ### 3.4 Stability check — `poe_ring_is_stable` 0x08014C42 — **NOTE / OPEN**
 
-Scans 200 entries of a byte ring (each entry is `mV >> 8`) for max−min and
+Scans the last 200 entries of a 2048-byte ring (each entry is `mV >> 8`) for max−min and
 returns "unstable" if the spread exceeds **40 000**. A byte spread can never
 exceed 255, so the function always returns "stable" and the `Flag=5` branch
 after it is dead code. The intended threshold is unknowable from the binary
@@ -219,8 +220,10 @@ after it is dead code. The intended threshold is unknowable from the binary
 
 ## 4. Wiremap / continuity — `CNT_run_test` 0x0800BF40
 
-For each of the 8 wires: select it (4-bit mux), reset TIM1, wait 10 ms, read
-the count. Compared with the open-circuit baseline taken at initialisation:
+For each of the 8 wires: select it (4-bit mux on PE1/PE2/PE3/PC3), zero TIM8's
+counter (0x40013400, external clock on PC7), wait 10 ms, read the count.
+Compared with the baseline captured by the wiremap Init action (eight counts,
+stored in the settings block at offset 0x90 and reloaded at boot):
 
 ```
 |count - baseline| < 7   → "not connected"
@@ -249,9 +252,11 @@ two-sample debounce and "only falls while discharging" rule are kept.
 
 ### 5.3 Low-battery shutdown — `battery_ui_update` 0x0800E6B0, `battery_tick` 0x0800DD34 — **FIXED**
 
-Stock arms a 30 s countdown on **one** sample below 3150 mV (checked every 2 s),
-and only a charger connection cancels it. Mod (`batt-debounce`): three
-consecutive low samples (≥ 6 s) are needed, and the 1 Hz tick cancels the
+Stock arms a 30 s countdown on **one** sample below 3150 mV (sampled once a
+second by GUI message 4 from the 1 ms SysTick hook, skipped while a test runs,
+and only while no charger is connected); only a charger connection cancels it.
+Mod (`batt-debounce`): three consecutive low samples (≥ 3 s) are needed, and
+the 1 Hz tick cancels the
 countdown when the pack reads ≥ 3250 mV again (100 mV hysteresis) or the
 charger is connected. Emulated in verify.py §9.
 
@@ -285,9 +290,10 @@ PC10 low = charging, PA15 low = standby (charge complete). GPIO reads. **OK**
 | `batt-gauge` | 4-step gauge | 10-step Li-ion gauge |
 | `settings-leak` | 204 bytes leaked per save | freed on both exit paths |
 
-The formulas were verified by disassembly and CPU emulation; PN 1.0 has since
-run on one real unit (2026-09-18), which produced the length data in §1.6. The
-PN 1.1 Zero control has not been flashed yet. The PoE divider ratio and the
+The formulas were verified by disassembly and CPU emulation; PN 1.0 and PN 1.1
+have since run on one real unit (2026-09-18), which produced the length data in
+§1.6 and confirmed the Zero + NVP calibration. The PN 1.2 averaging awaits its
+flash. The PoE divider ratio and the
 class comparators are hardware facts that still await a reference PSE. The
 Zero and NVP settings exist precisely so that the length constant can be
 corrected on the bench.

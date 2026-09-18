@@ -51,9 +51,12 @@ it, adds code in an unused flash tail, re-assembles, and verifies the result in 
 | Language | Chinese/English picker on first boot | boots to English; both languages kept, machine-translated strings corrected |
 | Identity | About screen reports `Software:V2.0.7` and `http://www.fnirsi.cn` | reports `Software:PN 1.2` and this repository's URL; the bootloader-facing image name is untouched |
 
+<img src="docs/img/about_screen.png" alt="About screen: stock and PN Custom" width="760">
+
 Everything is also verified **correct and left alone** where stock was right: battery mV,
-PoE mV, link speed/duplex decoding, the 2.54 inch constant, the auto-off table. The full
-per-formula audit with verdicts is in
+PoE mV, link speed/duplex decoding, the 2.54 inch constant, the auto-off table. Every
+formula is written out below in [The maths, formula by formula](#the-maths-formula-by-formula);
+the long form with addresses and verdicts is
 [`LPM-10A/Firmware File/FORMULA-AUDIT.md`](LPM-10A/Firmware%20File/FORMULA-AUDIT.md).
 
 ## Fonts
@@ -158,6 +161,100 @@ short readings are not to be trusted.
 Integers only, rounded; 69 % and 0.0 m are the PHY's own calibration, so at the factory
 values the reading is exactly stock's centimetre value.
 
+## The maths, formula by formula
+
+Everything the tester computes, with the exact integer arithmetic the firmware runs.
+Stock formulas were recovered by disassembly and checked by running the firmware's own
+code under emulation; the patched ones are the code in `sdk/patches.py`. The long form
+with addresses and verdicts is
+[`LPM-10A/Firmware File/FORMULA-AUDIT.md`](LPM-10A/Firmware%20File/FORMULA-AUDIT.md).
+
+### Cable length
+
+<img src="docs/img/length_pipeline.png" alt="How a length reading is made, step by step, worked through with the tested unit's numbers" width="900">
+
+The tester does not time pulses itself. It runs the Cable Status Diagnostic built into
+the Motorcomm YT8531 PHY and reads four results in centimetres, one per pair
+(1-2, 3-6, 4-5, 7-8). From there:
+
+| step | who | formula | notes |
+|---|---|---|---|
+| 1. Diagnostic run | stock | ext regs 0x80 = 0x9240, 0x97 = 0x5600, 0xA000 = 0, 0x98 = 0xB0A6; clear bit 15 of 0x27; BMCR soft reset; 0x80 bit 0 = start; poll 0x84 bit 15; read 0x87–0x8A | one run, PHY-timed |
+| 2. Blind zone | stock | `raw ≤ 200 cm → 0` | 0 means "out of range" for that pair |
+| 3. Four-pair vote | stock | tolerance `tol = 100 cm` below 10 m, `300` below 100 m, `500` below 200 m, else `600`; reference = the second-largest value (the third if the top two are equal); pairs within `tol` of it are replaced by their mean, the rest keep their own value, and two outliers within `tol` of each other are averaged as a second cluster | a consensus filter, not a formula; runs once per diagnostic run |
+| 4. Run average | **PN 1.2** | `mean_i = floor(Σ runs_i / n_i)` over the 4 runs, counting only runs where pair *i* read non-zero; `n_i = 0 → 0` | halves the per-run scatter (±0.2 m at 3 m, ±0.3 m at 14 m on the tested unit); the 20 s timeout restarts per run; replaces stock's single retry |
+| 5. Zero | **PN 1.1** | `cm0 = cm − 10 × Zero`; `cm0 ≤ 0 → 0` | Zero in 0.1 m steps, 0.0–2.0 m, settings byte 0xC5; a byte above 20 (unset) = no offset |
+| 6. NVP | **PN 1.0** | `cm' = (cm0 × NVP + 34) / 69` | 50–99 %, settings byte 0xA6; any byte outside that range (0 = factory) is the identity, and so is 69 % inside it |
+| 7. Unit | **PN 1.0** | m: `(cm' + 5) / 10` tenths · cm: `cm'` · ft: `(cm' × 1000 + 1524) / 3048` tenths | integer division, rounded; a pair only 1–4 cm above the Zero rounds to 0.0 and counts as out of range |
+| 8. Display | **PN 1.0** | `sprintf("%s = %d.%d")` for m and ft, `"%s = %d"` for cm; "Out of range" only when all four are 0 | the firmware's own `sprintf` |
+
+Why the two calibration controls: the PHY's number is `v_assumed × t / 2`, where the time
+includes the chip's internal path. So the reading is `k × length + offset`. NVP fixes `k`
+(the cable's velocity relative to what the PHY assumes), Zero fixes `offset` (the internal
+path). With two cables of known length L₁ (short) and L₂ (long) and their raw readings R₁,
+R₂ taken at Zero 0.0 / NVP 69 %:
+
+```
+NVP  = 69 × (L₂ − L₁) / (R₂ − R₁)
+Zero = R₁ − L₁ × 69 / NVP
+```
+
+Tested unit: L₁ = 2.9 m read 3.34 m, L₂ = 14 m read 14.7 m → NVP ≈ 67 %, Zero ≈ 0.4 m;
+dialled in on the screen it settled at **Zero 0.5 m, NVP 68 %**, which is within the
+PHY's per-run scatter (±0.2 m at 3 m, ±0.3 m at 14 m). Worked example with those settings
+and the diagram's run mean: 1470 cm → 1470 − 50 = 1420 → (1420 × 68 + 34) / 69 = 1399 →
+(1399 + 5) / 10 = 140 → **14.0 m**.
+
+Stock had none of steps 4–6: its only re-run was a single retry when the four post-vote
+pairs were not all identical, showing that second run as is. It showed whole metres
+(`cm/100 + (cm % 100 ≥ 50)`), offered inches (`cm / 2.54`, truncated) instead of feet,
+forced centimetres on every screen entry, and kept the previous cable's result whenever
+`|new − previous| < tol(new) − 1` (up to 2.98 m at 50 m, 0.98 m below 10 m: the "sticky"
+bug, removed by `length-no-sticky`).
+
+### Battery
+
+<img src="docs/img/battery_gauge.png" alt="Battery percentage vs pack voltage, stock and PN Custom" width="800">
+
+| quantity | formula | notes |
+|---|---|---|
+| Pack voltage | `mV = raw × 2 × 3300 / 4096` | 12-bit ADC, 3.3 V reference, 1:2 divider; 1 LSB ≈ 1.6 mV; unchanged |
+| Percent, stock | `> 4000 → 100`, `> 3800 → 80`, `> 3600 → 50`, else `20` | four values, and the icon only drew those four |
+| Percent, PN Custom | `≥ 4150 → 100, ≥ 4050 → 90, ≥ 3950 → 80, ≥ 3870 → 70, ≥ 3800 → 60, ≥ 3750 → 50, ≥ 3700 → 40, ≥ 3650 → 30, ≥ 3600 → 20, ≥ 3450 → 10, else 0` | single-cell Li-ion open-circuit curve; icon draws `pct / 10` segments, red at ≤ 20 % |
+| Gauge debounce | a new percentage is shown after two consecutive samples agree, and it only falls while discharging (it rises only on the charger) | stock rule, kept |
+| Low-battery shutdown, stock | one sample `< 3150 mV` (sampled once a second, skipped while a test runs, armed only with no charger connected) starts a 30 s countdown; only a charger cancels it | one noisy sample could switch the unit off |
+| Low-battery shutdown, PN Custom | three consecutive samples `< 3150 mV` (≥ 3 s) arm it; cancelled, checked once a second, when the pack reads `≥ 3250 mV` again or the charger is connected | 100 mV hysteresis |
+| Charger state | PC10 low = charging, PA15 low = charge complete | GPIO, unchanged |
+
+### PoE
+
+| quantity | formula | notes |
+|---|---|---|
+| Voltage | `mV = (max − min of 4 ADC channels) × 3300 × 40 / 4096` | 1:40 divider; thresholds 2 V idle, 4 V, 40 V "PoE present"; truncated to 16 bits (harmless below 65 V) |
+| Span / polarity | pair differences compared with `0.7 × spread` (spread > 372 counts) or `0.9 × spread` | vendor tuning → end-span / mid-span / both |
+| Class | two comparator inputs, PA6 and PA7: both high → 3, PA6 only → 4, PA7 only → 6, both low → 8 → 802.3af / at / bt / bt | one bar segment per class step; no wattage arithmetic |
+| Stability | the last 200 entries of a 2048-byte ring of `mV >> 8`, "unstable" if max − min > 40 000 | can never trigger (a byte spread is ≤ 255); dead code, documented, not patched |
+
+### Link, wiremap, housekeeping
+
+| quantity | formula | notes |
+|---|---|---|
+| Link speed | PHY reg 0x11 bits 15:14 = 00 / 01 / 10 → 10 / 100 / 1000 Mbps (11 = error) | 20 s auto-negotiation wait |
+| Duplex | reg 0x11 bit 13 = 1 → full, 0 → half | |
+| Wiremap | per wire: select via a 4-bit mux (PE1/PE2/PE3/PC3), zero TIM8's counter (external clock on PC7), wait 10 ms, read the count; `|count − baseline| < 7 → open`, `count > baseline → "init again"`, else connected | baseline = the eight counts stored by the wiremap Init action, kept in the settings block (offset 0x90) and reloaded at boot |
+| Auto Off | `{0, 300, 600, 900}` s = OFF / 5 / 10 / 15 min, counter reset on every key event and after every Length / Speed result | **PN Custom** also holds it while a SCAN tone or FLASH blink session runs |
+| Backlight dim | `setting × 200 ms` of inactivity | unchanged |
+| Watchdog | IWDG prescaler /32, reload 0xFFF ≈ 3.3 s at 40 kHz | a hard fault reboots the unit in ~3.3 s |
+
+### Receiver (probe), for reference
+
+The probe's own firmware is analysed in [`docs/RX-AUDIT.md`](docs/RX-AUDIT.md). The numbers
+that matter for the tone function: the transmitter keys its carrier in 5.05 ms slots
+(TIM2 at 72 MHz / 72 / 101) in the 16-slot pattern 0xB6B6; the probe samples once per
+5.00 ms (TIM5 at 40 kHz, 200 ticks) and needs two exact 16-bit matches within 240 ms.
+Its battery is `mV = raw × 6600 / 4096`, LED at ≤ 3579 mV, cleared at ≥ 3621 mV, critical
+below 3280 mV; the receiver build makes that critical state recoverable at ≥ 3400 mV.
+
 ## How it is built and verified
 
 <div align="center">
@@ -193,7 +290,7 @@ What `verify.py` proves, section by section:
 | 8 | sticky result, run averaging | 50 m previous, 52 m readings: stock keeps 50, mod stores 52; four simulated CSD runs through the real re-run block: per-pair means, out-of-range runs left out, stale accumulator ignored, registers and stack intact; stock's single retry for comparison |
 | 9–10 | battery debounce and gauge | sample sequences, ADC + GPIO for the cancel path, 18-point curve |
 | 11 | heap leak | both exit paths trapped at `vPortFree` |
-| 12–16 | Zero + NVP | 477 arithmetic vectors including the measured unit's numbers, key hook (clicks, repeat, clamps, OK long press, other screens), message routing, both rendered texts with their colours, screen-entry draw, Factory Reset defaults compared with stock byte for byte |
+| 12–16 | Zero + NVP | 513 arithmetic vectors including the measured unit's numbers, key hook (clicks, repeat, clamps, OK long press, other screens), message routing, both rendered texts with their colours, screen-entry draw, Factory Reset defaults compared with stock byte for byte |
 | 17 | fonts | the firmware's own glyph drawers render all 361 glyphs; pixels must equal the designed bitmaps |
 | 18 | identity | the version strings through the firmware's `sprintf`; the container name is byte-identical to stock; the About URL line's geometry, font and text at the `gui_blit` call |
 
@@ -214,7 +311,7 @@ LPM-10A/
     APP_LPM-10RX_PN1.0.bin            receiver image (battery fix); flashing procedure unconfirmed
     RX-README.txt                     receiver change list, hash, warnings
     rx-sdk/                           the receiver toolkit: patches, verifier, disassembler
-docs/img/                             the images on this page
+docs/img/                             the images on this page (screens are rendered from the firmware's own layout tables and glyphs)
 ```
 
 ## Receiver (probe)

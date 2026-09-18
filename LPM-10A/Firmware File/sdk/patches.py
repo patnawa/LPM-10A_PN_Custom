@@ -199,8 +199,9 @@ def p_length_decimal(img):
         units 0 and 2 and passes cm straight through for unit 1.  It returns
         sprintf's length so the unit label is still placed right after the
         number.
-      * the "Out of range" test (all four values == 0) is unaffected: any
-        non-zero cm value is still non-zero after conversion.
+      * the "Out of range" test (all four values == 0) is unchanged; note
+        that a pair only 1..4 cm above the Zero rounds to 0 tenths and so
+        counts as out of range, which is the right reading for it.
       * 0x08012F1C `movs r0,#1; strb r0,[r1,#0xc]` -> `bl unit_load`
         (r1 = test_busy_flags there; r0/r1 are dead afterwards).
       * 0x08012EC8 `movs r2,#0; mov r1,r2; movs r0,#0x1c` -> `bl unit_save; nop`
@@ -722,7 +723,7 @@ def p_length_average(img):
        risk="low", group="bugfix")
 def p_batt_debounce(img):
     """
-    Stock: battery_ui_update (every 2 s from the GUI task) arms a 30 s
+    Stock: battery_ui_update (once a second, GUI message 4) arms a 30 s
     shutdown countdown the first time ONE unfiltered ADC sample reads below
     3150 mV.  battery_tick (1 Hz, SysTick context) then counts down and only
     a charger connection cancels it.  A load transient on a healthy pack can
@@ -732,7 +733,7 @@ def p_batt_debounce(img):
 
       1. battery_ui_update 0x0800E6E2: the `movw/cmp/bge` against 3150 mV is
          replaced by a call that counts consecutive low samples in the RAM
-         arena and only arms on the third (>= 6 s continuously low).  Any
+         arena and only arms on the third (>= 3 s continuously low).  Any
          sample at or above 3150 mV resets the count.  The counter lives in
          non-initialised RAM; a garbage value at boot is cleared by the first
          healthy sample and can at worst reproduce stock behaviour once.

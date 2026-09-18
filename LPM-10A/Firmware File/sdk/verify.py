@@ -492,8 +492,8 @@ try:
 
     CANCEL = bl_target(mod, 0x0800DD5C)
     def gpio_no_charger(e):
-        e.w32(0x40011008, 0xFFFF)                    # GPIOA IDR: PA10 high = no CHRG
-        e.w32(0x40010808, 0xFFFF)                    # GPIOB? IDR: bit15 high = no STDBY
+        e.w32(0x40011008, 0xFFFF)                    # GPIOC IDR: PC10 high = no CHRG
+        e.w32(0x40010808, 0xFFFF)                    # GPIOA IDR: PA15 high = no STDBY
     for mv, chrg, want in ((3100, False, 0), (3248, False, 0), (3250, False, 1), (3600, False, 1), (3100, True, 1)):
         e = Emu(mod)
         gpio_no_charger(e)
