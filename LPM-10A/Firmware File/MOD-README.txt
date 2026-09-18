@@ -1,19 +1,19 @@
 ================================================================
- LPM-10A PN Custom firmware  PN 2.3   (UNOFFICIAL build)
+ LPM-10A PN Custom firmware  PN 2.4   (UNOFFICIAL build)
 ================================================================
 
-File      : LPM-10A-TX_PN2.3.bin
-Version   : PN 2.3  (Settings > About shows "Software:PN 2.3")
+File      : LPM-10A-TX_PN2.4.bin
+Version   : PN 2.4  (Settings > About shows "Software:PN 2.4")
 Built from: LPM-10A-TX_V2.0.7_260610.bin  (official FNIRSI V2.0.7)
             sha256 29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b
-Result    : sha256 4bca1773fb2060927fbb75e23ccfe481a9e522aef42819659523ad99c385e476
+Result    : sha256 07428e667d765e25d404699ddd45021eb24dc83f45fe6144c2026a5f868f9176
 Size      : 393216 bytes = stock + one 4 KB flash page (see below)
-Changed   : 8479 bytes differ from stock: the three font tables
+Changed   : 8514 bytes differ from stock: the three font tables
             (8132 bytes, rewritten in place; the Chinese table now
             holds 118 Thai cells and, in its 53 unused slots, the Thai
-            strings and drawers), 1272 bytes of new code in the unused
+            strings and drawers), 1304 bytes of new code in the unused
             tail of the last flash sector and the appended page
-            (payload_len in the header grows by 1272), 114 in the dead
+            (payload_len in the header grows by 1304), 114 in the dead
             body of the stock length_convert (reused as code), 4 in
             the header length fields, and the hooks, string stubs and
             strings.  The image name stored inside the file is left
@@ -22,24 +22,19 @@ Changed   : 8479 bytes differ from stock: the three font tables
             The file is longer than stock for the first time: the
             872-byte code tail was full, so the build appends one
             4 KB page of zeros (the unit FNIRSI's own file is padded
-            to) and uses 400 bytes of it (the PoE and FLASH code).
-            The header has no size field beyond the payload length
-            every PN build has already changed, so the bootloader is
-            expected to accept it, but that is unconfirmed until the
-            first flash.  If it refuses the file, say so: PN 2.2
-            flashes as before.  If it takes the file but the new page
-            is not programmed right, the tester will not boot (the
-            watchdog keeps restarting it: the page holds code the PoE
-            task calls every 10 ms), not a PoE symptom; the update
-            screen is in the untouched bootloader, so M + Power and
-            PN 2.2 or FNIRSI's file bring it back.
+            to) and uses 432 bytes of it (the PoE and FLASH code).
+            The header has no size field beyond the payload length,
+            and the bootloader accepted the longer file on the tested
+            unit on 2026-09-18 (PN 2.3 flashed and ran).
 
 NOT AN OFFICIAL FNIRSI RELEASE.  Verified by disassembly and CPU
-emulation (sdk/verify.py, 231 checks).  PN 2.2 was flashed to a real
+emulation (sdk/verify.py, 235 checks).  PN 2.2 was flashed to a real
 unit on 2026-09-18 and every function was tested there, the Thai
-interface, the Cable Test fixes and the blind-pair text included;
-PN 2.3's PoE screen changes are emulation-verified and await their
-flash.  Use at your own risk.  Rebuild or audit it yourself with sdk/.
+interface, the Cable Test fixes and the blind-pair text included.
+PN 2.3 was flashed the same day: the bootloader took the longer file,
+but its port blink stopped after three or four cycles; PN 2.4 is the
+fix and awaits its flash, as does the PoE screen's report.  Use at
+your own risk.  Rebuild or audit it yourself with sdk/.
 
 This file only updates the transmitter.  A separate receiver build,
 APP_LPM-10RX_PN1.0.bin (see RX-README.txt), exists but must not be
@@ -51,8 +46,19 @@ Every measurement formula in the firmware was traced and checked;
 see FORMULA-AUDIT.md for the full list with verdicts.
 
 ----------------------------------------------------------------
- CHANGES  (PN 2.3, 2.2, 2.1, 2.0, 1.3, 1.2, 1.1: 2026-09-18; PN 1.0 2026-09-17)
+ CHANGES  (PN 2.4, 2.3, 2.2, 2.1, 2.0, 1.3, 1.2, 1.1: 2026-09-18; PN 1.0 2026-09-17)
 ----------------------------------------------------------------
+
+[FIXED]   FLASH: the blink stopped after three or four cycles (PN 2.4).
+        Seen on the unit with PN 2.3.  That blink waited for the link
+        without a limit and wrote the PHY's power-up once; if the link
+        did not come back (a power-up write the PHY ignored while it
+        was still entering power-down, a switch that suspends a
+        flapping port, anything) it waited for ever.  Now, while it
+        waits, it re-asserts the power-up every 500 ms (stock wrote it
+        every second too) and, if the link is still not back 4 s
+        after the power-up, power-cycles the PHY again, so the blink
+        can never stall; the power-down lasts 1 s, as stock's did.
 
 [CHANGED] FLASH (port blink): a regular blink timed from the link (PN 2.3).
         Stock powered the PHY up for 4 s and down for 1 s on a fixed
@@ -64,7 +70,7 @@ see FORMULA-AUDIT.md for the full list with verdicts.
         holds it 1.5 s from the tick that saw it, drops it and waits
         for it again: the LED on 1.5..2 s every cycle whatever the
         switch, off for the switch's own re-link (about 2..3 s), a
-        regular cycle of roughly 4 s.  Not faster than stock, but the
+        regular cycle of 4..5 s.  Not faster than stock, but the
         same every time.  These figures come from the code and the
         standard, not from a measurement yet.  The green dot on the
         screen follows within 0.3 s (was 0.8), and the note reads
@@ -139,7 +145,7 @@ see FORMULA-AUDIT.md for the full list with verdicts.
         a Factory Reset; PN 1.x skipped it, which left a factory-reset
         unit in Chinese.  docs/THAI-UI.md shows every screen.
 
-[CHANGED] Version reported as PN 2.3.
+[CHANGED] Version reported as PN 2.4.
 
 [CHANGED] SCAN modes named by what they transmit (PN 1.3).
         "Noiseless" ("Silent" since PN 1.0) is now "Digital": the
@@ -283,7 +289,7 @@ From mod 1:
   1. Power the tester off.
   2. Hold M + Power until the firmware update screen appears.
   3. Connect USB-C; a removable drive appears.
-  4. Copy LPM-10A-TX_PN2.3.bin onto that drive.
+  4. Copy LPM-10A-TX_PN2.4.bin onto that drive.
   5. Do NOT unplug during the update.
   6. Long-press Power to shut down, then power on normally.
 
@@ -294,9 +300,10 @@ From mod 1:
 
   Checked on a real unit up to PN 2.2 (2026-09-18): the bootloader
   accepted the file under its own name; every item below passed, and
-  Zero 0.4 m / NVP 68 % read a 2.9 m cable right.  New in PN 2.3,
-  not yet checked:
-    - The bootloader accepts the 4 KB longer file.
+  Zero 0.4 m / NVP 68 % read a 2.9 m cable right.  PN 2.3: the
+  bootloader accepted the 4 KB longer file and the unit runs; its
+  FLASH stopped after three or four cycles (fixed in PN 2.4).  Still
+  to check:
     - PoE screen without a cable: "Detecting..." in the Standard row,
       then "No PoE" and a blue LED after about 3.5 s; leave and
       re-enter: the same again (stock stayed blank).

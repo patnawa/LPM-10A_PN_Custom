@@ -974,7 +974,7 @@ STOCK_FONT_SHA = {
 # Group: identity
 # =====================================================================
 
-VERSION = "PN 2.3"          # shown as "Software:PN 2.2" in About; max 7 characters
+VERSION = "PN 2.4"          # shown as "Software:PN 2.2" in About; max 7 characters
 
 
 @patch("version-string", f"Report the firmware version as {VERSION}",
@@ -1620,7 +1620,8 @@ def p_poe_screen(img):
 # Group: FLASH (port blink)
 # =====================================================================
 
-FLASH_ON_MS, FLASH_OFF_MS = 1500, 500      # link held once seen / PHY powered down, per blink cycle
+FLASH_ON_MS, FLASH_OFF_MS = 1500, 1000     # link held once seen / PHY powered down (stock: 1 s), per blink cycle
+FLASH_RELINK_MS = 4000                     # no link this long after power-up: power-cycle the PHY again
 FLASH_TICK_MS = 500                        # the net task's msg 8 period on the FLASH screen (stock 1000)
 FLASH_NOTE = ("Watch the port", "LED on the switch:", "it blinks when linked")
 
@@ -1659,7 +1660,16 @@ def p_flash_blink(img):
          is active (flags[1] == 2) it waits for the link (PB5 high, the same
          input the vendor's screen indicator uses), holds it for FLASH_ON_MS
          from the tick that first saw it, then powers the PHY down for
-         FLASH_OFF_MS and waits for the link again.  What that gives on the
+         FLASH_OFF_MS (1 s, as stock) and waits for the link again.  While
+         it waits it re-asserts the power-up every tick (stock wrote it every
+         second too; a write the PHY ignored while entering power-down would
+         otherwise leave it down for good), and if the link is not back
+         FLASH_RELINK_MS after the power-up it power-cycles the PHY again, so
+         a missed link -- a slow switch, a port the switch suspended, a PHY
+         that needs another kick -- can never stop the blink for good.
+         PN 2.3, which waited for the link without a limit and wrote the
+         power-up once, stopped blinking after three or four cycles on the
+         tested unit; PN 2.4 is the fix.  What that gives on the
          switch: the LED on for 1.5..2 s, fixed by the tester whatever the
          switch, then off for the switch's own re-link time (break_link_timer
          plus auto-negotiation, about 2..3 s; FLASH_OFF_MS only sets the
@@ -1690,6 +1700,7 @@ def p_flash_blink(img):
         PWR_DOWN=0x0801D178 | 1, FLAGS1=0x200002B5, PHASE=0x20000076, START=start,
         GPIOB=0x40010C00, PIN5=0x20,
         T_ON=FLASH_ON_MS - FLASH_TICK_MS // 2, T_OFF=FLASH_OFF_MS - FLASH_TICK_MS // 2,   # half-tick margin
+        T_RELINK=FLASH_RELINK_MS - FLASH_TICK_MS // 2,
     )
     tick = img.emit_code("""
     flash_tick:                 ; net task message 8, every FLASH_TICK_MS while sysState == 6
@@ -1702,7 +1713,7 @@ def p_flash_blink(img):
             ldrb r0, [r0]
             cmp  r0, #2
             bne  ft_done            ; initial link wait, or stopped: leave the PHY alone
-            ldr  r4, =PHASE         ; 0 wait for link, 1 link held, 2 link dropped
+            ldr  r4, =PHASE         ; 0 fresh, 3 waiting for link (timed), 1 link held, 2 link dropped
             ldr  r5, =START
             bl   TICKS
             mov  r6, r0             ; now (ms)
@@ -1711,14 +1722,30 @@ def p_flash_blink(img):
             beq  ft_dark
             cmp  r0, #1
             beq  ft_hold
-            movs r1, #PIN5          ; phase 0: is the link up?  (PB5, the PHY's link output)
+            cmp  r0, #3
+            beq  ft_wait
+            str  r6, [r5]           ; phase 0 (session start, phase byte cleared by stock): stamp, then wait
+            movs r0, #3
+            strb r0, [r4]
+            b    ft_done
+    ft_wait:                        ; phase 3: is the link up?  (PB5, the PHY's link output)
+            movs r1, #PIN5
             ldr  r0, =GPIOB
             bl   GPIO_READ
             cmp  r0, #0
-            beq  ft_done            ; not yet: keep waiting, PHY powered
+            beq  ft_nolink
             str  r6, [r5]           ; link seen: hold it from now
             movs r0, #1
             strb r0, [r4]
+            b    ft_done
+    ft_nolink:
+            ldr  r1, [r5]
+            subs r0, r6, r1
+            movw r1, #T_RELINK      ; FLASH_RELINK_MS since the power-up and still no link:
+            cmp  r0, r1
+            bhs  ft_drop            ; power-cycle the PHY again (a fresh negotiation)
+            movs r0, #0
+            bl   PWR_DOWN           ; otherwise re-assert the power-up and keep waiting
             b    ft_done
     ft_hold:
             ldr  r1, [r5]
@@ -1726,6 +1753,7 @@ def p_flash_blink(img):
             movw r1, #T_ON          ; FLASH_ON_MS less half a tick: the third tick, jitter or not
             cmp  r0, r1
             blo  ft_done
+    ft_drop:
             movs r0, #1
             bl   PWR_DOWN           ; drop the link
             str  r6, [r5]
@@ -1735,13 +1763,14 @@ def p_flash_blink(img):
     ft_dark:
             ldr  r1, [r5]
             subs r0, r6, r1
-            movw r1, #T_OFF         ; FLASH_OFF_MS less half a tick: the next tick
+            movw r1, #T_OFF         ; FLASH_OFF_MS less half a tick
             cmp  r0, r1
             blo  ft_done
             movs r0, #0
             bl   PWR_DOWN           ; power up: the link comes back once the switch re-negotiates
-            movs r0, #0
-            strb r0, [r4]           ; and wait for it
+            str  r6, [r5]           ; and wait for it, timed from now
+            movs r0, #3
+            strb r0, [r4]
     ft_done:
             pop  {r4, r5, r6, pc}
     """, extra_syms=syms, why="flash_tick: link-timed blink state machine")

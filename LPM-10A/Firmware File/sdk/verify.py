@@ -1326,35 +1326,45 @@ if any(_p.pid == "flash-blink" and _p.default for _p in patches.REGISTRY):
         check(tuple(notes) == patches.FLASH_NOTE, "the note lines read " + " / ".join(patches.FLASH_NOTE))
 
         # 22b. mod: wait for the link, hold it FLASH_ON_MS, drop it FLASH_OFF_MS, wait again
-        ON, OFF = patches.FLASH_ON_MS, patches.FLASH_OFF_MS
-        b = Blink(mod)
+        ON, OFF, RELINK = patches.FLASH_ON_MS, patches.FLASH_OFF_MS, patches.FLASH_RELINK_MS
         TK = patches.FLASH_TICK_MS
-        r = [b.tick(0, 0), b.tick(TK, 0), b.tick(2 * TK, 0)]
-        check(not sum(r, []) and b.phase() == 0, "no link yet: three ticks leave the PHY powered and the phase at 0")
+        n_hold, n_off, n_relink = ON // TK, OFF // TK, RELINK // TK
+        b = Blink(mod)
+        r = b.tick(0, 0)
+        check(not r and b.phase() == 3, "session start (phase byte 0): the first tick stamps the clock and waits (phase 3), no PHY call")
+        r = [b.tick(TK, 0), b.tick(2 * TK, 0)]
+        check(sum(r, []) == [(TK, 0), (2 * TK, 0)] and b.phase() == 3, "no link yet: every waiting tick re-asserts the power-up (yt8531_set_pwr_down(0), as stock wrote it every second)")
         r = b.tick(3 * TK + 7, 1)                                   # ticks carry a few ms of scheduling jitter
         check(not r and b.phase() == 1, "link seen at the 4th tick: phase 1 (hold), no PHY call")
-        n_hold = ON // TK                                            # 3 ticks of 500 ms
         r = [b.tick(3 * TK + 7 + k * TK + (3 if k % 2 else -4)) for k in range(1, n_hold)]
         check(not sum(r, []) and b.phase() == 1, f"the next {n_hold - 1} ticks (jittered): still up")
         t_drop = 3 * TK + 7 + n_hold * TK - 6
         r = b.tick(t_drop)
         check(r == [(t_drop, 1)] and b.phase() == 2, f"tick {n_hold} after the link, 6 ms early: yt8531_set_pwr_down(1), phase 2 (dark)", f"{r}")
-        t_up = t_drop + TK - 5
+        r = [b.tick(t_drop + k * TK + 2, 0) for k in range(1, n_off)]
+        check(not sum(r, []) and b.phase() == 2, f"dark for {n_off - 1} more tick(s): still down")
+        t_up = t_drop + n_off * TK - 5
         r = b.tick(t_up, 0)
-        check(r == [(t_up, 0)] and b.phase() == 0, f"the next tick ({OFF} ms dark, 5 ms early): yt8531_set_pwr_down(0), back to waiting for the link", f"{r}")
-        r = [b.tick(t_up + TK, 0), b.tick(t_up + 2 * TK, 0), b.tick(t_up + 3 * TK, 0)]
-        check(not sum(r, []) and b.phase() == 0, "a slow switch: 1.5 s without link, the PHY stays powered (no fixed cycle)")
-        t1 = t_up + 4 * TK
+        check(r == [(t_up, 0)] and b.phase() == 3, f"tick {n_off} of the dark phase ({OFF} ms, 5 ms early): yt8531_set_pwr_down(0), waiting for the link, timed from now", f"{r}")
+        r = [b.tick(t_up + k * TK, 0) for k in range(1, n_relink)]
+        check(all(x == [(t_up + k * TK, 0)] for k, x in zip(range(1, n_relink), r)) and b.phase() == 3,
+              f"a slow switch: {n_relink - 1} ticks without link, the power-up re-asserted each tick, still waiting")
+        t_cyc = t_up + n_relink * TK - 3
+        r = b.tick(t_cyc, 0)
+        check(r == [(t_cyc, 1)] and b.phase() == 2, f"no link {RELINK} ms after the power-up: the PHY is power-cycled again (a fresh negotiation)", f"{r}")
+        r = [b.tick(t_cyc + k * TK, 0) for k in range(1, n_off + 1)]
+        check(r[-1] == [(t_cyc + n_off * TK, 0)] and b.phase() == 3, "and comes back up after the dark phase, waiting again")
+        t1 = t_cyc + (n_off + 2) * TK
         r = b.tick(t1, 1); r2 = [b.tick(t1 + k * TK) for k in range(1, n_hold + 1)]
         check(not r and sum(r2[:-1], []) == [] and r2[-1] == [(t1 + n_hold * TK, 1)],
-              f"second cycle: on for {ON} ms from the tick that saw the link back, whatever the switch took", f"{r2[-1]}")
+              f"next cycle: on for {ON} ms from the tick that saw the link back, whatever the switch took", f"{r2[-1]}")
         # bunched ticks (the messages queued during the initial link wait) cannot shorten a phase
-        b = Blink(mod); b.tick(0, 1)
+        b = Blink(mod); b.tick(0, 1); b.tick(0, 1)
         r = [b.tick(0) for _ in range(20)]
         check(not sum(r, []) and b.phase() == 1, "20 ticks at the same millisecond: the hold is timed by the clock, not counted")
         # the session gates everything
         b = Blink(mod, flags1=1); b.tick(0, 1); r = b.tick(5000, 1)
-        check(not r and b.phase() == 0, "flags[1] = 1 (the initial link wait): the handler does nothing")
+        check(not r and b.phase() == 0, "flags[1] = 1 (the PHY set-up): the handler does nothing")
         b = Blink(mod, flags1=0); r = b.tick(0, 1)
         check(not r and b.phase() == 0, "flags[1] = 0 (stopped): nothing")
         b = Blink(mod, state=9); r = b.tick(0, 1)

@@ -280,11 +280,14 @@ re-link: IEEE 802.3 Clause 28 keeps it in TRANSMIT DISABLE for break_link_timer
 than the window, not at all. Mod (`flash-blink`): message 8 every 500 ms; the
 handler waits for the link (PB5, the PHY's link output that the screen
 indicator already uses), holds it `FLASH_ON_MS` = 1500 from the tick that saw
-it, drops it `FLASH_OFF_MS` = 500, waits again; elapsed time from
-`xTaskGetTickCount`, a phase ending at the first tick at or past its length
-less half a tick. On the switch: LED on 1.5–2 s (fixed by the tester), off for
-its own re-link (about 2–3 s, independent of `FLASH_OFF_MS`), a regular cycle
-of roughly 4 s. Figures from the code and the standard; PN 2.3 is unmeasured.
+it, drops it `FLASH_OFF_MS` = 1000, waits again, re-asserting the power-up on
+every waiting tick and power-cycling the PHY again after `FLASH_RELINK_MS` =
+4000 without a link (PN 2.4: PN 2.3 wrote the power-up once and waited without
+limit, and stalled after three or four cycles on the tested unit); elapsed time
+from `xTaskGetTickCount`, a phase ending at the first tick at or past its
+length less half a tick. On the switch: LED on 1.5–2 s (fixed by the tester),
+off for its own re-link (about 2–3 s, independent of `FLASH_OFF_MS`), a regular
+cycle of 4–5 s. Figures from the code and the standard, unmeasured.
 Emulated in verify.py §22.
 
 ### 3.7 Auto Off during FLASH — `autooff-hold` — **FIXED in PN 2.3, was wrong in PN 1.0–2.2**

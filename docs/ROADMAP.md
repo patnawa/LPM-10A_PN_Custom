@@ -12,8 +12,11 @@ fixes (Back to the mode selector, the error line above the button) and PN 2.2's 
 text for blind pairs. PN 2.3 (the PoE screen: live voltage, "Detecting..." / "No PoE",
 the timeout re-armed on every visit; FLASH: the port blink timed from the link, 1.5 s
 on time fixed by the tester instead of a 5 s counter that ignored the link; and the Auto Off
-hold during FLASH, which PN 1.0–2.2 keyed on the wrong state number, actually working) is
-built and emulation-verified, not yet flashed.
+hold during FLASH, which PN 1.0–2.2 keyed on the wrong state number, actually working) was
+flashed the same day: the bootloader took the 4 KB longer file, but the port blink stopped
+after three or four cycles. PN 2.4 (the blink re-asserts the power-up while waiting and
+power-cycles the PHY again after 4 s without a link) is built and emulation-verified, not
+yet flashed; the PoE screen's report is still open.
 
 ### Earlier: PN 1.0 first power-on
 
@@ -32,7 +35,7 @@ for each item, including "looks fine", because the negative results matter too:
 
 | what | why it matters |
 |---|---|
-| Bootloader accepts the file | since PN 2.3 the update file is one 4 KB page longer than stock (393 216 bytes; payload 0x5E188 instead of 0x5DC98) because the code cave grew past 0x08068000; every earlier PN build only lengthened the payload inside the stock file size. A refusal means the bootloader checks the file size, and the PoE code would then have to be squeezed back into the image |
+| Bootloader accepts the file | since PN 2.3 the update file is one 4 KB page longer than stock (393 216 bytes; payload past 0x08068000) because the code cave grew; accepted on the tested unit on 2026-09-18 |
 | About screen: `Software:PN 1.2` and the GitHub URL line | proves the string patches and both fonts in one look |
 | Length screen: `ZERO 0.0m` left of the Unit box, `NVP 69%` right of it, nothing overlaps | the positions came from the layout table, not from a photo |
 | UP/DOWN change the white value, OK long press swaps it, the four readings follow | proves the key hook, the GUI message and the live redraw |
