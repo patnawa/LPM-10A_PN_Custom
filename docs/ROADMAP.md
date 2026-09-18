@@ -1,21 +1,26 @@
 # Roadmap: what to check next
 
-Everything in PN 1.0 is verified by emulation only. The order below is deliberate:
-nothing further is worth building until step 1 has happened, because one flash
-answers questions that no amount of disassembly can.
+## Done: hardware validation of PN 1.0 (2026-09-18)
 
-## 1. Hardware validation of PN 1.0 (do first)
+PN 1.0 was flashed to a real unit and every item of the checklist below passed:
+the bootloader accepted the file under its own name, the fonts, the NVP control,
+the remembered unit and NVP across power cycles, the Auto-Off hold with the
+probe still hearing the tone, the non-sticky result, the responsive settings
+menu and the 10-step gauge. The length calibration (step 2) was done in the same
+session and produced PN 1.1; see below.
 
-Flash it and work through the checklist in `MOD-README.txt`. Report what you see
+## 1. Hardware validation checklist (re-run after each release)
+
+Flash and work through the checklist in `MOD-README.txt`. Report what you see
 for each item, including "looks fine", because the negative results matter too:
 
 | what | why it matters |
 |---|---|
-| Bootloader accepts the file | the payload is 528 bytes longer than stock; a refusal means the bootloader checks length |
-| About screen: `Software:PN 1.0` | proves the string patch and the new 8×16 font in one look |
-| Length screen: `NVP 69%` sits right of the Unit box, nothing overlaps | the position came from the layout table, not from a photo |
-| UP/DOWN change NVP and the four readings follow | proves the key hook, the GUI message and the live redraw |
-| Leave Length, come back, power-cycle: unit and NVP kept | proves the settings bytes survive the power-off flash write |
+| Bootloader accepts the file | the payload is 864 bytes longer than stock (it accepted PN 1.0's 528); a refusal means the bootloader checks length |
+| About screen: `Software:PN 1.1` and the GitHub URL line | proves the string patches and both fonts in one look |
+| Length screen: `ZERO 0.0m` left of the Unit box, `NVP 69%` right of it, nothing overlaps | the positions came from the layout table, not from a photo |
+| UP/DOWN change the white value, OK long press swaps it, the four readings follow | proves the key hook, the GUI message and the live redraw |
+| Leave Length, come back, power-cycle: unit, NVP and Zero kept | proves the settings bytes survive the power-off flash write |
 | SCAN with tone on for longer than Auto Off; same for FLASH | proves the hold; **also confirm the receiver still finds the tone** |
 | Chinese mode: every screen readable, no clipped glyphs | dense glyphs (置 量 模) are the ones to look at |
 | Battery icon shows intermediate steps while discharging | proves the 10-step gauge in the real drawing path |
@@ -24,36 +29,44 @@ for each item, including "looks fine", because the negative results matter too:
 If anything is wrong, `python build.py --only <ids> --write` builds subsets so the
 responsible patch can be isolated in two or three flashes.
 
-## 2. Calibrate length against known cables (needs the unit)
+## 2. Length calibration (done on one unit; more units welcome)
 
-Measure 5 m, 20 m, 50 m and 100 m cables of known length, all four pairs, and
-record raw readings at NVP 69 %. That answers three open questions at once:
+Measured at NVP 69 %: a 2.9 m cable read 3.1–3.5 m in one session and 3.45–3.66 m
+(converted back from readings at 66 %) in another, a 14 m cable read 14.4–15.0 m,
+a 1 m cable read 2.4 m or *Out of range*. Conclusions:
 
-- what NVP the PHY really assumes (so the default can be set correctly instead of the
-  placeholder 69 %),
-- whether the error is a pure scale (NVP fixes it) or has an offset (a per-unit
-  zero would be needed),
-- whether the PHY reports anything usable below 2 m, where the firmware currently
-  zeroes the result. If it does, the blind zone can be reduced.
+- the error is mostly a fixed **offset of roughly +0.4 to +0.6 m** (the PHY's own
+  signal path) plus a scale within a few percent; NVP alone cannot fix both.
+  PN 1.1 adds a **Zero** setting (`length = (raw − Zero) × NVP / 69`); this unit
+  should calibrate around Zero 0.5 m, NVP 68 %,
+- below about 2 m the PHY's value is unusable, so the ≤ 2 m blind zone stays,
+- the ±0.2 m spread between readings is the PHY's resolution; averaging two runs
+  (item 3 below) would halve it.
+
+Still useful: the same two-cable measurement on a second unit, to learn whether
+the 0.4 m offset is per-unit or per-design (if per-design it becomes the factory
+default), and a 50 m or 100 m cable to check the scale at range.
 
 ## 3. Improvements that are ready to build once 1 and 2 are done
 
-Ranked by value against risk. All are byte patches in the same style as PN 1.0.
+Ranked by value against risk. All are byte patches in the same style as PN 1.x.
 
-1. **Per-pair fault on the Length screen.** The PHY's CSD status register 0x84 reports
+1. **Flash PN 1.1 and confirm the Zero control** (long-press OK swaps the white value;
+   readings follow; both values survive a power cycle).
+2. **Per-pair fault on the Length screen.** The PHY's CSD status register 0x84 reports
    more than "done"; if it carries open/short per pair (as Marvell-style VCT does), the
    screen can show "1-2 open 12.3 m" instead of a bare distance. Needs the register
    bits confirmed on hardware with a deliberately cut cable.
-2. **PoE voltage as a number.** The firmware already measures PoE in millivolts
+3. **PoE voltage as a number.** The firmware already measures PoE in millivolts
    (`poe_measure_mv`) but only draws a class bar. Drawing "48.2 V" next to it is a
    small, verifiable change. Also fix the dead "unstable supply" check, whose
    threshold is impossible (40 000 against byte data).
-3. **Average two CSD runs** when the four pairs disagree, instead of the single retry.
+4. **Average two CSD runs** when the four pairs disagree, instead of the single retry.
    Costs about a second per measurement, removes most of the flicker between
    consecutive readings.
-4. **Battery voltage and NVP on the About screen.** Both values exist in RAM; two
-   more text lines.
-5. **Save settings when leaving the Length screen**, not only at power-off, so a dead
+5. **Battery voltage, NVP and Zero on the About screen.** All three values exist in RAM;
+   three more text lines.
+6. **Save settings when leaving the Length screen**, not only at power-off, so a dead
    battery cannot lose a calibration. One flash-page write per change is acceptable
    for the page's endurance.
 
@@ -83,6 +96,6 @@ probe enters its update mode and confirm the way back to stock.
 
 - Changing the tone carrier or cadence on the transmitter: the receiver decodes the
   current patterns and the improvements worth making are on the receiver side.
-- A sixth Settings row: the five rows fill the screen; NVP lives on the Length
-  screen for that reason.
+- A sixth Settings row: the five rows fill the screen; NVP and Zero live on the
+  Length screen for that reason.
 - Anything requiring the vendor source (task priorities, stack sizes, RTOS config).

@@ -147,7 +147,7 @@ def p_english(img):
 # Group: measurement (industrial-grade length display)
 # =====================================================================
 
-@patch("length-decimal", "Length in m / cm / ft with one decimal, NVP-scaled; unit is remembered",
+@patch("length-decimal", "Length in m / cm / ft with one decimal, Zero- and NVP-corrected; unit is remembered",
        risk="low", group="measure")
 def p_length_decimal(img):
     """
@@ -165,8 +165,15 @@ def p_length_decimal(img):
 
     New behaviour (fixed-point, integer maths only, no FPU / soft-double):
 
-      cm' = cm * NVP / 69   when settings byte 0xA6 (NVP %) is 50..99,
-                            else cm' = cm   (0 = factory default = 69 %)
+      cm0 = cm - 10 * ZERO  when settings byte 0xC5 (Zero, 0.1 m steps) is
+                            0..20, else cm0 = cm; a result <= 0 becomes 0
+                            ("out of range" for that pair).  The PHY's
+                            reading includes its own internal path, about
+                            0.4 m on the unit measured (2.9 m -> 3.34 m,
+                            14 m -> 14.7 m at NVP 69 %), which NVP alone
+                            cannot remove because NVP is a factor.
+      cm' = cm0 * NVP / 69  when settings byte 0xA6 (NVP %) is 50..99,
+                            else cm' = cm0  (0 = factory default = 69 %)
       unit 0 "m"   -> round(cm' / 10)         shown as "%d.%d"   (55.4)
       unit 1 "cm"  -> cm'                     shown as "%d"      (5540)
       unit 2 "ft"  -> round(cm' / 3.048)      shown as "%d.%d"   (181.8)
@@ -175,9 +182,14 @@ def p_length_decimal(img):
     out of range = metres) and written back whenever it is changed, so it
     persists like every other setting (the whole struct is flashed at
     power-off).  Bytes 0xA6/0xA7 are zeroed by the factory-defaults writer
-    and never read by stock code, so they are free.  The NVP value is
-    edited by the `nvp-calibration` patch; without it the byte stays 0 and
-    the scaling is the identity.
+    and never read by stock code, so they are free.  Byte 0xC5 is struct
+    padding after the 0x1C-byte net_cfg block (0xA9..0xC4): never read or
+    written by stock, so its content on a fresh unit is whatever the flash
+    page held (0x00 or 0xFF); anything above 20 is treated as 0, and the
+    `nvp-calibration` patch makes Factory Reset write 0.  NVP and Zero are
+    edited by that patch; without it the bytes stay 0 and the conversion
+    is the identity.  Screen entry also resets the UP/DOWN target (RAM
+    byte `adj_target`, arena) to NVP.
 
     Mechanics:
       * length_convert is redirected (b.w) to a cave routine; the old body
@@ -197,12 +209,24 @@ def p_length_decimal(img):
     """
     from lpm10a.thumb import assemble
 
-    syms = {"NVP": 0x20000C78 + 0xA6, "UNIT": 0x20000C78 + 0xA7}
+    img.adj_target = getattr(img, "adj_target", None) or img.alloc_ram(4)
+    syms = {"NVP": 0x20000C78 + 0xA6, "UNIT": 0x20000C78 + 0xA7,
+            "ZERO": 0x20000C78 + 0xC5, "ADJ": img.adj_target}
 
     conv = img.emit_code("""
     length_convert2:            ; r0 = cm (u16)  ->  r0 = display value
             push {r4, lr}
-            ldr  r1, =NVP
+            ldr  r1, =ZERO
+            ldrb r1, [r1]
+            cmp  r1, #20
+            bhi  nvp                ; unset / garbage: no offset
+            movs r2, #10
+            muls r1, r2, r1         ; zero in cm
+            subs r0, r0, r1
+            bgt  nvp
+            movs r0, #0             ; at or below the zero: out of range
+            b    done
+    nvp:    ldr  r1, =NVP
             ldrb r1, [r1]
             cmp  r1, #50
             blo  nocal
@@ -235,7 +259,10 @@ def p_length_decimal(img):
     """, extra_syms=syms, why="length_convert: NVP scale + fixed-point m/cm/ft")
 
     uload = img.emit_code("""
-    unit_load:                  ; Length screen entry; r1 = test_busy_flags
+    unit_load:                  ; Length screen entry; r1 = test_busy_flags (r0, r2 dead)
+            ldr  r0, =ADJ
+            movs r2, #0
+            strb r2, [r0]           ; UP/DOWN adjust NVP first
             ldr  r0, =UNIT
             ldrb r0, [r0]
             cmp  r0, #2
@@ -259,7 +286,7 @@ def p_length_decimal(img):
 
     site = 0x08012F1C
     img.poke(site, "0120 0873", assemble(site, f"bl 0x{uload:08X}"),
-             "Length screen entry: unit from settings (was: always cm)")
+             "Length screen entry: unit from settings (was: always cm), adjust target = NVP")
     site = 0x08012EC8
     img.poke(site, "0022 1146 1c20", assemble(site, f"bl 0x{usave:08X}\n nop"),
              "unit change: store to settings")
@@ -302,7 +329,7 @@ def p_length_decimal(img):
     img.set_string(0x08067ADC, "ft")      # was "Meter" (slot 2: now feet)
 
 
-@patch("nvp-calibration", "NVP calibration: UP/DOWN on the Length screen, shown as 'NVP nn%', saved",
+@patch("nvp-calibration", "NVP and Zero calibration: UP/DOWN on the Length screen, long-press OK switches, both saved",
        risk="low", group="measure")
 def p_nvp(img):
     """
@@ -312,20 +339,34 @@ def p_nvp(img):
     differ by several percent, so a tester must let the user set NVP (or
     calibrate against a cable of known length).  Stock has nothing.
 
-    UI: on the Length screen, UP / DOWN (click or auto-repeat) change NVP by
-    1 % within 50..99 %.  The value is shown as "NVP 69%" to the right of
-    the Unit box, and the four pair lengths are redrawn immediately with the
-    new factor, so a known cable can be dialled in without re-measuring.
-    69 % is the factory value (the PHY's own calibration); Factory Reset
-    returns to it.  The value lives in settings byte 0xA6, written to flash
-    at power-off like every other setting.
+    UI: on the Length screen, UP / DOWN (click or auto-repeat) change the
+    active value: NVP by 1 % within 50..99 %, or Zero by 0.1 m within
+    0.0..2.0 m.  A long press of OK switches between the two; the active one
+    is drawn white, the other grey.  "NVP 69%" sits to the right of the Unit
+    box, "ZERO 0.4m" to its left, and the four pair lengths are redrawn
+    immediately with the new correction, so a known cable can be dialled in
+    without re-measuring.  Calibrate with two cables: set Zero on a short one
+    (3 m), NVP on a long one (15 m or more), repeat once.
+    69 % / 0.0 m are the factory values; Factory Reset returns to them
+    (the defaults writer is hooked to clear the Zero byte, which stock never
+    touches).  NVP lives in settings byte 0xA6 and Zero in 0xC5, written to
+    flash at power-off like every other setting.  Screen entry always starts
+    with NVP active.
 
     Hooks (all verified by emulation in verify.py):
       * Action_key_Process 0x08014A04: `movs r0,#1; bl get_sysState` ->
         `bl key_hook; nop`.  The hook returns the same state mask in r0 and,
-        when the state is LENGTH and the key is UP/DOWN, adjusts the value,
-        resets the backlight/auto-off timer and posts GUI message 0x3D.
-        UP/DOWN have no binding in the LENGTH state in the stock key table.
+        when the state is LENGTH and the key is UP/DOWN, adjusts the active
+        value, resets the backlight/auto-off timer and posts GUI message
+        0x3D; a long press (event 6) of OK toggles the active value and
+        posts 0x3D.  UP/DOWN and OK-long-press have no binding in the
+        LENGTH state in the stock key table (OK click = 0x11 "Test Start"
+        is untouched; the HAL emits press_release (event 7), not a click,
+        when the 1 s hold ends, and events 8/10/12 while held, none bound
+        in LENGTH).
+      * Factory defaults 0x080195BC: `movs r0,#0; b loop` -> `bl zero_default`,
+        which clears settings byte 0xC5 and continues into the stock loop
+        with r0 = 0 and r1 = the settings base, as before.
       * APP_GUI_task 0x0800F48C: `cmp r0,#0x3d; bhs exit` -> `b.w gui_hook`.
         Messages below 0x3D continue to the stock jump table; 0x3D redraws
         the NVP text and the results; anything else exits as before.
@@ -335,13 +376,20 @@ def p_nvp(img):
     """
     from lpm10a.thumb import assemble
 
-    syms = {"NVP": 0x20000C78 + 0xA6, "GUI_TBB": 0x0800F490, "GUI_EXIT": 0x0800F4DC}
+    img.adj_target = getattr(img, "adj_target", None) or img.alloc_ram(4)
+    syms = {"NVP": 0x20000C78 + 0xA6, "ZERO": 0x20000C78 + 0xC5, "ADJ": img.adj_target,
+            "GUI_TBB": 0x0800F490, "GUI_EXIT": 0x0800F4DC}
 
     draw = img.emit_code("""
-    nvp_draw:                   ; "NVP nn%" at (166, 90), white on the black screen background
-            push {r4, lr}
-            sub  sp, #24            ; [0]=size [4]=str [8..23]=text buffer
-            ldr  r0, =NVP
+    nvp_draw:                   ; "NVP nn%" at (166, 90) and "ZERO n.nm" at (4, 90); active one white, other grey
+            push {r4, r5, lr}
+            sub  sp, #20            ; text buffer
+            ldr  r4, =ADJ
+            ldrb r4, [r4]
+            cmp  r4, #1
+            bls  adjok
+            movs r4, #0             ; arena garbage -> NVP active
+    adjok:  ldr  r0, =NVP
             ldrb r0, [r0]
             cmp  r0, #50
             blo  dflt
@@ -351,27 +399,59 @@ def p_nvp(img):
     have:   mov  r2, r0
             ldr  r1, =fmt
             mov  r0, sp
-            adds r0, #8
             bl   sprintf
-            ldr  r1, =0x200001AC
-            movw r0, #0xFFFF
-            strh r0, [r1]           ; text colour
-            movs r0, #0
-            strh r0, [r1, #2]       ; background colour (screen is cleared to black)
-            movs r0, #0x10
-            str  r0, [sp]           ; font size 16
-            mov  r0, sp
-            adds r0, #8
-            str  r0, [sp, #4]       ; string
+            mov  r0, r4             ; 0 = white (NVP active), 1 = grey
+            bl   colour
             movs r0, #166           ; x
+            movs r1, #56            ; w = 7 chars
+            mov  r2, sp
+            bl   blit
+            ldr  r0, =ZERO
+            ldrb r0, [r0]
+            cmp  r0, #20
+            bls  zok
+            movs r0, #0
+    zok:    movs r1, #10
+            udiv r2, r0, r1         ; metres
+            mls  r3, r2, r1, r0     ; tenths
+            ldr  r1, =fmtz
+            mov  r0, sp
+            bl   sprintf
+            movs r0, #1
+            subs r0, r0, r4         ; 0 = white when ZERO is active
+            bl   colour
+            movs r0, #4             ; x
+            movs r1, #72            ; w = 9 chars
+            mov  r2, sp
+            bl   blit
+            add  sp, #20
+            pop  {r4, r5, pc}
+    colour:                     ; r0 = 0 white / 1 grey; background black (screen is cleared to black)
+            ldr  r1, =0x200001AC
+            cmp  r0, #0
+            bne  grey
+            movw r0, #0xFFFF
+            b    setc
+    grey:   movw r0, #0x8410
+    setc:   strh r0, [r1]
+            movs r0, #0
+            strh r0, [r1, #2]
+            bx   lr
+    blit:                       ; r0 = x, r1 = w, r2 = string; y = 90, h = 16, font 16
+            push {r4, lr}
+            sub  sp, #8
+            movs r4, #0x10
+            str  r4, [sp]           ; font size 16
+            str  r2, [sp, #4]       ; string
+            mov  r2, r1             ; w
             movs r1, #90            ; y
-            movs r2, #56            ; w = 7 chars
             movs r3, #16            ; h
             bl   gui_blit
-            add  sp, #24
+            add  sp, #8
             pop  {r4, pc}
     fmt:    .asciz "NVP %2d%%"
-    """, extra_syms=syms, why="draw the NVP value on the Length screen")
+    fmtz:   .asciz "ZERO %d.%dm"
+    """, extra_syms=syms, why="draw the NVP and Zero values on the Length screen")
 
     key = img.emit_code("""
     key_hook:                   ; in: r5 = key event {u8 key, u8 evt}; out: r0 = 1 << sysState
@@ -381,12 +461,28 @@ def p_nvp(img):
             mov  r4, r0
             cmp  r0, #0x80          ; LENGTH screen only
             bne  out
-            ldrb r1, [r5, #1]       ; event: 3 = click, 12 = auto-repeat
-            cmp  r1, #3
-            beq  ev
-            cmp  r1, #12
+            ldrb r1, [r5]           ; key: 2 = UP, 3 = DOWN, 4 = OK
+            ldrb r0, [r5, #1]       ; event: 3 = click, 6 = long press, 12 = auto-repeat
+            cmp  r1, #4
+            bne  ud
+            cmp  r0, #6             ; OK long press: switch NVP <-> ZERO
             bne  out
-    ev:     ldrb r1, [r5]           ; key: 2 = UP, 3 = DOWN
+            ldr  r2, =ADJ
+            ldrb r0, [r2]
+            cmp  r0, #1
+            beq  tonvp
+            movs r0, #1
+            b    store
+    tonvp:  movs r0, #0
+            b    store
+    ud:     cmp  r0, #3
+            beq  updown
+            cmp  r0, #12
+            bne  out
+    updown: ldr  r2, =ADJ
+            ldrb r2, [r2]
+            cmp  r2, #1
+            beq  zero
             ldr  r2, =NVP
             ldrb r0, [r2]
             cmp  r0, #50
@@ -405,6 +501,23 @@ def p_nvp(img):
             cmp  r0, #50
             beq  out
             subs r0, #1
+            b    store
+    zero:   ldr  r2, =ZERO
+            ldrb r0, [r2]
+            cmp  r0, #20
+            bls  zhave
+            movs r0, #0
+    zhave:  cmp  r1, #2
+            bne  zdown
+            cmp  r0, #20
+            beq  out
+            adds r0, #1
+            b    store
+    zdown:  cmp  r1, #3
+            bne  out
+            cmp  r0, #0
+            beq  out
+            subs r0, #1
     store:  strb r0, [r2]
             movs r0, #0x64
             bl   key_activity_notify
@@ -414,7 +527,7 @@ def p_nvp(img):
             bl   GUI_MSG_SEND
     out:    mov  r0, r4
             pop  {r4, pc}
-    """, extra_syms=syms, why="UP/DOWN on the Length screen adjust NVP")
+    """, extra_syms=syms, why="UP/DOWN adjust NVP or Zero on the Length screen; OK long press switches")
 
     gui = img.emit_code("""
     gui_hook:                   ; r0 = GUI message id
@@ -443,7 +556,18 @@ def p_nvp(img):
              "APP_GUI_task: message 0x3D")
     site = 0x08019970
     img.poke(site, "05b0 f0bd", assemble(site, f"b.w 0x{tail:08X}"),
-             "length_unit_picker_draw: draw NVP")
+             "length_unit_picker_draw: draw NVP and Zero")
+
+    zdef = img.emit_code("""
+    zero_default:               ; factory defaults: r1 = settings base; continue the cal loop with r0 = 0
+            adds r1, #0xC5
+            movs r0, #0
+            strb r0, [r1]
+            b.w  0x080195E4
+    """, why="Factory Reset clears the Zero byte")
+    site = 0x080195BC
+    img.poke(site, "0020 11e0", assemble(site, f"bl 0x{zdef:08X}"),
+             "factory defaults: Zero = 0.0 m")
 
 
 @patch("length-no-sticky", "Length result no longer sticks to the previous reading",
@@ -706,7 +830,7 @@ STOCK_FONT_SHA = {
 # Group: identity
 # =====================================================================
 
-VERSION = "PN 1.0"          # shown as "Software:PN 1.0" in About; max 7 characters
+VERSION = "PN 1.1"          # shown as "Software:PN 1.1" in About; max 7 characters
 
 
 @patch("version-string", f"Report the firmware version as {VERSION}",
@@ -724,6 +848,44 @@ def p_version(img):
         raise PatchError("VERSION must be at most 7 characters")
     img.set_string(0x08011660, VERSION)      # About screen
     img.set_string(0x08012E6C, VERSION)      # boot log
+
+
+REPO_URL = "github.com/patnawa/LPM-10A_PN_Custom"   # 36 characters, 6x12 font, 216 px
+
+
+@patch("about-url", f"About screen shows {REPO_URL} instead of the vendor site",
+       risk="safe", group="identity")
+def p_about_url(img):
+    """
+    The About screen draws "http://www.fnirsi.cn" (a 20-character slot, 8x16
+    font, 160 px wide at (40, 184)).  The project URL is 36 characters, too
+    long for the slot and for the screen at 8 px per character, so the
+    string lives in the cave and the line is drawn in the 6x12 font, 216 px
+    wide, centred at x = 12 on the same row.  The About screen already draws
+    other text at size 12 in exactly this way (0x08011556: size in r1, h =
+    size, w in r2), so no new drawing behaviour is introduced.
+
+    In place, 0x08011492..0x080114A2:
+        adr r0,=url ; movs r1,#0x10   ->  bl about_str   (r0 = url, r1 = 12)
+        movs r2,#0xA0 (w 160)         ->  movs r2,#0xD8  (w 216)
+        movs r0,#0x28 (x 40)          ->  movs r0,#12
+    The `mov r3, r1` between them makes h follow the font size as in stock.
+    The vendor string is left in its slot, now unreferenced.
+    """
+    from lpm10a.thumb import assemble
+    if len(REPO_URL) > 36:
+        raise PatchError("REPO_URL must be at most 36 characters (240 px at 6 px per character)")
+    about = img.emit_code(f"""
+    about_str:                  ; -> r0 = url, r1 = font size 12
+            ldr  r0, =url
+            movs r1, #12
+            bx   lr
+    url:    .asciz "{REPO_URL}"
+    """, why="About screen: project URL string")
+    site = 0x08011492
+    img.poke(site, "6aa0 1021", assemble(site, f"bl 0x{about:08X}"), "About: URL string and 12-px font")
+    img.poke(0x08011498, "a022", bytes.fromhex("d822"), "About: URL width 216 px")
+    img.poke(0x080114A0, "2820", bytes.fromhex("0c20"), "About: URL x = 12 (centred)")
 
 
 @patch("english-only", "Remove Chinese from the language menu",

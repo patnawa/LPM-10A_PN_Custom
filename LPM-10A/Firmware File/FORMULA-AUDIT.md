@@ -93,8 +93,8 @@ Stock, verified by disassembly and emulation (verify.py §6):
   survives leaving the screen. (Mod 2's audit said "boots into Inch"; that was
   only the power-on value before the first entry. Corrected here.) **FIXED**
 
-Mod (`length-decimal`), integer arithmetic only, applied after the NVP scale
-of §1.6:
+Mod (`length-decimal`), integer arithmetic only, applied after the Zero offset
+and NVP scale of §1.6:
 
 | unit index | label | formula | shown as | verified |
 |---|---|---|---|---|
@@ -115,12 +115,24 @@ string is what was checked, not just the number.
 are 0. **OK** (the `> 60000` test after it is dead code: it is only reached
 when the value is 0).
 
-### 1.6 NVP calibration — new in mod 3 (`nvp-calibration`)
+### 1.6 Zero and NVP calibration — mod 3 (`nvp-calibration`), Zero added in PN 1.1
 
 ```
-cm' = (cm × NVP + 34) / 69      NVP = settings byte 0xA6, valid 50..99
-cm' = cm                         byte 0 (factory) or out of range
+cm0 = cm − 10 × ZERO             ZERO = settings byte 0xC5, valid 0..20 (0.1 m steps)
+cm0 = 0 when the difference is ≤ 0 (that pair reads out of range)
+cm0 = cm                         byte > 20 (unset / garbage)
+cm' = (cm0 × NVP + 34) / 69      NVP = settings byte 0xA6, valid 50..99
+cm' = cm0                        byte 0 (factory) or out of range
 ```
+
+The Zero exists because the hardware test found an offset that a factor cannot
+remove: on the unit measured, at NVP 69 %, a 2.9 m cable read 3.1–3.5 m (mean
+3.34) in one session and 3.45–3.66 m (converted back from readings at 66 %) in
+another, and a 14 m cable read 14.4–15.0 m (mean 14.7). Fitting the means gives
+reading ≈ 1.00–1.02 × length + 0.4–0.6 m; the ±0.2 m spread is the PHY's own
+resolution. As a worked example, raw 3.34 m / 14.7 m with Zero 0.4 m and NVP
+67 % read 2.9 m / 13.9 m (68 %: 14.1 m), which verify.py §12 checks. A 1 m cable returned 2.4 m or nothing, so the ≤ 2 m blind zone
+(§1.2) is genuine and is kept.
 
 69 % is the reference: the PHY's own calibration, whatever velocity it
 actually assumes internally, so the factory state is bit-identical to stock.
@@ -128,13 +140,17 @@ Length is linear in NVP, so calibrating against a cable of known length
 (adjust until the display reads the true length) is exact regardless of the
 PHY's internal constant; only the *label* on the value is then relative.
 
-UI: on the Length screen, UP / DOWN change NVP by 1 % (auto-repeat when
-held), the header shows `NVP nn%` right of the Unit box, and the four pair
-results are redrawn immediately with the new factor via a new GUI message
-(0x3D). Persisted with the other settings at power-off; Factory Reset returns
-to 69 %. Verified in verify.py §12 (arithmetic, 72 vectors), §14 (keys,
-clamps, other screens), §15 (dispatch and the rendered text) and §16
-(drawn on screen entry).
+UI: on the Length screen, UP / DOWN change the active value (NVP by 1 % within
+50–99, Zero by 0.1 m within 0.0–2.0; auto-repeat when held); holding OK for
+about a second swaps between them, the active one drawn white and the other
+grey; `ZERO n.nm` sits at x = 4 and `NVP nn%` at x = 166 on the y = 90 header
+line, and the four pair results are redrawn immediately via a new GUI message
+(0x3D). Both persist with the other settings at power-off; Factory Reset
+returns to 69 % / 0.0 m (the defaults writer is hooked at 0x080195BC to clear
+byte 0xC5, which stock never touches). Verified in verify.py §12 (arithmetic,
+513 vectors), §14 (keys including the OK hold and both clamps), §14b (the
+whole key path end to end, mod and stock), §15 (dispatch, both texts and their
+colours), §16 (screen entry) and §16b (Factory Reset compared with stock).
 
 Worked example: a 55.40 m reading with NVP set to 75 % shows 60.2 m
 (5540 × 75 / 69 = 6022 cm).
@@ -253,16 +269,17 @@ PC10 low = charging, PA15 low = standby (charge complete). GPIO reads. **OK**
 
 | patch | what was wrong | what it does now |
 |---|---|---|
-| `length-decimal` | whole-metre display, inch unit, cm forced on every screen entry | m / cm / ft with one decimal, unit remembered, NVP applied |
-| `nvp-calibration` | no NVP / cable calibration at all | NVP 50–99 % on the Length screen, live redraw, saved |
+| `length-decimal` | whole-metre display, inch unit, cm forced on every screen entry | m / cm / ft with one decimal, unit remembered, Zero and NVP applied |
+| `nvp-calibration` | no cable calibration at all | Zero 0.0–2.0 m and NVP 50–99 % on the Length screen, live redraw, both saved |
 | `font-pro` | thin serif 8×16 "dev-board" ASCII font, Song-style Chinese | Ubuntu Sans Mono 600 (8×16, 6×12) and Droid Sans Fallback (16×16), rendered by the firmware's own glyph drawers in verify.py §17 |
 | `length-no-sticky` | new reading replaced by old one inside the tolerance band | measured value always displayed |
 | `batt-debounce` | one noisy ADC sample could start an uncancellable shutdown | 3 consecutive samples, cancels on recovery |
 | `batt-gauge` | 4-step gauge | 10-step Li-ion gauge |
 | `settings-leak` | 204 bytes leaked per save | freed on both exit paths |
 
-Everything here was verified by disassembly and CPU emulation only. **It has
-not been run on hardware.** The PHY-side length constant, the PoE divider
-ratio and the class comparators are hardware facts that only a real unit
-against a reference cable / PSE can confirm. The NVP setting exists precisely
-so that the length constant can be corrected on the bench.
+The formulas were verified by disassembly and CPU emulation; PN 1.0 has since
+run on one real unit (2026-09-18), which produced the length data in §1.6. The
+PN 1.1 Zero control has not been flashed yet. The PoE divider ratio and the
+class comparators are hardware facts that still await a reference PSE. The
+Zero and NVP settings exist precisely so that the length constant can be
+corrected on the bench.

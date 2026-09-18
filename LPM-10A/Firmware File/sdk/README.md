@@ -33,7 +33,7 @@ Rebuilding the fonts (not needed for a build) also needs `pillow` and `pymupdf`.
 python test_thumb.py            # assembler self-test
 python build.py --list          # what patches exist
 python build.py                 # dry run: prints every byte it would change
-python build.py --write         # emit LPM-10A-TX_PN1.0.bin
+python build.py --write         # emit LPM-10A-TX_PN1.1.bin
 python verify.py                # prove the result is what was intended
 ```
 
@@ -57,7 +57,7 @@ export` regenerate them from the stock image.
 | RTOS | FreeRTOS, heap_4, 48 KB heap, 1 ms tick, 11 tasks |
 | Cable PHY | Motorcomm YT8531, bit-banged MDIO; length in cm read from CSD ext regs 0x87–0x8A, speed/duplex from reg 0x11 |
 | ADC scaling | battery `raw×2×3300/4096` mV (1:2 divider); PoE `spread×3300×40/4096` mV (1:40 divider) |
-| Settings | flash page `0x0807F800`, magic `0x9718`, 0xC8-byte struct flashed at power-off; stock never saves the length unit (mod: bytes 0xA6/0xA7 = NVP, unit) |
+| Settings | flash page `0x0807F800`, magic `0x9718`, 0xC8-byte struct flashed at power-off; stock never saves the length unit (mod: bytes 0xA6/0xA7 = NVP, unit; 0xC5 = Zero, stock struct padding) |
 | Watchdog | IWDG, prescaler /32, reload 0xFFF ≈ 3.3 s, fed from TIM2 |
 | Debug log | USART1 on PA9, **1 Mbaud**, TX only, very verbose |
 
@@ -128,20 +128,23 @@ The assembler rejects anything it does not recognise rather than guessing, and
 | `autooff-hold` | low | bugfix | Auto Off is held (and restarted) while a SCAN tone or FLASH blink session is running; stock already resets it on every key event |
 | `boot-english` | low | english | Boot straight to English; no Chinese/English picker |
 | `english-strings` | safe | english | Corrects the machine-translated UI text |
-| `length-decimal` | low | measure | Length in **m / cm / ft with one decimal**, scaled by the NVP setting; the unit is remembered (stock: whole metres, inches, and cm forced on every screen entry) |
-| `nvp-calibration` | low | measure | **NVP calibration** 50–99 %: UP/DOWN on the Length screen, shown as `NVP 69%`, results redraw live, persisted |
+| `length-decimal` | low | measure | Length in **m / cm / ft with one decimal**, Zero- and NVP-corrected; the unit is remembered (stock: whole metres, inches, and cm forced on every screen entry) |
+| `nvp-calibration` | low | measure | **NVP 50–99 % and Zero 0.0–2.0 m**: UP/DOWN adjust the white value on the Length screen, holding OK for a second swaps them, shown as `ZERO 0.0m` / `NVP 69%`, results redraw live, both persisted, Factory Reset clears both |
 | `length-no-sticky` | low | bugfix | The measured length is always displayed; stock kept the previous cable's reading if the new one was inside the tolerance band |
 | `batt-debounce` | low | bugfix | Low-battery shutdown needs 3 consecutive samples < 3150 mV and is cancelled when the pack recovers to ≥ 3250 mV |
 | `batt-gauge` | low | ux | 10-step Li-ion battery gauge instead of 4 steps |
 | `settings-leak` | low | bugfix | Frees the 204-byte buffer leaked by every settings save |
 | `font-pro` | low | ux | Replaces all three fonts: 8x16 and 6x12 ASCII (Ubuntu Sans Mono) and the 171 Chinese glyphs (Droid Sans Fallback) |
-| `version-string` | safe | identity | About screen and boot log report `PN 1.0` (edit `VERSION` in patches.py, 7 characters max) |
+| `version-string` | safe | identity | About screen and boot log report `PN 1.1` (edit `VERSION` in patches.py, 7 characters max) |
+| `about-url` | safe | identity | About screen shows `github.com/patnawa/LPM-10A_PN_Custom` (string in the cave, 6x12 font, 216 px) where the vendor site was; edit `REPO_URL` in patches.py, 36 characters max |
 | `english-only` | untested | english | Removes Chinese from the language menu (off by default) |
 | `batt-grace` | low | tuning | Low-battery shutdown grace 30 s → 60 s (off by default) |
 
 `risk=untested` patches are excluded unless you pass `--all`; they are things
 that look right on paper but need a real device to confirm. Everything else
-is verified by emulation but **none of it has run on hardware yet**.
+is verified by emulation; the PN 1.0 set has also passed the first-power-on
+checklist on a real unit (2026-09-18). **The PN 1.1 additions (Zero, About
+URL) have not been flashed yet.**
 
 The reasoning behind each measurement change, and the formulas that were
 checked and found correct, are in [`../FORMULA-AUDIT.md`](../FORMULA-AUDIT.md).
@@ -150,7 +153,8 @@ checked and found correct, are in [`../FORMULA-AUDIT.md`](../FORMULA-AUDIT.md).
 
 Sections 1–3 are structural (container, byte footprint, disassembly
 inventory compared **by address**, so a patch may change the instruction
-count inside its own declared range). Sections 4–17 execute the code:
+count inside its own declared range), plus a byte-for-byte comparison with a
+fresh in-memory build. Sections 4–18 execute the code:
 
 | § | check | how |
 |---|---|---|
@@ -162,30 +166,38 @@ count inside its own declared range). Sections 4–17 execute the code:
 | 9 | battery debounce | feed sample sequences to the arming check; feed ADC + GPIO to the cancel check |
 | 10 | battery gauge | sweep mV through the curve; run the drawing switch and read segment count / colour |
 | 11 | heap leak | run both exit paths and trap the `vPortFree` call |
-| 12 | NVP scaling | `length_convert` for 6 NVP bytes × 3 units × 4 lengths against the reference |
-| 13 | unit memory | screen-entry hook for stored 0/1/2/7/255; the change hook stores and keeps the message args |
-| 14 | NVP keys | the key hook with UP/DOWN × click/repeat/long, both clamps, other screens, other keys |
-| 15 | NVP message | dispatcher routing for 0x10 / 0x3D / 0xFF; the text through the real `sprintf`, `gui_blit` args, colours |
-| 16 | screen entry | the picker epilogue draws the text and returns with the stack and r4–r7 intact |
+| 12 | Zero + NVP | `length_convert` for 9 NVP bytes × 3 units × 4 lengths, then 5 Zero bytes × 81 vectors, against the reference; the measured unit's numbers as a worked example |
+| 13 | unit memory | screen-entry hook for stored 0/1/2/3/7/255 (and it resets the UP/DOWN target); the change hook stores and keeps the message args |
+| 14 | keys | the key hook with UP/DOWN × click/repeat/long on both targets, all clamps, the OK hold toggle and every other OK event, POWER/LEFT/RIGHT, other screens; `GUI_MSG_SEND(0x3D, 0, 0)` and r4–r6 preserved |
+| 14b | end to end | `Action_key_Process` itself in LENGTH, mod and stock: stock actions 0x11/0x12/0x13 still dispatch, UP/DOWN and the OK hold act, holds and releases are ignored |
+| 15 | message | dispatcher routing for 0x10 / 0x3D / 0xFF; both texts through the real `sprintf`, `gui_blit` geometry, white/grey on black with the colour globals pre-loaded with a sentinel |
+| 16 | screen entry | the picker epilogue draws both texts and returns with the stack and r4–r7 intact |
+| 16b | Factory Reset | the defaults writer on mod and stock, the whole 0xC8-byte struct compared: only the first-boot flag and the Zero byte differ |
 | 17 | fonts | the firmware's own glyph drawers render every glyph of all three tables; pixels must equal the designed bitmaps |
 | 18 | identity | both version strings through the firmware's `sprintf`; container name byte-identical to stock |
+| 18b | About URL | the About line's `gui_blit` call: geometry (12, 184, 216, 12), 12-px font, the URL text, stock colours; the stock draw for comparison |
 
 Each behavioural check runs the stock image as well, so the report shows the
 defect and the fix side by side.
 
-### NVP calibration, how it works
+### Zero and NVP calibration, how it works
 
 The PHY reports each pair's length in centimetres assuming one fixed
-propagation velocity.  The patch keeps that as the 69 % reference and scales
-the reading by `NVP / 69` before the unit conversion (integer maths, rounded).
-On the Length screen UP/DOWN change the value by 1 % (auto-repeat when held),
-the `NVP nn%` text right of the Unit box updates, and the four results are
-redrawn with the new factor immediately.  So the field procedure is the usual
-one: measure a cable of known length once, then press UP/DOWN until the
-display reads the true length.  The value lives in settings byte 0xA6 (the
-unit in 0xA7); both are free bytes the stock defaults writer zeroes, both are
-flashed at power-off with the rest of the struct, and Factory Reset returns
-them to 69 % / metres.
+propagation velocity, and the value includes the chip's own signal path.
+The patch subtracts the Zero first (`cm0 = cm − 10 × Zero`, clamped at 0, so
+a reading at or below the Zero shows as out of range for that pair), then
+keeps the PHY's velocity as the 69 % reference and scales by `NVP / 69`,
+both before the unit conversion (integer maths, rounded).  On the Length
+screen UP/DOWN change whichever value is drawn white (NVP by 1 %, Zero by
+0.1 m; auto-repeat when held); holding OK for about a second swaps them
+(the RAM-arena byte `adj_target`, reset to NVP on every screen entry), and
+the four results are redrawn immediately.  The field procedure needs two
+cables: set Zero on a short one (about 3 m), NVP on a long one (15 m or
+more), then re-check the short one.  NVP lives in settings byte 0xA6 and the
+unit in 0xA7, free bytes the stock defaults writer zeroes; Zero lives in
+0xC5, struct padding that stock never touches, which the hooked defaults
+writer clears.  All three are flashed at power-off with the rest of the
+struct, and Factory Reset returns them to 69 % / metres / 0.0 m.
 
 A Settings-menu entry was considered and rejected: the five rows already fill
 the 320-px screen (tiles at y = 68, 124, 175, 220, 263), so a sixth would mean
@@ -245,15 +257,14 @@ they need a rebuild from vendor source:
 * All fault handlers are bare `while(1)` with no crash capture. The independent
   watchdog (prescaler /32, reload 0xFFF ≈ 3.3 s) is what recovers from a hard
   fault; a hung *task* is never caught because the watchdog is fed from TIM2.
-* Length measurement has no cable-type/NVP calibration: the centimetre value
-  is read straight out of the YT8531's diagnostic registers 0x87–0x8A.
 * Cables of 2 m or less read "Out of range" (results ≤ 200 cm are zeroed).
 * `poe_ring_is_stable` (0x08014C42) compares a byte spread with 40000 and can
   never report "unstable"; the intended threshold is not recoverable.
 
 Fixed since the first mod: single-sample low-battery shutdown, the settings
 save heap leak, the sticky length result, whole-metre display, Auto Off
-during tone / blink sessions. Mod 1's `autooff-keyreset` was removed: stock
+during tone / blink sessions, and the missing cable calibration (NVP, then
+Zero once the hardware test showed the offset). Mod 1's `autooff-keyreset` was removed: stock
 already resets the idle counter at the end of `Action_key_Process`.
 
 ## Fonts

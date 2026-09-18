@@ -17,13 +17,13 @@ Checks, in order:
   9  low-battery debounce (3 samples) and recovery / charger cancel
  10  10-step battery gauge and its drawing switch
  11  settings save frees its staging buffer on both exit paths
- 12  NVP scaling inside the length conversion
- 13  length unit loaded from / stored to settings
- 14  NVP UP/DOWN key hook (clicks, auto-repeat, clamps, other screens)
- 15  GUI message 0x3D routing and the rendered "NVP nn%" text
- 16  NVP text drawn by the Length screen's header epilogue
+ 12  Zero offset and NVP scaling inside the length conversion
+ 13  length unit loaded from / stored to settings; adjust target reset on entry
+ 14  NVP / Zero UP/DOWN key hook (clicks, auto-repeat, clamps, OK long press, other screens)
+ 15  GUI message 0x3D routing and the rendered "NVP nn%" / "ZERO n.nm" texts
+ 16  both texts drawn by the Length screen's header epilogue; Factory Reset clears Zero
  17  all three font tables rendered by the firmware's own glyph drawers
- 18  version strings (About screen, boot log) and the untouched container name
+ 18  version strings (About screen, boot log), the untouched container name, the About URL line
 
 Every behavioural check runs the stock image too, so the report shows the
 before/after pair rather than a bare pass.
@@ -43,7 +43,7 @@ import patches                            # noqa: E402
 
 STOCK = require_stock(os.path.join(FW, "LPM-10A-TX_V2.0.7_260610.bin"))
 MOD = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
-    FW, "LPM-10A-TX_PN1.0.bin")
+    FW, f"LPM-10A-TX_{patches.VERSION.replace(' ', '')}.bin")
 
 fails = 0
 
@@ -90,6 +90,8 @@ check(bool(diff), "image actually changed", f"{len(diff)} bytes")
 check(hdr_ok and in_payload, "every changed byte is inside the payload (or the header length fields)")
 lo, hi = min(diff), max(diff)
 check(True, "changed range", f"file 0x{lo:X}..0x{hi:X}")
+
+check(bytes(_probe.finalize().data) == mod, "the file is byte-identical to a fresh in-memory build of the default patch set")
 
 # ---------------------------------------------------------------- 3
 print("\n3. code integrity (full-image disassembly inventory)")
@@ -471,38 +473,74 @@ try:
 
     # ------------------------------------------------------------------
     SETTINGS = 0x20000C78
-    NVP_B, UNIT_B = SETTINGS + 0xA6, SETTINGS + 0xA7
+    NVP_B, UNIT_B, ZERO_B = SETTINGS + 0xA6, SETTINGS + 0xA7, SETTINGS + 0xC5
+    ADJ = _probe.adj_target
     GUI_MSG_SEND, KEY_NOTIFY, GUI_BLIT, SPRINTF = 0x0800E428, 0x080116BC, 0x080174E8, 0x0800A38C
     RESULT_DRAW, SYSSTATE = 0x080199B0, 0x2000013C
 
     def ref_nvp(cm, nvp):
         return (cm * nvp + 34) // 69 if 50 <= nvp <= 99 else cm
 
-    print("\n12. length: NVP scaling in the conversion (mod)")
-    for nvp in (0, 69, 75, 50, 99, 120):
+    def ref_zero(cm, zero):
+        if zero > 20:
+            return cm
+        return max(cm - 10 * zero, 0)
+
+    print("\n12. length: Zero offset and NVP scaling in the conversion (mod)")
+    for nvp in (0, 69, 75, 50, 99, 120, 49, 100, 255):
         bad = []
         for unit in (0, 1, 2):
             for cm in (201, 5540, 10000, 20000):
                 e = Emu(mod)
                 e.w(UNIT, bytes([unit]))
                 e.w(NVP_B, bytes([nvp]))
+                e.w(ZERO_B, b"\x00")
                 r = e.run(LENG_CONVERT, {"r0": cm})
                 want = ref_convert(ref_nvp(cm, nvp), unit)
                 if r["r0"] != want:
                     bad.append((unit, cm, r["r0"], want))
-        label = f"NVP byte {nvp:3}" + (" (factory/identity)" if nvp in (0, 69, 120) else "")
+        label = f"NVP byte {nvp:3}, Zero 0" + (" (factory/identity)" if nvp in (0, 69, 120) else "")
         check(not bad, f"{label}: 12 vectors match reference", "" if not bad else f"{bad[:3]}")
-    e = Emu(mod); e.w(UNIT, b"\x00"); e.w(NVP_B, bytes([75]))
+    for zero in (4, 20, 1, 21, 255):
+        bad = []
+        for nvp in (0, 67, 99):
+            for unit in (0, 1, 2):
+                for cm in (0, 30, 40, 41, 201, 334, 1470, 5540, 20000):
+                    e = Emu(mod)
+                    e.w(UNIT, bytes([unit]))
+                    e.w(NVP_B, bytes([nvp]))
+                    e.w(ZERO_B, bytes([zero]))
+                    r = e.run(LENG_CONVERT, {"r0": cm})
+                    want = ref_convert(ref_nvp(ref_zero(cm, zero), nvp), unit)
+                    if r["r0"] != want:
+                        bad.append((nvp, unit, cm, r["r0"], want))
+        label = f"Zero byte {zero:3}" + (" (out of range = no offset)" if zero > 20 else f" (= {zero / 10} m)")
+        check(not bad, f"{label}: 81 vectors match reference", "" if not bad else f"{bad[:3]}")
+    e = Emu(mod); e.w(UNIT, b"\x00"); e.w(NVP_B, bytes([75])); e.w(ZERO_B, b"\x00")
     r = e.run(LENG_CONVERT, {"r0": 5540})
-    check(r["r0"] == 602, "55.40 m cable at NVP 75 % reads 60.2 m", f"{r['r0'] / 10} m")
+    check(r["r0"] == 602, "55.40 m cable at NVP 75 %, Zero 0.0 reads 60.2 m", f"{r['r0'] / 10} m")
+    e = Emu(mod); e.w(UNIT, b"\x00"); e.w(NVP_B, bytes([67])); e.w(ZERO_B, bytes([4]))
+    r1 = e.run(LENG_CONVERT, {"r0": 334})["r0"]
+    r2 = e.run(LENG_CONVERT, {"r0": 1470})["r0"]
+    check((r1, r2) == (29, 139), "measured unit: raw 3.34 m / 14.7 m at Zero 0.4 m, NVP 67 % read 2.9 m / 13.9 m (68 %: 14.1 m)",
+          f"{r1 / 10} m, {r2 / 10} m")
+    e = Emu(mod); e.w(UNIT, b"\x00"); e.w(NVP_B, bytes([69])); e.w(ZERO_B, bytes([4]))
+    r1 = e.run(LENG_CONVERT, {"r0": 40})["r0"]
+    r2 = e.run(LENG_CONVERT, {"r0": 0})["r0"]
+    check((r1, r2) == (0, 0), "a reading at or below the Zero, and a stock 0, stay 0 (out of range)", f"{r1}, {r2}")
+    e = Emu(stock); e.w(UNIT, b"\x02"); e.w(ZERO_B, bytes([4])); e.w(NVP_B, bytes([67]))
+    r = e.run(LENG_CONVERT, {"r0": 334})
+    check(r["r0"] == 3, "stock: ignores both bytes (unit 2 = whole metres, 334 cm -> 3)", f"{r['r0']}")
 
-    print("\n13. length: unit remembered across screens (mod)")
-    for stored, want in ((0, 0), (1, 1), (2, 2), (7, 0), (255, 0)):
+    print("\n13. length: unit remembered across screens, adjust target reset (mod)")
+    for stored, want in ((0, 0), (1, 1), (2, 2), (3, 0), (7, 0), (255, 0)):
         e = Emu(mod)
         e.w(UNIT_B, bytes([stored]))
         e.w(UNIT, b"\x01")
+        e.w(ADJ, b"\x01")
         e.run(0x08012F1C, {"r1": 0x200002B4}, until=0x08012F20)
-        check(e.r8(UNIT) == want, f"entry: settings unit {stored:3} -> Length screen unit {e.r8(UNIT)}")
+        check(e.r8(UNIT) == want and e.r8(ADJ) == 0,
+              f"entry: settings unit {stored:3} -> Length screen unit {e.r8(UNIT)}, UP/DOWN target = NVP")
     e = Emu(stock); e.w(UNIT, b"\x00")
     e.run(0x08012F1C, {"r1": 0x200002B4}, until=0x08012F20)
     check(e.r8(UNIT) == 1, "stock: every entry forces unit 1 (cm)", f"unit={e.r8(UNIT)}")
@@ -515,20 +553,27 @@ try:
     print("\n14. NVP: UP/DOWN key hook on the Length screen (mod)")
     KEY_HOOK = bl_target(mod, 0x08014A04)
     KEYBUF = 0x20003200
-    def press(state, key, evt, nvp):
+    def press(state, key, evt, nvp, adj=0, zero=0):
         e = Emu(mod)
         e.w(SYSSTATE, bytes([state]))
         e.w(NVP_B, bytes([nvp]))
+        e.w(ZERO_B, bytes([zero]))
+        e.w(ADJ, bytes([adj]))
         e.w(KEYBUF, bytes([key, evt]))
         e.traps.update({GUI_MSG_SEND, KEY_NOTIFY})
-        r = e.run(KEY_HOOK, {"r5": KEYBUF})
+        r = e.run(KEY_HOOK, {"r5": KEYBUF, "r4": 0x44444444, "r6": 0x66666666})
         msgs = [c[1][0] for c in e.calls if c[0] == GUI_MSG_SEND]
+        press.bad_args = [c[1][:3] for c in e.calls if c[0] == GUI_MSG_SEND and c[1][1:3] != (0, 0)]
         notified = any(c[0] == KEY_NOTIFY for c in e.calls)
+        press.last = e
+        press.regs_ok = (r["r4"], r["r5"], r["r6"]) == (0x44444444, KEYBUF, 0x66666666)
         return e.r8(NVP_B), msgs, notified, r["r0"]
-    UP, DOWN, CLICK, LONG, REPEAT = 2, 3, 3, 6, 12
+    UP, DOWN, OK, CLICK, LONG, REPEAT = 2, 3, 4, 3, 6, 12
     v, m, n, st = press(7, UP, CLICK, 0)
     check((v, m, n, st) == (70, [0x3D], True, 0x80), "LENGTH, UP click, byte 0 (=69%) -> 70 %, GUI 0x3D, activity, state mask kept",
           f"nvp={v} msgs={[hex(x) for x in m]} notify={n} r0=0x{st:X}")
+    check(not press.bad_args and press.regs_ok, "GUI_MSG_SEND(0x3D, 0, 0): no payload pointer; r4/r5/r6 preserved by the hook",
+          f"bad args {press.bad_args}" if press.bad_args else "")
     v, m, n, st = press(7, DOWN, CLICK, 70)
     check((v, m) == (69, [0x3D]), "LENGTH, DOWN click, 70 -> 69", f"nvp={v}")
     v, m, n, st = press(7, UP, REPEAT, 80)
@@ -541,36 +586,123 @@ try:
     check((v, m) == (50, []), "clamped at 50 %", f"nvp={v}")
     v, m, n, st = press(2, UP, CLICK, 0)
     check((v, m, st) == (0, [], 0x04), "HOME screen: UP untouched, state mask 1<<2 returned", f"nvp={v} r0=0x{st:X}")
-    v, m, n, st = press(7, 4, CLICK, 0)
-    check((v, m) == (0, []), "LENGTH, OK key: not ours", f"nvp={v}")
+    v, m, n, st = press(7, OK, CLICK, 0)
+    check((v, m) == (0, []) and press.last.r8(ADJ) == 0, "LENGTH, OK click: not ours (stock Test Start)", f"nvp={v}")
+    v, m, n, st = press(7, OK, LONG, 70)
+    check((v, m, n, st, press.last.r8(ADJ)) == (70, [0x3D], True, 0x80, 1),
+          "LENGTH, OK long press: target NVP -> ZERO, GUI 0x3D, NVP untouched",
+          f"adj={press.last.r8(ADJ)} nvp={v} msgs={[hex(x) for x in m]}")
+    v, m, n, st = press(7, OK, LONG, 70, adj=1)
+    check((m, press.last.r8(ADJ)) == ([0x3D], 0), "LENGTH, OK long press again: target ZERO -> NVP", f"adj={press.last.r8(ADJ)}")
+    v, m, n, st = press(7, OK, REPEAT, 70, adj=1)
+    check((m, press.last.r8(ADJ)) == ([], 1), "LENGTH, OK auto-repeat: ignored (no double toggle)", f"adj={press.last.r8(ADJ)}")
+    v, m, n, st = press(2, OK, LONG, 70, adj=0)
+    check((m, press.last.r8(ADJ)) == ([], 0), "HOME screen, OK long press: untouched", f"adj={press.last.r8(ADJ)}")
+    ignored = []
+    for evt in (1, 7, 8, 9, 10, 11):
+        v, m, n, st = press(7, OK, evt, 70, adj=1, zero=4)
+        if m or press.last.r8(ADJ) != 1 or v != 70 or press.last.r8(ZERO_B) != 4:
+            ignored.append(evt)
+    check(not ignored, "LENGTH, OK events 1/7/8/9/10/11 (press, releases, 2 s and 5 s holds): all ignored, no double toggle", f"acted on {ignored}")
+    for key in (0, 1, 5):
+        for evt in (CLICK, LONG, REPEAT):
+            v, m, n, st = press(7, key, evt, 70, adj=0, zero=4)
+            if m or v != 70 or press.last.r8(ZERO_B) != 4 or press.last.r8(ADJ) != 0:
+                ignored.append((key, evt))
+            v, m, n, st = press(7, key, evt, 70, adj=1, zero=4)
+            if m or v != 70 or press.last.r8(ZERO_B) != 4 or press.last.r8(ADJ) != 1:
+                ignored.append((key, evt, 1))
+    check(not ignored, "LENGTH, POWER / LEFT / RIGHT keys: never touch NVP, Zero or the target (stock unit change keeps working)", f"acted on {ignored}")
+    for evt, z0, key, want, label in ((CLICK, 0, UP, 1, "ZERO 0.0 -> 0.1 on UP click"),
+                                      (REPEAT, 4, UP, 5, "ZERO 0.4 -> 0.5 on UP auto-repeat"),
+                                      (CLICK, 4, DOWN, 3, "ZERO 0.4 -> 0.3 on DOWN click"),
+                                      (CLICK, 20, UP, 20, "clamped at 2.0 m"),
+                                      (CLICK, 0, DOWN, 0, "clamped at 0.0 m"),
+                                      (CLICK, 255, UP, 1, "garbage byte counts as 0.0 -> 0.1")):
+        v, m, n, st = press(7, key, evt, 70, adj=1, zero=z0)
+        z = press.last.r8(ZERO_B)
+        moved = want != z0 and z0 <= 20
+        ok = z == want and v == 70 and (m == [0x3D]) == (z != z0 or z0 > 20) and st == 0x80
+        check(ok, f"ZERO target: {label}", f"zero={z} nvp={v} msgs={[hex(x) for x in m]}")
+    v, m, n, st = press(7, UP, CLICK, 70, adj=0, zero=4)
+    check((v, press.last.r8(ZERO_B)) == (71, 4), "NVP target: UP changes NVP, Zero untouched", f"nvp={v} zero={press.last.r8(ZERO_B)}")
+
+    print("\n14b. end to end: Action_key_Process in the LENGTH state (mod and stock)")
+    ACTION, DISPATCH, AUTOOFF_RESET = 0x080149FC, 0x0800D2B4, 0x0800F9C0
+
+    def action(buf, key, evt, nvp=70, zero=4, adj=0):
+        e = Emu(buf)
+        e.w(SYSSTATE, bytes([7]))
+        e.w(NVP_B, bytes([nvp])); e.w(ZERO_B, bytes([zero])); e.w(ADJ, bytes([adj]))
+        e.w(KEYBUF, bytes([key, evt]))
+        e.traps.update({DISPATCH, GUI_MSG_SEND, KEY_NOTIFY, AUTOOFF_RESET})
+        e.stops.add(0x08014A4E)                       # the LOG macro body: stop there and skip it
+        e.run(ACTION, {"r0": KEYBUF}, count=200000)
+        if e.uc.reg_read(UC_ARM_REG_PC) == 0x08014A4E:
+            e.calls.pop()                             # the stop record
+            e.uc.emu_start(0x08014AC0 | 1, MAGIC, count=200000)
+        dispatched = [c[1][0] for c in e.calls if c[0] == DISPATCH]
+        msgs = [c[1][0] for c in e.calls if c[0] == GUI_MSG_SEND]
+        return dispatched, msgs, e.r8(NVP_B), e.r8(ZERO_B), e.r8(ADJ), e.uc.reg_read(UC_ARM_REG_PC) == (MAGIC & ~1)
+
+    cases = (("OK click", OK, CLICK, [0x11], [], 70, 4, 0), ("LEFT click", 1, CLICK, [0x13], [], 70, 4, 0),
+             ("RIGHT click", 5, CLICK, [0x12], [], 70, 4, 0), ("UP click", UP, CLICK, [], [0x3D], 71, 4, 0),
+             ("DOWN repeat", DOWN, REPEAT, [], [0x3D], 69, 4, 0), ("OK 1 s hold", OK, LONG, [], [0x3D], 70, 4, 1),
+             ("OK 2 s hold", OK, 8, [], [], 70, 4, 0), ("OK release", OK, 7, [], [], 70, 4, 0))
+    for label, key, evt, want_d, want_m, want_nvp, want_zero, want_adj in cases:
+        d, m, nv, z, adj, ret = action(mod, key, evt)
+        ok = (d, m, nv, z, adj, ret) == (want_d, want_m, want_nvp, want_zero, want_adj, True)
+        check(ok, f"mod, {label}: stock actions {[hex(x) for x in d]}, messages {[hex(x) for x in m]}, nvp {nv} zero {z} target {adj}",
+              "" if ok else f"wanted {[hex(x) for x in want_d]} {[hex(x) for x in want_m]} {want_nvp} {want_zero} {want_adj}")
+    d, m, nv, z, adj, ret = action(mod, UP, CLICK, adj=1)
+    check((d, m, z, nv) == ([], [0x3D], 5, 70), "mod, UP click with Zero selected: Zero 0.4 -> 0.5, NVP untouched, no stock action")
+    for label, key, evt, want_d in (("OK click", OK, CLICK, [0x11]), ("UP click", UP, CLICK, []), ("OK 1 s hold", OK, LONG, [])):
+        d, m, nv, z, adj, ret = action(stock, key, evt)
+        check((d, m, nv, z, ret) == (want_d, [], 70, 4, True), f"stock, {label}: actions {[hex(x) for x in d]}, no message, bytes untouched")
 
     print("\n15. NVP: GUI message 0x3D and the on-screen text (mod)")
     for msg, want_at, label in ((0x10, 0x0800F490, "0x10 -> stock jump table"), (0xFF, 0x0800F4DC, "0xFF -> exit (shutdown filter)")):
         e = Emu(mod)
         r = e.run(0x0800F48C, {"r0": msg}, until=want_at, count=20)
         check(r["pc"] == want_at and r["r0"] == msg, f"message {label}", f"pc=0x{r['pc']:08X}")
-    e = Emu(mod)
-    e.w(NVP_B, bytes([72]))
-    e.traps.update({GUI_BLIT, RESULT_DRAW})
-    r = e.run(0x0800F48C, {"r0": 0x3D}, until=0x0800F4DC, count=20000)
-    blits = [c for c in e.calls if c[0] == GUI_BLIT]
-    ok = len(blits) == 1 and r["pc"] == 0x0800F4DC
-    if ok:
-        (x, y, w, h), (size, strp) = blits[0][1], blits[0][2]
-        text = e.cstr(strp)
-        ok = (x, y, w, h, size, text) == (166, 90, 56, 16, 0x10, "NVP 72%")
-        check(ok, f'0x3D: gui_blit({x}, {y}, {w}, {h}, size 0x{size:X}, "{text}") then results redraw',
-              "" if ok else "(unexpected)")
-    else:
-        check(False, "0x3D: text drawn once", f"{len(blits)} blits, pc=0x{r['pc']:08X}")
-    check(any(c[0] == RESULT_DRAW for c in e.calls), "0x3D: length_result_draw called after the text")
-    fg, bg = struct.unpack("<HH", e.uc.mem_read(0x200001AC, 4))
-    check((fg, bg) == (0xFFFF, 0x0000), "text colours white on the black background", f"fg=0x{fg:04X} bg=0x{bg:04X}")
-    for nvp, want in ((0, "NVP 69%"), (50, "NVP 50%"), (99, "NVP 99%"), (255, "NVP 69%")):
-        e = Emu(mod); e.w(NVP_B, bytes([nvp])); e.traps.add(GUI_BLIT); e.traps.add(RESULT_DRAW)
-        e.run(0x0800F48C, {"r0": 0x3D}, until=0x0800F4DC, count=20000)
-        got = e.cstr([c for c in e.calls if c[0] == GUI_BLIT][0][2][1])
-        check(got == want, f'byte {nvp:3} -> "{got}"')
+    COLOUR = 0x200001AC
+
+    def redraw(nvp, zero, adj):
+        """Run GUI message 0x3D with gui_blit trapped; returns [(x, y, w, h, size, text, fg, bg)], e."""
+        e = Emu(mod)
+        e.w(NVP_B, bytes([nvp])); e.w(ZERO_B, bytes([zero])); e.w(ADJ, bytes([adj]))
+        e.w(COLOUR, struct.pack("<HH", 0x07E0, 0x7304))     # sentinel: the picker leaves its box colours here
+        seen = []
+
+        def hook(uc, addr, size, ud):          # records each blit at call time (the trap in Emu skips it)
+            if addr == GUI_BLIT:
+                a = tuple(uc.reg_read(r) for r in (UC_ARM_REG_R0, UC_ARM_REG_R1, UC_ARM_REG_R2, UC_ARM_REG_R3))
+                sp = uc.reg_read(UC_ARM_REG_SP)
+                fs, sp_ = struct.unpack("<II", uc.mem_read(sp, 8))
+                fg, bg = struct.unpack("<HH", uc.mem_read(COLOUR, 4))
+                seen.append((*a, fs, e.cstr(sp_), fg, bg))
+        e.uc.hook_add(UC_HOOK_CODE, hook)
+        e.traps.update({GUI_BLIT, RESULT_DRAW})
+        r = e.run(0x0800F48C, {"r0": 0x3D}, until=0x0800F4DC, count=40000)
+        return seen, e, r
+
+    blits, e, r = redraw(72, 4, 0)
+    want = [(166, 90, 56, 16, 0x10, "NVP 72%", 0xFFFF, 0x0000), (4, 90, 72, 16, 0x10, "ZERO 0.4m", 0x8410, 0x0000)]
+    check(blits == want and r["pc"] == 0x0800F4DC,
+          '0x3D, NVP active: gui_blit(166, 90, 56, 16, "NVP 72%") white, gui_blit(4, 90, 72, 16, "ZERO 0.4m") grey, then exit',
+          "" if blits == want else f"{blits}")
+    check(any(c[0] == RESULT_DRAW for c in e.calls), "0x3D: length_result_draw called after the texts")
+    blits, e, r = redraw(72, 4, 1)
+    check([b[6] for b in blits] == [0x8410, 0xFFFF] and [b[5] for b in blits] == ["NVP 72%", "ZERO 0.4m"],
+          "0x3D, ZERO active: NVP grey, ZERO white", f"{[(b[5], hex(b[6])) for b in blits]}")
+    for nvp, zero, adj, want in ((0, 0, 0, ("NVP 69%", "ZERO 0.0m")), (50, 20, 0, ("NVP 50%", "ZERO 2.0m")),
+                                 (99, 15, 1, ("NVP 99%", "ZERO 1.5m")), (255, 255, 7, ("NVP 69%", "ZERO 0.0m"))):
+        blits, e, r = redraw(nvp, zero, adj)
+        got = tuple(b[5] for b in blits)
+        cols = tuple((b[6], b[7]) for b in blits)
+        want_cols = ((0xFFFF, 0), (0x8410, 0)) if adj != 1 else ((0x8410, 0), (0xFFFF, 0))
+        check(got == want and cols == want_cols, f'bytes NVP {nvp:3} Zero {zero:3} adj {adj} -> {got}, colours {[hex(c[0]) for c in cols]} on black',
+              "" if cols == want_cols else f"{cols}")
 
     print("\n16. NVP: drawn when the Length screen opens (mod)")
     e = Emu(mod)
@@ -580,14 +712,36 @@ try:
         e.w32(F + 0x14 + 4 * i, 0x44444444 + i)      # saved r4..r7
     e.w32(F + 0x24, MAGIC | 1)                        # saved lr
     e.traps.add(GUI_BLIT)
+    texts = []
+    e.uc.hook_add(UC_HOOK_CODE, lambda uc, addr, size, ud: texts.append(
+        e.cstr(struct.unpack("<II", uc.mem_read(uc.reg_read(UC_ARM_REG_SP), 8))[1])) if addr == GUI_BLIT else None)
     e.uc.reg_write(UC_ARM_REG_SP, F)
     e.uc.emu_start(0x08019970 | 1, MAGIC, count=20000)
-    blits = [c for c in e.calls if c[0] == GUI_BLIT]
     sp_after = e.uc.reg_read(UC_ARM_REG_SP)
-    check(len(blits) == 1 and e.cstr(blits[0][2][1]) == "NVP 69%" and sp_after == F + 0x28
-          and e.uc.reg_read(UC_ARM_REG_R7) == 0x44444447,
-          "epilogue draws the text, then returns with the stack and r4-r7 restored",
-          f"blits={len(blits)} sp=+0x{sp_after - F:X} r7=0x{e.uc.reg_read(UC_ARM_REG_R7):X}")
+    regs = tuple(e.uc.reg_read(r) for r in (UC_ARM_REG_R4, UC_ARM_REG_R5, UC_ARM_REG_R6, UC_ARM_REG_R7))
+    check(texts == ["NVP 69%", "ZERO 0.0m"] and sp_after == F + 0x28
+          and regs == (0x44444444, 0x44444445, 0x44444446, 0x44444447),
+          "epilogue draws both texts, then returns with the stack and r4-r7 restored",
+          f"texts={texts} sp=+0x{sp_after - F:X} r7=0x{e.uc.reg_read(UC_ARM_REG_R7):X}")
+
+    print("\n16b. Factory Reset clears the Zero byte (mod) and writes the same defaults as stock")
+    DEFAULTS, NETCFG_A, NETCFG_B = 0x0801958C, 0x080131BC, 0x080119B0
+    def defaults(buf):
+        e = Emu(buf)
+        e.w(SETTINGS, b"\xa5" * 0xC8)
+        e.traps.update({NETCFG_A, NETCFG_B})
+        e.run(DEFAULTS, count=20000)
+        return bytes(e.uc.mem_read(SETTINGS, 0xC8)), e
+    got_m, em = defaults(mod)
+    got_s, es = defaults(stock)
+    diff = [i for i in range(0xC8) if got_m[i] != got_s[i]]
+    check(diff == [0xA8, 0xC5] and got_m[0xC5] == 0 and got_s[0xC5] == 0xA5 and (got_m[0xA8], got_s[0xA8]) == (0, 1),
+          "defaults writer: identical to stock except first-boot flag 0 (boot-english) and byte 0xC5 = 0",
+          f"differs at {[hex(i) for i in diff]}")
+    check([c[0] for c in em.calls] == [NETCFG_A, NETCFG_B] and em.uc.reg_read(UC_ARM_REG_PC) == (MAGIC & ~1),
+          "defaults writer: still calls the two stock finishers and returns", f"{[hex(c[0]) for c in em.calls]}")
+    check(got_m[0xA6] == 0 and got_m[0xA7] == 0 and got_m[0xA8] == 0 and got_m[0xA2] == 2 and got_m[0xA5] == 2,
+          "defaults: NVP 0 (=69 %), unit 0 (m), first-boot 0, auto-off 10 min, English")
 
     print("\n17. fonts: the firmware's own glyph drawers over the new tables")
     import fonts
@@ -641,8 +795,37 @@ try:
     check(e.cstr(0x20003400) == "Software:V2.0.7", "stock: still reports V2.0.7", e.cstr(0x20003400))
     check(mod[:0x20] == stock[:0x20], "container name unchanged for the bootloader",
           mod[:0x20].split(b"\0")[0].decode())
+
+    print("\n18b. About screen: the URL line (mod)")
+    def about_line(buf):
+        e = Emu(buf)
+        seen = []
+
+        def hook(uc, addr, size, ud):
+            if addr == GUI_BLIT:
+                args = tuple(uc.reg_read(r) for r in (UC_ARM_REG_R0, UC_ARM_REG_R1, UC_ARM_REG_R2, UC_ARM_REG_R3))
+                fs, sp_ = struct.unpack("<II", uc.mem_read(uc.reg_read(UC_ARM_REG_SP), 8))
+                seen.append((args, fs, e.cstr(sp_)))
+        e.uc.hook_add(UC_HOOK_CODE, hook)
+        e.traps.add(GUI_BLIT)
+        e.uc.reg_write(UC_ARM_REG_SP, 0x2000E000 - 0x60)
+        e.uc.emu_start(0x08011482 | 1, 0x080114A6, count=2000)
+        fg, bg = struct.unpack("<HH", e.uc.mem_read(0x200001AC, 4))
+        return seen, (fg, bg), e.uc.reg_read(UC_ARM_REG_PC)
+    seen, col, pc = about_line(mod)
+    ok = (len(seen) == 1 and seen[0][0] == (12, 184, 216, 12) and seen[0][1] == 12
+          and seen[0][2] == patches.REPO_URL and pc == 0x080114A6)
+    check(ok, f'gui_blit(12, 184, 216, 12, size 12, "{seen[0][2] if seen else "?"}"), then the stock code continues',
+          "" if ok else f"{seen} pc=0x{pc:08X}")
+    check(col == (0xFFFF, 0x2105), "colours as stock (white on the panel grey)", f"fg=0x{col[0]:04X} bg=0x{col[1]:04X}")
+    check(len(patches.REPO_URL) * 6 <= 240 - 2 * 12, "URL fits the 240 px screen at 6 px per character with 12 px margins")
+    seen, col, pc = about_line(stock)
+    check(len(seen) == 1 and seen[0][0] == (40, 184, 160, 16) and seen[0][2] == "http://www.fnirsi.cn",
+          "stock: draws the vendor site at (40, 184), 8x16", f"{seen}")
 except ImportError:
     check(False, "unicorn not available")
+except Exception as ex:                                   # noqa: BLE001
+    check(False, f"emulation aborted: {type(ex).__name__}: {ex}")
 
 print("\n" + ("ALL CHECKS PASSED" if not fails else f"{fails} CHECK(S) FAILED"))
 sys.exit(1 if fails else 0)

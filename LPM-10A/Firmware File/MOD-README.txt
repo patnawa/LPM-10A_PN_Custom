@@ -1,33 +1,66 @@
 ================================================================
- LPM-10A PN Custom firmware  PN 1.0   (UNOFFICIAL build)
+ LPM-10A PN Custom firmware  PN 1.1   (UNOFFICIAL build)
 ================================================================
 
-File      : LPM-10A-TX_PN1.0.bin
-Version   : PN 1.0  (Settings > About shows "Software:PN 1.0")
+File      : LPM-10A-TX_PN1.1.bin
+Version   : PN 1.1  (Settings > About shows "Software:PN 1.1")
 Built from: LPM-10A-TX_V2.0.7_260610.bin  (official FNIRSI V2.0.7)
             sha256 29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b
-Result    : sha256 6c1c8fa726857942e476f834b24cf94782db31fc6542dfa72e1f0baa7b67b1e0
+Result    : sha256 315f3214b605d812979cbafa7e9cc59c542467ac398d4baaa1d308915cc32604
 Size      : 389120 bytes (identical to stock)
-Changed   : 6430 bytes: 8132 of font data replaced in place, 588 bytes
-            of new code in the unused tail of the last flash sector
-            (payload_len in the header grows to match), the rest are
-            hooks and strings.  The image name stored inside the file
+Changed   : 6685 bytes differ from stock: 5702 of them inside the
+            8132 bytes of font tables (rewritten in place), 775 inside
+            the 864 bytes of new code in the unused tail of the last
+            flash sector (payload_len in the header grows by 864), 4
+            in the header length fields, 204 in hooks and strings.
+            The image name stored inside the file
             is left as stock because the bootloader checks it.
 
 NOT AN OFFICIAL FNIRSI RELEASE.  Verified by disassembly and CPU
-emulation (sdk/verify.py, 96 checks); NOT tested on hardware.
+emulation (sdk/verify.py, 142 checks).  PN 1.0 passed the full
+first-power-on checklist on a real unit on 2026-09-18; the Zero
+calibration and About URL added in PN 1.1 have not been flashed yet.
 Use at your own risk.  Rebuild or audit it yourself with sdk/.
 
-The RX firmware APP_LPM-10RX_V3.0.0_260416.bin is NOT modified; use
-the one from FNIRSI's package.  FNIRSI's own files (the stock TX and
-RX images) are not distributed with this mod.
+This file only updates the transmitter.  A separate receiver build,
+APP_LPM-10RX_PN1.0.bin (see RX-README.txt), exists but must not be
+flashed until its update procedure is confirmed; until then keep the
+stock receiver firmware from FNIRSI's package.  FNIRSI's own files
+(the stock TX and RX images) are not distributed with this mod.
 
 Every measurement formula in the firmware was traced and checked;
 see FORMULA-AUDIT.md for the full list with verdicts.
 
 ----------------------------------------------------------------
- CHANGES  (PN 1.0, 2026-09-17; development history mod 1..4)
+ CHANGES  (PN 1.1, 2026-09-18; PN 1.0 2026-09-17; history mod 1..4)
 ----------------------------------------------------------------
+
+[ADDED] Zero calibration for length measurement (PN 1.1).
+        The PHY's reading includes its own signal path.  On the unit
+        tested, at NVP 69 %, a 2.9 m cable read 3.1..3.7 m over two
+        sessions and a 14 m cable 14.4..15.0 m: an offset of roughly
+        +0.4..0.6 m that NVP (a factor) cannot remove.
+        The Length screen now shows "ZERO 0.0m" left of the Unit box.
+        Hold OK for about a second to swap which value UP / DOWN
+        adjust (the active one is white, the other grey; a short OK
+        press still starts a test); Zero runs 0.0..2.0 m in 0.1 m
+        steps.  Readings are redrawn at once.  Saved with the
+        other settings; Factory Reset returns to 0.0 m.
+
+          length = (raw - Zero) x NVP / 69
+
+        Calibrate: short cable (3 m) -> set Zero; long cable (15 m+)
+        -> set NVP; re-check the short one.  On the unit tested expect
+        Zero around 0.5 m and NVP around 68 %.
+
+        Below about 2 m the PHY's value is unreliable (1 m came back
+        as 2.4 m or as "Out of range"); the stock blind zone, which
+        discards raw readings of 2 m or less before the Zero is
+        subtracted, stays.
+
+[CHANGED] Version reported as PN 1.1.  The About screen shows this
+        project's address, github.com/patnawa/LPM-10A_PN_Custom, on the
+        line where the vendor site was (6x12 font so it fits).
 
 [FIXED] Auto Off switched the unit off in the middle of a cable trace.
         The idle timer kept counting while the SCAN tone or the FLASH
@@ -40,12 +73,10 @@ see FORMULA-AUDIT.md for the full list with verdicts.
         presses.  That was wrong - stock does, on every key event -
         and that redundant patch has been removed.
 
-[CHANGED] Version reported as PN 1.0 (About screen and boot log).
-
 From mod 3:
 
 
-[ADDED] NVP calibration for length measurement.
+[ADDED] NVP calibration for length measurement (PN 1.0).
         Professional testers let you set the cable's Nominal Velocity
         of Propagation; stock had no calibration at all.  On the
         Length screen press UP / DOWN (hold for auto-repeat) to set
@@ -58,6 +89,8 @@ From mod 3:
 
         To calibrate: measure a cable of known length, then press
         UP / DOWN until the display reads its true length.
+        (Superseded in PN 1.1 by the two-cable Zero + NVP procedure
+        above.)
 
 [CHANGED] Length unit is remembered.
         Stock forced centimetres every time the Length screen was
@@ -109,8 +142,8 @@ From mod 1:
   * Fault handlers are bare while(1); the independent watchdog
     (~3.3 s) is what recovers the unit after a hard fault.
   * Update container has no CRC or signature.
-  * NVP is not in the Settings menu: its five rows already fill the
-    screen, so it lives on the Length screen instead.
+  * NVP and Zero are not in the Settings menu: its five rows already
+    fill the screen, so they live on the Length screen instead.
 
 ----------------------------------------------------------------
  HOW TO FLASH
@@ -119,7 +152,7 @@ From mod 1:
   1. Power the tester off.
   2. Hold M + Power until the firmware update screen appears.
   3. Connect USB-C; a removable drive appears.
-  4. Copy LPM-10A-TX_PN1.0.bin onto that drive.
+  4. Copy LPM-10A-TX_PN1.1.bin onto that drive.
   5. Do NOT unplug during the update.
   6. Long-press Power to shut down, then power on normally.
 
@@ -128,33 +161,16 @@ From mod 1:
   bootloaders match on the filename.  The name stored inside the
   file is unchanged either way.
 
-  First things to check on a real unit (none of this has been):
+  Checked on a real unit with PN 1.0 (2026-09-18): the bootloader
+  accepted the file under its own name; every item below passed.
+  Check them again after PN 1.1:
     - Text everywhere is the new bold sans font; Chinese mode too.
     - SCAN with the tone on, or FLASH blinking, for longer than the
-      Auto Off setting: the unit must stay on.
-    - Length screen: "NVP 69%" right of the Unit box; UP / DOWN
-      change it and, after a test, the four readings follow.
-    - Leave the Length screen and come back: unit and NVP kept.
-    - Power off and on: unit and NVP kept.
+      Auto Off setting: the unit must stay on; the probe still hears it.
+    - Length screen: "ZERO 0.0m" left of the Unit box, "NVP 69%"
+      right of it; UP / DOWN change the white one, OK long press
+      swaps them, and after a test the four readings follow.
+    - Leave the Length screen and come back: unit, NVP, Zero kept.
+    - Power off and on: unit, NVP, Zero kept.
     - Measure two cables of different length back to back; the
       second reading must not repeat the first.
-    - Battery icon shows intermediate levels while discharging.
-    - Change a setting ~10 times in a row; the unit must stay
-      responsive (heap fix).
-
-----------------------------------------------------------------
- HOW TO GO BACK TO STOCK
-----------------------------------------------------------------
-
-  Same procedure, copy the original LPM-10A-TX_V2.0.7_260610.bin from
-  FNIRSI's official V2.0.7 package (https://www.fnirsi.com).
-  The bootloader is in a separate flash region that is never
-  touched, so the update screen stays reachable.  Settings written
-  by the mod (NVP, unit) sit in bytes the stock firmware ignores.
-
-----------------------------------------------------------------
- VERIFY THIS FILE
-----------------------------------------------------------------
-
-  certutil -hashfile LPM-10A-TX_PN1.0.bin SHA256
-  -> 6c1c8fa726857942e476f834b24cf94782db31fc6542dfa72e1f0baa7b67b1e0
