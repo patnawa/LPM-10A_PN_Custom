@@ -1,6 +1,15 @@
 # Roadmap: what to check next
 
-## Done: hardware validation of PN 1.0 (2026-09-18)
+## Done: hardware validation of PN 1.0 … PN 1.3 (2026-09-18)
+
+PN 1.3 (four-run averaging, Zero + NVP, the Digital / 825 Hz labels) was flashed and
+every function tested on a real unit: all good. The one open measurement problem is the
+PHY's blind zone below about 2 m (a 1 m cable still reads nothing useful); the
+experimental `blind-zone-50cm` build exists to collect raw readings for it, see
+`LPM-10A/Firmware File/experimental/README.md`. Next body of work: the Thai UI
+([THAI-UI.md](THAI-UI.md)).
+
+### Earlier: PN 1.0 first power-on
 
 PN 1.0 was flashed to a real unit and every item of the checklist below passed:
 the bootloader accepted the file under its own name, the fonts, the NVP control,

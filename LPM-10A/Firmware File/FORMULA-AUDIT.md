@@ -290,10 +290,10 @@ PC10 low = charging, PA15 low = standby (charge complete). GPIO reads. **OK**
 | `batt-gauge` | 4-step gauge | 10-step Li-ion gauge |
 | `settings-leak` | 204 bytes leaked per save | freed on both exit paths |
 
-The formulas were verified by disassembly and CPU emulation; PN 1.0 and PN 1.1
+The formulas were verified by disassembly and CPU emulation; PN 1.0 to PN 1.3
 have since run on one real unit (2026-09-18), which produced the length data in
-§1.6 and confirmed the Zero + NVP calibration. The PN 1.2 averaging awaits its
-flash. The PoE divider ratio and the
+§1.6, confirmed the Zero + NVP calibration and passed every function with the
+four-run averaging in place. The PoE divider ratio and the
 class comparators are hardware facts that still await a reference PSE. The
 Zero and NVP settings exist precisely so that the length constant can be
 corrected on the bench.

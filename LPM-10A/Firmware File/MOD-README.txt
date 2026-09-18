@@ -19,10 +19,9 @@ Changed   : 6811 bytes differ from stock: 5702 of them inside the
             is left as stock because the bootloader checks it.
 
 NOT AN OFFICIAL FNIRSI RELEASE.  Verified by disassembly and CPU
-emulation (sdk/verify.py, 155 checks).  PN 1.0 passed the full
-first-power-on checklist on a real unit on 2026-09-18 and PN 1.1's
-Zero + NVP calibration was confirmed there; the run averaging (PN 1.2)
-and the tone-mode labels (PN 1.3) have not been flashed yet.
+emulation (sdk/verify.py, 155 checks).  PN 1.3 was flashed to a real
+unit on 2026-09-18 and every function was tested there (PN 1.0's
+checklist and PN 1.1's Zero + NVP calibration passed the same day).
 Use at your own risk.  Rebuild or audit it yourself with sdk/.
 
 This file only updates the transmitter.  A separate receiver build,

@@ -20,10 +20,17 @@ sdk/
   cjk_chars.py    the 171 Chinese characters, in glyph-table order
   fonts_out/      the replacement font tables the build uses (+ previews)
   test_thumb.py   assembler round-trip tests
+  thai/           Thai UI tooling (PN 2.0, in preparation): thaifont.py renders
+                  Sarabun (OFL) into 16x16 cells, engine.py runs the firmware's
+                  draw code under Unicorn with the CJK drawers swappable for Thai,
+                  mockup.py holds the wording table and one scenario per screen,
+                  sheets.py builds the contact sheets in docs/img/thai/
 ```
 
 Requires `capstone` and `unicorn` (`pip install capstone unicorn`).
-Rebuilding the fonts (not needed for a build) also needs `pillow` and `pymupdf`.
+Rebuilding the fonts (not needed for a build) also needs `pillow` and `pymupdf`;
+the Thai mock-ups (`python -m thai.mockup`, `python -m thai.sheets`) need `pillow`
+and `uharfbuzz`.
 
 ---
 

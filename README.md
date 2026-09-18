@@ -4,13 +4,13 @@
 
 **PN 1.3: an unofficial, industrial-grade firmware for the FNIRSI LPM-10A network cable tester,
 built by patching the official V2.0.7 image, proving every change by CPU emulation, and
-validated on a real unit (PN 1.0 and the PN 1.1 calibration; the PN 1.2 averaging and the PN 1.3 labels await their flash).**
+validated on a real unit: PN 1.3 passed every function on hardware on 2026-09-18.**
 
 ![version](https://img.shields.io/badge/version-PN%201.3-orange)
 ![base](https://img.shields.io/badge/base-FNIRSI%20V2.0.7-lightgrey)
 ![patches](https://img.shields.io/badge/patches-14-blue)
 ![verified](https://img.shields.io/badge/verify.py-155%20checks%20pass-brightgreen)
-![hardware](https://img.shields.io/badge/hardware%20test-PN%201.0%20passed-brightgreen)
+![hardware](https://img.shields.io/badge/hardware%20test-PN%201.3%20passed-brightgreen)
 ![license](https://img.shields.io/badge/tooling%20license-MIT-lightgrey)
 [![release](https://img.shields.io/github/v/release/patnawa/LPM-10A_PN_Custom?label=download)](https://github.com/patnawa/LPM-10A_PN_Custom/releases/latest)
 
@@ -20,11 +20,12 @@ validated on a real unit (PN 1.0 and the PN 1.1 calibration; the PN 1.2 averagin
 
 ---
 
-> **Status: PN 1.0 passed every item of the first-power-on checklist on a real unit
-> (2026-09-18), and PN 1.1's Zero + NVP calibration was confirmed there the same day
-> (Zero 0.5 m, NVP 68 % read a 2.9 m cable right).** PN 1.2 adds run-averaging against
-> the PHY's reading-to-reading scatter and PN 1.3 names the tone modes by what they send;
-> both are verified by emulation (155 checks) and await their flash.
+> **Status: PN 1.3 runs on a real unit and every function was tested there on
+> 2026-09-18** (after PN 1.0's first-power-on checklist and PN 1.1's calibration the same
+> day: Zero 0.5 m, NVP 68 % read a 2.9 m cable right). What still fails is the PHY's
+> own limit, not the firmware: cables of about 2 m and under cannot be measured, see
+> [Known limitations](#known-limitations). Next is a **Thai user interface** (PN 2.0);
+> the mock-ups of every screen are in [docs/THAI-UI.md](docs/THAI-UI.md).
 > Flash at your own risk, and read [How to go back to stock](#going-back-to-stock) first.
 
 ## Why
@@ -332,6 +333,16 @@ does not document how the receiver enters its update mode, and the way back to s
 be confirmed first. Details in
 [`LPM-10A/Firmware File/RX-README.txt`](LPM-10A/Firmware%20File/RX-README.txt).
 
+## Thai user interface (PN 2.0, in preparation)
+
+The second UI language will become Thai instead of Chinese: Sarabun (OFL) rendered into
+16 × 16 one-bit cells, one per grapheme cluster, drawn proportionally by a replacement
+text drawer, with English kept exactly as it is. The wording for every string and the
+mock-ups of all 26 screens, rendered from the firmware's own drawing code, are in
+[docs/THAI-UI.md](docs/THAI-UI.md); the tooling is `sdk/thai/`.
+
+<img src="docs/img/thai/thai_overview.png" alt="Every screen with the proposed Thai interface" width="1000">
+
 ## What next
 
 The prioritised list of what to test on hardware and what to build after that is in
@@ -341,7 +352,12 @@ The prioritised list of what to test on hardware and what to build after that is
 
 Things that need vendor source or hardware, so they are documented rather than patched:
 
-- Cables under 2 m read "Out of range" (PHY blind zone).
+- Cables of about 2 m and under read "Out of range" (the PHY's TDR blind zone: the echo
+  returns before the pulse has finished, so the YT8531 reports nothing usable; confirmed on
+  hardware with a 1 m cable on PN 1.3). This is why the Length screen cannot tell which pair
+  of a short patch cable is broken; the Cable Test (wiremap) screen can. An experimental
+  build that lowers stock's 2.0 m cut-off to 0.5 m exists to collect raw readings, see
+  [`experimental/README.md`](LPM-10A/Firmware%20File/experimental/README.md).
 - FreeRTOS queue calls are made from interrupt handlers in stock; the likely cause of
   rare lockups. The independent watchdog (≈3.3 s) is what recovers from a hard fault.
 - The PoE "unstable supply" check compares byte data against 40 000 and can never trigger.
@@ -355,7 +371,8 @@ Things that need vendor source or hardware, so they are documented rather than p
 - FNIRSI's firmware files are not redistributed here; the build takes the official V2.0.7
   image as its input and the flashing instructions send you to FNIRSI for it.
 - Fonts: Ubuntu Sans Mono under the Ubuntu Font Licence 1.0; Droid Sans Fallback under the
-  Apache License 2.0. Both permit redistribution of the rasterized glyphs.
+  Apache License 2.0; Sarabun (the Thai mock-ups, `sdk/thai/`) under the SIL Open Font
+  License 1.1. All three permit redistribution of the rasterized glyphs.
 - Disassembly with [Capstone](https://www.capstone-engine.org/), emulation with
   [Unicorn](https://www.unicorn-engine.org/).
 

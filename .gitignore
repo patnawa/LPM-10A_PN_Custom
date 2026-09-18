@@ -12,3 +12,6 @@ LPM-10A/Firmware File/sdk/assets_out/
 LPM-10A/Firmware File/sdk/fonts_out/stock_*.png
 # extracted by `python fonts.py build`; 3.5 MB, not needed for a build
 */sdk/fonts_out/DroidSansFallback.ttf
+
+# Thai mock-up renders (python -m thai.mockup); the contact sheets live in docs/img/thai
+LPM-10A/Firmware File/sdk/thai/out*/
