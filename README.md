@@ -12,6 +12,7 @@ validated on a real unit (PN 1.0 and the PN 1.1 calibration; the PN 1.2 averagin
 ![verified](https://img.shields.io/badge/verify.py-153%20checks%20pass-brightgreen)
 ![hardware](https://img.shields.io/badge/hardware%20test-PN%201.0%20passed-brightgreen)
 ![license](https://img.shields.io/badge/tooling%20license-MIT-lightgrey)
+[![release](https://img.shields.io/github/v/release/patnawa/LPM-10A_PN_Custom?label=download)](https://github.com/patnawa/LPM-10A_PN_Custom/releases/latest)
 
 <img src="docs/img/length_screen.png" alt="Length screen: stock vs PN Custom, NVP and Zero calibration, English and Chinese" width="1000">
 
@@ -77,6 +78,10 @@ in the same cells so no screen layout changes.
 </details>
 
 ## Install
+
+The firmware file is attached to every release on the
+[Releases page](https://github.com/patnawa/LPM-10A_PN_Custom/releases/latest), together with
+`MOD-README.txt`; the same file lives in the repository under `LPM-10A/Firmware File/`.
 
 1. Verify the download:
    ```
