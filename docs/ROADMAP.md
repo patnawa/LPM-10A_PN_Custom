@@ -6,8 +6,9 @@ PN 1.3 (four-run averaging, Zero + NVP, the Digital / 825 Hz labels) was flashed
 every function tested on a real unit: all good. The one open measurement problem is the
 PHY's blind zone below about 2 m (a 1 m cable still reads nothing useful); the
 experimental `blind-zone-50cm` build exists to collect raw readings for it, see
-`LPM-10A/Firmware File/experimental/README.md`. Next body of work: the Thai UI
-([THAI-UI.md](THAI-UI.md)).
+`LPM-10A/Firmware File/experimental/README.md`. The Thai UI ([THAI-UI.md](THAI-UI.md))
+shipped as PN 2.0 and passed on the unit the same day; PN 2.1's two Cable Test fixes
+(Back to the mode selector, the error line above the button) await their flash.
 
 ### Earlier: PN 1.0 first power-on
 

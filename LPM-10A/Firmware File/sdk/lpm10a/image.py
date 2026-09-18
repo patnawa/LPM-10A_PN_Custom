@@ -85,6 +85,7 @@ class Image:
         self.syms = S.asm_symbols()
         self._ram_ptr = S.RAM_SAFE_ARENA
         self.ram_allocs = []            # (addr, size) in allocation order
+        self.regions = {}               # name -> [start, end, ptr]: flash a patch has freed and owns
 
     # ---------------------------------------------------------- addressing
     def f(self, addr):
@@ -163,6 +164,60 @@ class Image:
         self._ram_ptr += size
         self.ram_allocs.append((addr, size))
         return addr
+
+    # ---------------------------------------------------------- owned regions
+    def add_region(self, name, start, end):
+        """Declare a flash range a patch has emptied (e.g. unused glyph slots) as
+        allocatable.  The caller is responsible for the range really being free."""
+        if start % 4 or end <= start:
+            raise PatchError(f"bad region {name}: {start:#x}..{end:#x}")
+        self.regions[name] = [start, end, start]
+
+    def alloc_in(self, name, size, align=4):
+        r = self.regions[name]
+        ptr = (r[2] + align - 1) & ~(align - 1)
+        if ptr + size > r[1]:
+            raise PatchError(f"region {name} exhausted: need {size} bytes, {r[1] - ptr} left")
+        r[2] = ptr + size
+        return ptr
+
+    def region_left(self, name):
+        r = self.regions[name]
+        return r[1] - r[2]
+
+    def write_in(self, name, data, why="", align=4):
+        """Allocate in an owned region and write `data` there; logged old -> new."""
+        addr = self.alloc_in(name, len(data), align)
+        o = self.f(addr)
+        old = bytes(self.data[o:o + len(data)])
+        self.data[o:o + len(data)] = data
+        self.log.append((addr, old, bytes(data), why or "data", "code"))
+        return addr
+
+    def emit_code_in(self, name, source, extra_syms=None, why=""):
+        """Assemble `source` into an owned region and return its address."""
+        syms = dict(self.syms)
+        syms.update(extra_syms or {})
+        r = self.regions[name]
+        probe = assemble((r[2] + 3) & ~3, source, syms)
+        addr = self.alloc_in(name, len(probe))
+        code = assemble(addr, source, syms)
+        if len(code) != len(probe):
+            raise PatchError("assembled size changed between passes")
+        o = self.f(addr)
+        old = bytes(self.data[o:o + len(code)])
+        self.data[o:o + len(code)] = code
+        self.log.append((addr, old, bytes(code), why or "new code", "code"))
+        return addr
+
+    def emit_code_anywhere(self, source, extra_syms=None, why=""):
+        """Assemble `source` into whichever owned region has room, else the cave."""
+        for name in self.regions:
+            try:
+                return self.emit_code_in(name, source, extra_syms, why)
+            except PatchError:
+                continue
+        return self.emit_code(source, extra_syms, why)
 
     def emit_code(self, source, extra_syms=None, why=""):
         """Assemble `source` into the cave and return its address."""

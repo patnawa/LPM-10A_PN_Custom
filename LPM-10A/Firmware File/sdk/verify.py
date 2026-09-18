@@ -33,6 +33,9 @@ import sys
 import struct
 import hashlib
 
+if hasattr(sys.stdout, "reconfigure"):                    # Thai and Chinese in the check labels
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 FW = os.path.dirname(HERE)
@@ -226,14 +229,14 @@ try:
     check(got == 100, "Auto Off = OFF: routine returns before the hook, counter untouched", f"{got}")
 
     print("\n5. factory defaults under emulation")
-    for label, buf, want in (("stock", stock, 1), ("mod", mod, 0)):
+    for label, buf in (("stock", stock), ("mod", mod)):
         uc = run(buf, 0x0801958C)
         s = uc.mem_read(0x20000C78, 0xC9)
         magic = struct.unpack_from("<H", s, 0xA0)[0]
         lang, flag = s[0xA5], s[0xA8]
-        ok = magic == 0x9718 and lang == 2 and flag == want
+        ok = magic == 0x9718 and lang == 2 and flag == 1
         check(ok, f"{label:5}: magic=0x{magic:04X} language={lang} first_boot={flag}",
-              "(English, no picker)" if want == 0 else "(English, picker shown)")
+              "(language 2 = the second language, picker shown on first boot)")
 
     # ------------------------------------------------------------------
     # A more general runner for the measurement / battery checks: lets the
@@ -258,11 +261,15 @@ try:
             uc.mem_write(S.APP_BASE, buf[o:o + ln])
             self.stops = set()
             self.traps = set()
+            self.zero = set()                # trapped like traps, but return r0 = 0
             self.calls = []
             uc.hook_add(UC_HOOK_CODE, self._hook)
 
         def _hook(self, uc, addr, size, ud):
-            if addr in self.stops:
+            if addr in self.zero:
+                uc.reg_write(UC_ARM_REG_R0, 0)
+                uc.reg_write(UC_ARM_REG_PC, uc.reg_read(UC_ARM_REG_LR))
+            elif addr in self.stops:
                 self.calls.append((addr, uc.reg_read(UC_ARM_REG_R0)))
                 uc.emu_stop()
             elif addr in self.traps:
@@ -822,13 +829,13 @@ try:
     got_m, em = defaults(mod)
     got_s, es = defaults(stock)
     diff = [i for i in range(0xC8) if got_m[i] != got_s[i]]
-    check(diff == [0xA8, 0xC5] and got_m[0xC5] == 0 and got_s[0xC5] == 0xA5 and (got_m[0xA8], got_s[0xA8]) == (0, 1),
-          "defaults writer: identical to stock except first-boot flag 0 (boot-english) and byte 0xC5 = 0",
+    check(diff == [0xC5] and got_m[0xC5] == 0 and got_s[0xC5] == 0xA5,
+          "defaults writer: identical to stock except byte 0xC5 (Zero) = 0",
           f"differs at {[hex(i) for i in diff]}")
     check([c[0] for c in em.calls] == [NETCFG_A, NETCFG_B] and em.uc.reg_read(UC_ARM_REG_PC) == (MAGIC & ~1),
           "defaults writer: still calls the two stock finishers and returns", f"{[hex(c[0]) for c in em.calls]}")
-    check(got_m[0xA6] == 0 and got_m[0xA7] == 0 and got_m[0xA8] == 0 and got_m[0xA2] == 2 and got_m[0xA5] == 2,
-          "defaults: NVP 0 (=69 %), unit 0 (m), first-boot 0, auto-off 10 min, English")
+    check(got_m[0xA6] == 0 and got_m[0xA7] == 0 and got_m[0xA8] == 1 and got_m[0xA2] == 2 and got_m[0xA5] == 2,
+          "defaults: NVP 0 (=69 %), unit 0 (m), first-boot picker, auto-off 10 min, language 2 (Thai) preselected")
 
     print("\n17. fonts: the firmware's own glyph drawers over the new tables")
     import fonts
@@ -852,8 +859,25 @@ try:
         return px
     def as_rows(px, w, h):
         return [[px.get((x, y), 0) for x in range(w)] for y in range(h)]
+    THAI = any(_p.pid == "thai-ui" and _p.default for _p in patches.REGISTRY)
     for name, (addr, n, w, h, per) in fonts.TABLES.items():
         blob_mod = mod[addr - S.APP_BASE + 0x1000: addr - S.APP_BASE + 0x1000 + n * per]
+        if name == "cjk16" and THAI:
+            from thai.cells import Table
+            ttab = Table.shipped(os.path.join(HERE, "fonts_out"))
+            n_used = len(ttab.order)
+            blob_new = ttab.blob()
+            check(blob_mod[:n_used * 32] == blob_new[:n_used * 32],
+                  f"thai16: the first {n_used} cells in the image are fonts_out/thai16.bin (Sarabun {ttab.meta['size']} px)")
+            intended = fonts.unpack_table(name, blob_new)
+            bad = []
+            for i in range(n_used):
+                px = draw_glyph(mod, 0x08017550, 0, 0, i, 1)
+                if as_rows(px, w, h) != intended[i] or any(x >= w or y >= h for x, y in px):
+                    bad.append(i)
+            check(not bad, f"thai16: all {n_used} cells render exactly as designed through the stock glyph drawer",
+                  "" if not bad else f"mismatch at indices {bad[:6]}")
+            continue
         blob_new = open(os.path.join(HERE, "fonts_out", f"{name}.bin"), "rb").read()
         check(blob_mod == blob_new, f"{name}: table in the image is fonts_out/{name}.bin ({n} glyphs, {len(blob_new)} bytes)")
         intended = fonts.unpack_table(name, blob_new)
@@ -941,6 +965,153 @@ except ImportError:
     check(False, "unicorn not available")
 except Exception as ex:                                   # noqa: BLE001
     check(False, f"emulation aborted: {type(ex).__name__}: {ex}")
+
+
+# ---------------------------------------------------------------------------
+# 20. Cable Test: Back returns to the mode selector (cable-back)
+# ---------------------------------------------------------------------------
+if any(_p.pid == "cable-back" and _p.default for _p in patches.REGISTRY):
+    print("\n20. Cable Test: Back (action 7) per state, mod and stock")
+    try:
+        KEY_DISPATCH, SET_STATE, CABLE_ENTER = 0x0800D2B4, 0x0800F77C, 0x0800C300
+        OTHER = {0x0801456C: "scan_stop", 0x0800DB8C: "LENG_flash", 0x08011008: "settings_back"}
+        STUB0 = {0x080116BC, 0x0800E40C}                     # key_activity_notify, battery_shutdown_active -> 0
+
+        def back(buf, state, layout):
+            e = Emu(buf)
+            e.w(0x2000013C, bytes([state]))
+            e.w(0x20000010, bytes([layout]))
+            e.traps.update({SET_STATE, CABLE_ENTER, *OTHER})
+            e.zero.update(STUB0)
+            e.run(KEY_DISPATCH, {"r0": 7}, count=20000)
+            return [(OTHER.get(c[0], {SET_STATE: f"set_state({c[1][0]})", CABLE_ENTER: "cable_enter"}.get(c[0])))
+                    for c in e.calls]
+        got = back(mod, 4, 0x10)
+        check(got == ["cable_enter"], "mod: CABLE_TEST with the layout shown -> re-enter (selector), not Home", f"{got}")
+        got = back(mod, 4, 0x00)
+        check(got == ["set_state(2)"], "mod: CABLE_TEST on the selector -> Home", f"{got}")
+        got = back(stock, 4, 0x10)
+        check(got == ["set_state(2)"], "stock: CABLE_TEST with the layout shown -> Home (the reported behaviour)", f"{got}")
+        for st, want in ((5, ["scan_stop"]), (6, ["LENG_flash"]), (7, ["set_state(2)"]), (8, ["set_state(2)"]),
+                         (9, ["LENG_flash"]), (10, ["set_state(2)"]), (11, ["settings_back"])):
+            gm, gs = back(mod, st, 0x10), back(stock, st, 0x10)
+            check(gm == want and gs == want, f"state {st}: Back does what stock does ({want[0]})", f"mod {gm} stock {gs}")
+    except Exception as ex:                                   # noqa: BLE001
+        check(False, f"cable-back section aborted: {type(ex).__name__}: {ex}")
+
+# ---------------------------------------------------------------------------
+# 19. Thai UI (thai-ui): structure, then every screen against the mock-up model
+# ---------------------------------------------------------------------------
+if any(_p.pid == "thai-ui" and _p.default for _p in patches.REGISTRY):
+    print("\n19. Thai UI: cell table, stubs, drawers, hook (mod)")
+    try:
+        import tempfile
+        from thai.cells import Table, REDIRECT
+        from thai import sites as TS, drawers as TD, wording as TW
+        from lpm10a.thumb import assemble
+        T = _probe.thai                                   # what the patch recorded while building
+        ttab = T["table"]
+        n_used = len(ttab.order)
+        region_end = TS.CJK_TABLE + 32 * TS.CJK_SLOTS
+        used = _probe.regions["thai"][2]
+        check(TS.CJK_TABLE + 32 * n_used <= T["wtab"] < used <= region_end,
+              f"everything the patch adds sits in the freed glyph slots ({used - TS.CJK_TABLE - 32 * n_used} bytes used, "
+              f"{region_end - used} left of {32 * (TS.CJK_SLOTS - n_used)})")
+
+        def rd(addr, n):
+            return mod[addr - S.APP_BASE + 0x1000: addr - S.APP_BASE + 0x1000 + n]
+
+        # 19a. width table = the shipped widths
+        check(rd(T["wtab"], n_used) == bytes(ttab.widths), f"width table: {n_used} advances as shipped (3..16 px)")
+
+        # 19b. every Chinese slot is a stub that resolves, through RELOC, to the wording table's Thai text
+        def thai_of(zh):
+            v = TW.TH[zh]
+            return v["text"] if isinstance(v, dict) else v
+        bad = []
+        for addr, kind, zh, slot, copy in TS.CJK_STRINGS:
+            raw = rd(addr, slot)
+            if kind == "cjk":
+                ok = raw[0] < 0xAB and raw[1] == REDIRECT
+                idx = raw[2]
+            else:
+                units = struct.unpack("<%dH" % (slot // 2), raw[:slot // 2 * 2])
+                ok = 0x100 <= units[0] < 0x1AB and units[1] == 0x100 | REDIRECT
+                idx = units[2]
+            ptr = struct.unpack("<I", rd(T["reloc"] + 4 * idx, 4))[0]
+            got = rd(ptr, 64)
+            enc = ttab.encode_cjk(thai_of(zh))
+            if not ok or got[:len(enc)] != enc:
+                bad.append((hex(addr), zh))
+        check(not bad, f"all {len(TS.CJK_STRINGS)} Chinese slots are redirect stubs and resolve to the Thai wording",
+              "" if not bad else f"{bad[:4]}")
+        # nothing is left that decodes as Chinese: every stub's first byte is cell 0 (space)
+        # 19c. YES / NO word cells
+        for site, old_hex, zh in TS.GLYPH_SITES:
+            cell = ttab.index[thai_of(zh)]
+            check(rd(site, 2) == bytes([cell, 0x22]) and ttab.widths[cell] <= 16,
+                  f"{zh} -> single word cell #{cell} {thai_of(zh)!r}, {ttab.widths[cell] - 1} px wide")
+        # 19d. the drawers and the hook are exactly the assembled sources
+        syms = dict(GLYPH=TS.GLYPH | 1, ASCII_GLYPH=TS.ASCII_GLYPH | 1, WTAB=T["wtab"], RELOC=T["reloc"],
+                    THAI_CJK_TEXT=T["cjk"] | 1, LANG_IS=TS.LANG_IS | 1, DRAW_SHAPE=TS.DRAW_SHAPE | 1,
+                    GUI_BLIT_CONT=(TS.GUI_BLIT + 4) | 1, HOOKTAB=T["hooktab"], BG_COLOUR=TS.BG_COLOUR)
+        for label, addr, src in (("thai_cjk_text", T["cjk"], TD.CJK_TEXT), ("thai_mixed_text", T["mixed"], TD.MIXED_TEXT),
+                                 ("blit_hook", T["hook"], TD.BLIT_HOOK)):
+            code = assemble(addr, src, syms)
+            check(rd(addr, len(code)) == code, f"{label} at 0x{addr:08X} is the assembled thai/drawers.py source ({len(code)} bytes)")
+        for label, site, target in (("cjk_text", TS.CJK_TEXT, T["cjk"]), ("mixed_text", TS.MIXED_TEXT, T["mixed"]),
+                                    ("gui_blit", TS.GUI_BLIT, T["hook"])):
+            check(rd(site, 4) == assemble(site, f"b.w 0x{target:08X}"), f"{label} 0x{site:08X} jumps to the Thai routine")
+        # 19d2. the gui_blit hook table: every entry as wording.py says
+        entries = []
+        for en, spec in TW.ASCII_TH.items():
+            flags = {"centre": TD.F_CENTRE, "left": 0, "x": TD.F_X}[spec["layout"]] | (TD.F_CLEAR if spec.get("clear") else 0)
+            entries.append((en, ttab.encode_cjk(spec["text"]), flags, spec.get("x", 0)))
+        for d in TW.DOTS:
+            entries.append((d, None, TD.F_X | TD.F_ASCII | TD.F_AT68, TW.DOTS_X))
+        bad = []
+        for i, (en, enc, flags, x) in enumerate(entries):
+            a_ptr, t_ptr, fl, xx = struct.unpack("<IIHH", rd(T["hooktab"] + 12 * i, 12))
+            key = rd(a_ptr, len(en) + 1)
+            got = rd(t_ptr, len(enc)) if enc is not None else None
+            if key != en.encode() + b"\0" or fl != flags or xx != x or (enc is not None and got != enc) or (enc is None and t_ptr != 0):
+                bad.append(en)
+        end = struct.unpack("<I", rd(T["hooktab"] + 12 * len(entries), 4))[0]
+        check(not bad and end == 0, f"HOOKTAB: {len(entries)} entries (4 messages + 4 dot frames) match wording.py, 0-terminated",
+              "" if not bad else f"{bad}")
+        # 19e. drawers versus the model, by direct emulation (thai/test_drawers.py logic)
+        import io, contextlib
+        from thai import test_drawers
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            n_fail = test_drawers.main()
+        check(n_fail == 0, "drawer unit test: inline, redirect and stock-plain cases match the model",
+              "" if n_fail == 0 else buf.getvalue()[-300:])
+        # 19f. every screen: the built image drawing Thai by itself == the model; English == the reference build
+        from thai import compare as TC
+        ref = Image(STOCK)
+        for _p in patches.REGISTRY:
+            if _p.default and _p.pid not in ("thai-ui", "cable-back"):     # cable-back lives in the Thai region
+                _p(ref)
+        with tempfile.TemporaryDirectory() as td:
+            ref_path = os.path.join(td, "ref.bin")
+            mod_path = os.path.join(td, "mod.bin")
+            ref.save(ref_path)
+            open(mod_path, "wb").write(mod)
+            bad = TC.compare(mod_path, ref_path)
+        n_scr = len(TC.ALL_SCREENS)
+        check(not [b for b in bad if b[1] == "th"],
+              f"Thai: all {n_scr} screens and states drawn by the firmware are pixel-identical to the mock-up model",
+              "" if not bad else f"{[b for b in bad if b[1] == 'th'][:3]}")
+        check(not [b for b in bad if b[1] == "en"],
+              f"English: all {n_scr} screens and states are pixel-identical to the same build without thai-ui",
+              "" if not bad else f"{[b for b in bad if b[1] == 'en'][:3]}")
+        drawn = TC.thai_texts_drawn(mod_path)
+        want = {v["text"] if isinstance(v, dict) else v for v in list(TW.TH.values()) + list(TW.ASCII_TH.values())}
+        check(want <= drawn, f"every Thai string of the wording table ({len(want)}) is drawn by at least one state",
+              "" if want <= drawn else f"never drawn: {sorted(want - drawn)}")
+    except Exception as ex:                                   # noqa: BLE001
+        check(False, f"Thai section aborted: {type(ex).__name__}: {ex}")
 
 print("\n" + ("ALL CHECKS PASSED" if not fails else f"{fails} CHECK(S) FAILED"))
 sys.exit(1 if fails else 0)

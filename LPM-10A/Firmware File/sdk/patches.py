@@ -98,21 +98,31 @@ def p_autooff_hold(img):
 # Group: English / presentation
 # =====================================================================
 
-@patch("boot-english", "Boot straight to English (no Chinese/English picker)",
-       risk="low", group="english")
+@patch("boot-english", "Factory defaults: English, no first-boot language picker",
+       risk="low", default=False, group="english")
 def p_boot_english(img):
     """
-    The factory defaults already set language=2 (English) at settings+0xA5, but
-    they also set first_boot_flag=1 at settings+0xA8, which makes the unit open
-    the Chinese/English selection screen before the home screen.  Defaulting the
-    flag to 0 keeps English and goes straight to the home screen.
+    Stock's factory defaults (0x0801958C) write language = 2 and
+    first_boot_flag = 1, so a fresh unit shows the language picker with the
+    second language (Chinese in stock, Thai in PN 2.0) preselected.  This
+    option makes a fresh unit, and every Factory Reset, come up in English
+    with no picker: the 36-byte block that writes bytes 0xA2..0xA8 is
+    reordered so that 0xA5 = 1 (English) and 0xA8 = 0 (picker done); every
+    other default (0xA2 = 2, 0xA3 = 0xA4 = 5, 0xA6 = 0xA7 = 0) is unchanged,
+    and r0 / r1 hold the same values at 0x080195BC as in stock.
 
-    Affects a fresh settings page and Factory Reset; a unit whose language was
-    already chosen is unaffected either way.
+    PN 1.0 to 1.3 shipped an earlier version of this patch that only cleared
+    the flag, which left a factory-reset unit in Chinese with no picker (the
+    language byte was misread as 2 = English).  Units whose language was
+    already chosen were never affected.  Not part of the PN 2.0 default
+    build: the Thai build keeps the picker (English / ไทย).
     """
-    # 0x080195B6:  movs r0, #1   ->   movs r0, #0
-    img.poke(0x080195B6, "0120", bytes.fromhex("0020"),
-             "factory default first_boot_flag = 0 (skip language picker)")
+    site = 0x08019598
+    stock_block = ("0220 81f8a500 81f8a200 0520 81f8a400 81f8a300 "
+                   "0020 81f8a600 81f8a700 0120 81f8a800")
+    new_block = bytes.fromhex("0220 81f8a200 0520 81f8a400 81f8a300 "
+                              "0020 81f8a600 81f8a700 81f8a800 0120 81f8a500")
+    img.poke(site, stock_block, new_block, "factory defaults: language 1 (English), first_boot_flag 0")
 
 
 @patch("english-strings", "Correct the machine-translated English UI text",
@@ -951,7 +961,7 @@ STOCK_FONT_SHA = {
 # Group: identity
 # =====================================================================
 
-VERSION = "PN 1.3"          # shown as "Software:PN 1.3" in About; max 7 characters
+VERSION = "PN 2.1"          # shown as "Software:PN 2.1" in About; max 7 characters
 
 
 @patch("version-string", f"Report the firmware version as {VERSION}",
@@ -1038,18 +1048,258 @@ def p_scan_labels(img):
     img.poke(0x080141EC, "5420", bytes.fromhex("5c20"), "SCAN mode 1 label x 84 -> 92")
 
 
-@patch("english-only", "Remove Chinese from the language menu",
-       risk="untested", default=False, group="english")
-def p_english_only(img):
-    """
-    Blanks the "Chinese" entry in the Settings > Language list so the device
-    presents as English-only.
+# =====================================================================
+# Group: thai
+# =====================================================================
 
-    Left out of the default build: the language list is drawn from a small
-    table and the selection logic still accepts index 1, so this needs a real
-    device to confirm the list renders and scrolls correctly with one entry.
+@patch("thai-ui", "Thai user interface: the second language becomes Thai (Sarabun cells, proportional drawers)",
+       risk="low", group="thai")
+def p_thai(img):
     """
-    img.set_string(0x08010AC7, " ")
+    Language 2 of the tester becomes Thai.  English (language 1) is untouched:
+    every English string, position and code path is exactly PN 1.3.
+
+    What the stock image has (verified inventory in sdk/thai/sites.py):
+      * 171 Chinese glyphs, 16x16 one-bit cells at 0x08066368, drawn by
+        0x08017550(x, y, idx, transparent);
+      * two string drawers with fixed 16-px advance: cjk_text 0x080176AC
+        (index bytes, count != 0 centres by 8*count) and mixed_text 0x080173EC
+        (u16 units, 0x01xx = glyph, 0x20..0x7E = ASCII, count != 0 centres by
+        4*count);
+      * 64 Chinese string slots (3..20 bytes) reached by adr, by ldm / ldr /
+        memcpy stack copies of 4..28 bytes and by strided tables (3, 5 and 14
+        bytes), all listed in sdk/thai/sites.py.
+
+    What this patch does:
+      1. Glyph table: the 171 cells become the Thai cell set built by
+         `python -m thai.cells` (fonts_out/thai16.bin: Sarabun SemiBold 13 px,
+         one cell per consonant cluster, Latin letters and digits in the same
+         face, two whole-word cells for YES / NO), 118 cells today.  The 53
+         unused slots (1696 bytes) are the flash this patch lives in.
+      2. Drawers: cjk_text and mixed_text jump to Thai versions with the same
+         signatures (thai/drawers.py).  Cells advance by their own width
+         (WTAB); `count != 0` still means "centre on x" but by the measured
+         width, so every call site keeps its anchor and no coordinate changes.
+      3. Strings: no Chinese slot is rewritten in place.  Each gets a REDIRECT
+         stub -- cjk [cell, 0xAC, idx, 0xFF] (3 bytes in the unit table),
+         mixed [0x0100, 0x01AC, idx, 0x0000] -- that the drawers resolve
+         through RELOC[idx] to the Thai text in the freed glyph area.  The
+         stubs fit the smallest stack copy any caller makes, so adr, ldm,
+         memcpy and strided-table references stay as they are.  The first
+         stub byte is a real cell so stock's strlen helpers (which stop only
+         at 0xFF) still return a non-zero count where stock centres.
+      4. YES / NO in the factory-reset dialog are single-glyph draws
+         (movs r2,#idx): the index becomes the whole-word cell.
+      5. The About page's three Chinese label lines start at x 57 instead of
+         71 so the wider Thai labels clear the version column.
+      6. gui_blit 0x080174E8 gets a hook (thai/drawers.py BLIT_HOOK) that, only
+         while the language is Thai, replaces the four messages stock has in
+         English alone ("Result error!!", "Test timeout!!", "Error!!", "OFF")
+         and moves the "..." animation from x 68 to DOTS_X, past the wider
+         Thai "Testing".  Any other string falls through to gui_blit unchanged.
+      7. The first-boot language picker is kept (boot-english is not part of
+         this build): a fresh unit or a factory reset shows English / ไทย.
+      8. The boot log's "Chinese" label becomes "Thai".
+
+    Verification (verify.py section 19): the built image is run through the
+    real GUI dispatcher for every screen and compared pixel for pixel with
+    the mock-up model (the PN 1.3 image with the Chinese drawers intercepted
+    and the Thai wording drawn by the model), in Thai and in English.
+    """
+    import hashlib
+    import struct
+    from lpm10a.thumb import assemble
+    from thai.cells import Table, REDIRECT
+    from thai.wording import TH, ASCII_TH, DOTS, DOTS_X
+    from thai import sites as S_
+    from thai import drawers as D_
+    from cjk_chars import CJK as _CJK
+    CJK = list(_CJK)
+    CJK[0x69] = "\u4e8e"                                   # 关于: index 0x69 is 于
+
+    fonts_out = os.path.join(HERE, "fonts_out")
+    table = Table.shipped(fonts_out)
+    ncell = len(table.order)
+    droid = hashlib.sha256(open(os.path.join(fonts_out, "cjk16.bin"), "rb").read()).hexdigest()
+
+    # 1. the cell table replaces font-pro's Chinese table
+    img.poke_blob(S_.CJK_TABLE, droid, table.blob(), f"thai16: {ncell} Thai cells, {S_.CJK_SLOTS - ncell} slots free")
+    img.add_region("thai", S_.CJK_TABLE + 32 * ncell, S_.CJK_TABLE + 32 * S_.CJK_SLOTS)
+
+    # 2. width table
+    wtab = img.write_in("thai", bytes(table.widths), f"cell advance widths ({ncell})")
+
+    # 3. the Thai strings (deduplicated) and the RELOC pointer table
+    def thai_of(zh):
+        v = TH[zh]
+        return v["text"] if isinstance(v, dict) else v
+
+    texts = []
+    for addr, kind, zh, slot, copy in S_.CJK_STRINGS:
+        t = thai_of(zh)
+        if t not in texts:
+            texts.append(t)
+    for v in ASCII_TH.values():
+        if v["text"] not in texts:
+            texts.append(v["text"])
+    reloc = img.alloc_in("thai", 4 * len(texts))
+    where = {}
+    for t in texts:
+        where[t] = img.write_in("thai", table.encode_cjk(t), f"Thai string {t!r}", align=1)
+    ptrs = b"".join(struct.pack("<I", where[t]) for t in texts)
+    o = img.f(reloc)
+    old = bytes(img.data[o:o + len(ptrs)])
+    img.data[o:o + len(ptrs)] = ptrs
+    img.log.append((reloc, old, ptrs, f"RELOC: {len(texts)} string pointers", "code"))
+
+    def decode_cjk(addr):
+        out = ""
+        for b in img.read(addr, 40):
+            if b >= 0xAB:
+                break
+            out += CJK[b]
+        return out
+
+    def decode_mixed(addr):
+        out = ""
+        raw = img.read(addr, 80)
+        for i in range(40):
+            v = struct.unpack_from("<H", raw, 2 * i)[0]
+            if v > 0xFF:
+                if (v & 0xFF) >= 0xAB:
+                    break
+                out += CJK[v & 0xFF]
+            elif 0x20 <= v <= 0x7E:
+                out += chr(v)
+            else:
+                break
+        return out
+
+    for addr, kind, zh, slot, copy in S_.CJK_STRINGS:
+        got = decode_cjk(addr) if kind == "cjk" else decode_mixed(addr)
+        if got != zh:
+            raise PatchError(f"@0x{addr:08X}: expected the Chinese string {zh!r}, found {got!r}")
+        idx = texts.index(thai_of(zh))
+        if kind == "cjk":
+            stub = bytes([0, REDIRECT, idx, 0xFF])[:min(slot, 4)]
+        else:
+            stub = struct.pack("<HHHH", 0x0100, 0x0100 | REDIRECT, idx, 0)
+        if len(stub) > slot or (copy is not None and len(stub) > copy):
+            raise PatchError(f"@0x{addr:08X}: stub does not fit slot {slot} / copy {copy}")
+        old = img.read(addr, slot)                   # the whole slot is declared (the rest of it is kept)
+        img.poke(addr, old.hex(), stub + old[len(stub):], f"{zh} -> {thai_of(zh)} (stub -> RELOC[{idx}])")
+
+    # 4. YES / NO whole-word cells
+    for site, old_hex, zh in S_.GLYPH_SITES:
+        cell = table.index[thai_of(zh)]
+        img.poke(site, old_hex, bytes([cell, 0x22]), f"glyph {zh} -> word cell {thai_of(zh)!r} (#{cell})")
+
+    # 5. About labels 14 px to the left
+    for site, old_hex in S_.ABOUT_LABEL_X:
+        img.poke(site, old_hex, bytes.fromhex("3920"), "About label x 71 -> 57 (Thai branch)")
+
+    # 6. the drawers
+    syms = dict(GLYPH=S_.GLYPH | 1, ASCII_GLYPH=S_.ASCII_GLYPH | 1, WTAB=wtab, RELOC=reloc)
+    cjk = img.emit_code_in("thai", D_.CJK_TEXT, syms, why="thai_cjk_text: proportional index-byte drawer")
+    syms["THAI_CJK_TEXT"] = cjk | 1
+    mixed = img.emit_code_in("thai", D_.MIXED_TEXT, syms, why="thai_mixed_text: proportional u16 drawer")
+    img.poke(S_.CJK_TEXT, "f0b5 0546", assemble(S_.CJK_TEXT, f"b.w 0x{cjk:08X}"), "cjk_text -> thai_cjk_text")
+    img.poke(S_.MIXED_TEXT, "f8b5 0546", assemble(S_.MIXED_TEXT, f"b.w 0x{mixed:08X}"), "mixed_text -> thai_mixed_text")
+
+    # 7. the gui_blit hook and its table
+    entries = []
+    for en, spec in ASCII_TH.items():
+        flags = {"centre": D_.F_CENTRE, "left": 0, "x": D_.F_X}[spec["layout"]]
+        if spec.get("clear"):
+            flags |= D_.F_CLEAR
+        entries.append((en, where[spec["text"]], flags, spec.get("x", 0)))
+    for d in DOTS:
+        entries.append((d, 0, D_.F_X | D_.F_ASCII | D_.F_AT68, DOTS_X))
+    asc = {}
+    for en, thai_ptr, flags, x in entries:
+        if en not in asc:
+            asc[en] = img.write_in("thai", en.encode("ascii") + b"\0", f"hook key {en!r}", align=1)
+    tab = b"".join(struct.pack("<IIHH", asc[en], thai_ptr, flags, x) for en, thai_ptr, flags, x in entries) + b"\0" * 4
+    hooktab = img.write_in("thai", tab, f"HOOKTAB: {len(entries)} entries")
+    syms.update(LANG_IS=S_.LANG_IS | 1, DRAW_SHAPE=S_.DRAW_SHAPE | 1, GUI_BLIT_CONT=(S_.GUI_BLIT + 4) | 1,
+                HOOKTAB=hooktab, BG_COLOUR=S_.BG_COLOUR)
+    hook = img.emit_code_in("thai", D_.BLIT_HOOK, syms, why="blit_hook: Thai text for English-only messages")
+    img.poke(S_.GUI_BLIT, "2de9f847", assemble(S_.GUI_BLIT, f"b.w 0x{hook:08X}"), "gui_blit -> blit_hook")
+
+    # 8. the boot log names the language
+    img.set_string(0x08010AC8, "Thai")
+    img.thai = dict(table=table, texts=texts, where=where, reloc=reloc, wtab=wtab, hooktab=hooktab,
+                    cjk=cjk, mixed=mixed, hook=hook)
+
+
+@patch("cable-back", "Cable Test: Back returns to the Switch / Far end selector instead of leaving the screen",
+       risk="low", group="ux")
+def p_cable_back(img):
+    """
+    The Cable Test screen has two steps: the Switch / Far end selector, then
+    the armed wiremap layout (and, after OK, the result).  Stock's Back key
+    (action 7) leaves the screen from either step: the per-state table of the
+    back handler (0x0800D36C, tbb at 0x0800D37E) sends CABLE_TEST straight to
+    APP_HOME_set_sysState(2).  Settings, by contrast, backs out of its About
+    sub-page first.  Reported on hardware (2026-09-18): "Back in Cable Test
+    goes to Home instead of the Switch / Far end choice".
+
+    The CABLE_TEST entry of that table (byte 0, offset 4) already lands on
+    three spare nops at 0x0800D386; the first two become `b.w cable_back`, and
+    the QC_TEST entry (byte 4), which pointed at the second nop, moves to the
+    third (offset 5 -> 6) so it still reaches the stock Home path.
+
+    cable_back: if the layout flag (bit 4 of 0x20000010) is set, re-enter the
+    screen through the stock entry function 0x0800C300 (sets sysState 4 again,
+    which redraws the frame, clears the layout and retry flags and posts the
+    selector, msg 0x0F); otherwise Home as before.  Every other state keeps
+    its stock target.
+    """
+    from lpm10a.thumb import assemble
+    code = img.emit_code_anywhere("""
+    cable_back:                 ; Back (action 7) in CABLE_TEST
+            ldr  r0, =0x20000010
+            ldrb r0, [r0]
+            lsrs r0, r0, #4         ; layout shown?
+            beq  cb_home
+            bl   0x0800C301         ; cable_test_enter: frame, flags cleared, mode selector
+            b.w  0x0800D3AA
+    cb_home:
+            movs r0, #2
+            bl   0x0800F77D         ; APP_HOME_set_sysState(HOME)
+            b.w  0x0800D3AA
+    """, why="Back in Cable Test: selector if the layout is shown, else Home")
+    img.poke(0x0800D37E, "040b0f07050e0612", bytes.fromhex("040b0f07060e0612"),
+             "back handler table: QC_TEST entry moves from the 2nd to the 3rd spare nop")
+    img.poke(0x0800D386, "00bf00bf", assemble(0x0800D386, f"b.w 0x{code:08X}"),
+             "CABLE_TEST back -> cable_back")
+
+
+@patch("cable-error-visible", "Cable Test: 'Result error!!' is drawn above the Test Retry button instead of under it",
+       risk="low", group="ux")
+def p_cable_error(img):
+    """
+    When a wire-map test finds a wire it cannot classify, both result drawers
+    (switch 0x0800CB68, far end 0x0800C4E0) paint "Result error!!" in red at
+    (64, 284) and then post GUI message 0x12, which redraws the Test Retry
+    button (70, 280, 100 x 26) over it: on stock only a red "R" and "!" peek
+    out at the button's sides.  In Thai the whole message would be hidden.
+
+    The 46 px between the wire-map panel (bottom edge y 270) and the frame
+    (y 316) hold a 16 px line and the 26 px button with room to spare:
+      * message y: `adds r0,#0xE5` -> `#0xD8` at both sites (55 + 216 = 271,
+        rows 271..286),
+      * button record 0x0801E320: y 280 -> 289 (rows 289..315),
+      * button label y: `movw r1,#0x11D` (285) -> `#0x126` (294) at the two
+        label sites of the button drawer 0x0800C424 (Thai and English).
+    Every other Cable Test element is unchanged; the Test Start button of the
+    armed screen moves down 9 px with its record.
+    """
+    for site in (0x0800CAF2, 0x0800CE4E):
+        img.poke(site, "e530", bytes.fromhex("d830"), "'Result error!!' y 284 -> 271")
+    img.poke(0x0801E322, "1801", bytes.fromhex("2101"), "Cable Test button record: y 280 -> 289")
+    for site in (0x0800C484, 0x0800C496):
+        img.poke(site, "40f21d11", bytes.fromhex("40f22611"), "Cable Test button label y 285 -> 294")
 
 
 # =====================================================================

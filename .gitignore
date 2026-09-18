@@ -15,3 +15,4 @@ LPM-10A/Firmware File/sdk/fonts_out/stock_*.png
 
 # Thai mock-up renders (python -m thai.mockup); the contact sheets live in docs/img/thai
 LPM-10A/Firmware File/sdk/thai/out*/
+LPM-10A/Firmware File/sdk/thai/cmp/

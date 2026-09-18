@@ -21,13 +21,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SDK = os.path.dirname(HERE)
 sys.path.insert(0, SDK)
 from thai.thaifont import ThaiFont, clusters      # noqa: E402
+from thai.wording import DOTS, DOTS_X            # noqa: E402
 from cjk_chars import CJK as _CJK                 # noqa: E402
 
 CJK = list(_CJK)
 CJK[0x69] = "于"                             # 关于 (About): index 0x69 is 于, not 干
 
 FW_DIR = os.path.dirname(SDK)
-DEFAULT_IMAGE = os.path.join(FW_DIR, "LPM-10A-TX_PN1.3.bin")
+DEFAULT_IMAGE = "reference"      # the PN build without thai-ui, built in memory (Chinese strings intact)
 APP = 0x0800A000
 MAGIC = 0x00100000
 HEAP0 = 0x2000E800                               # bump allocator for pvPortMalloc (below the 0x2000F000 PN arena)
@@ -67,8 +68,34 @@ STUB_RET0 = {
 }
 
 
+_ref_cache = {}
+
+
+def reference_image(without=("thai-ui", "cable-back")):
+    """The default PN build minus the given patches, as container bytes (built in memory
+    from the stock image; the mock-up model needs the Chinese strings in place, and
+    cable-back's code lives in the Thai region so it goes too: it draws nothing)."""
+    key = tuple(without)
+    if key not in _ref_cache:
+        from lpm10a.image import Image, require_stock
+        import patches
+        img = Image(require_stock(os.path.join(FW_DIR, "LPM-10A-TX_V2.0.7_260610.bin")))
+        for p in patches.REGISTRY:
+            if p.default and p.pid not in without:
+                p(img)
+        img.finalize()
+        _ref_cache[key] = bytes(img.data)
+    return _ref_cache[key]
+
+
 def load_payload(path):
-    img = open(path, "rb").read()
+    """path may be a container file, the container bytes, or "reference"."""
+    if path == "reference":
+        img = reference_image()
+    elif isinstance(path, (bytes, bytearray)):
+        img = bytes(path)
+    else:
+        img = open(path, "rb").read()
     off, ln, _ = struct.unpack_from("<III", img, 0x20)
     return img[off:off + ln]
 
@@ -146,7 +173,6 @@ class Scene:
         self.thai = thai                        # dict: decoded Chinese text -> Thai text (None = draw Chinese)
         self.ascii_thai = ascii_thai or {}      # dict: English-only string -> Thai (extra strings)
         self.font = font or ThaiFont()
-        self.afont = ascii_font(self.payload) if thai is not None else None
         uc = self.uc = Uc(UC_ARCH_ARM, UC_MODE_THUMB | UC_MODE_MCLASS)
         uc.mem_map(0x08000000, 0x80000)
         uc.mem_map(0x20000000, 0x10000)
@@ -170,6 +196,7 @@ class Scene:
         self.recording = True
         self.log = []                            # (kind, text, x, y, fg, extra)
         self.missing = []                        # Chinese strings with no Thai mapping
+        self.at = {}                             # addr -> callable(uc): scenario hooks (e.g. forced results)
         uc.hook_add(UC_HOOK_CODE, self.hook)
 
     # -- helpers -----------------------------------------------------------
@@ -241,16 +268,23 @@ class Scene:
             return False
         if isinstance(th, dict):                     # {"text", "dx", "dy"}: a deliberate layout tweak
             x += th.get("dx", 0); y += th.get("dy", 0); th = th["text"]
+        fg = self.fg()
+        if kind == "glyph":                          # a single-glyph site: the whole word is one cell
+            w = 16
+            self.font.draw_word_cell(self.put, x, y, th, fg)
+            self.log.append(("thai", th, x, y, fg, dict(src=src, w=w, centred=False)))
+            return True
         w = self.font.width(th)
         if centred:
             x = x - w // 2
-        fg = self.fg()
-        self.font.draw(self.put, x, y, th, fg, ascii_font=self.afont, bg=self.bg())
+        self.font.draw(self.put, x, y, th, fg)          # every character is a cell, Latin included
         self.log.append(("thai", th, x, y, fg, dict(src=src, w=w, centred=centred)))
         return True
 
     # -- the hook -------------------------------------------------------------
     def hook(self, uc, addr, size, ud):
+        if addr in self.at:
+            self.at[addr](uc)
         if addr in STUB_RET0:
             self.ret(0); return
         if addr == 0x0801C5B0:                      # xTaskGetTickCount
@@ -289,16 +323,30 @@ class Scene:
         if addr == GUI_BLIT:
             p = self.arg(5)
             s = self.cstr(p)
-            self.log.append(("ascii", s, self.arg(0), self.arg(1), self.fg(), dict(w=self.arg(2), size=self.arg(4))))
-            if self.thai is not None and s in self.ascii_thai:
-                x, y, w = self.arg(0), self.arg(1), self.arg(2)
-                cx = x + w // 2                    # keep the English string's centre
-                th = self.ascii_thai[s]
-                tw = self.font.width(th)
-                self.font.draw(self.put, cx - tw // 2, y, th, self.fg(), ascii_font=self.afont, bg=self.bg())
-                self.log.append(("thai", th, cx - tw // 2, y, self.fg(), dict(src=s, w=tw, centred=True)))
-                self.ret(); return
-            return
+            x, y, w, size = self.arg(0), self.arg(1), self.arg(2), self.arg(4)
+            self.log.append(("ascii", s, x, y, self.fg(), dict(w=w, size=size)))
+            if self.thai is None or size != 16:
+                return
+            if s in DOTS:                                  # the "..." animation moves right of the Thai "Testing"
+                if x == 68:
+                    self.uc.reg_write(UC_ARM_REG_R0, DOTS_X)
+                return
+            spec = self.ascii_thai.get(s)
+            if spec is None:
+                return
+            th = spec["text"]
+            if spec.get("clear"):                          # wipe the 16-px line in the background colour
+                bg = self.bg()
+                for yy in range(y, y + 16):
+                    for xx in range(12, 221):
+                        self.put(xx, yy, bg)
+            if spec["layout"] == "centre":
+                x = x + w // 2 - self.font.width(th) // 2
+            elif spec["layout"] == "x":
+                x = spec["x"]
+            self.font.draw(self.put, x, y, th, self.fg())
+            self.log.append(("thai", th, x, y, self.fg(), dict(src=s, w=self.font.width(th), layout=spec["layout"])))
+            self.ret(); return
         if addr == CJK_TEXT:
             x, y, p, n = (self.arg(i) for i in range(4))
             s = self.decode_cjk(p)

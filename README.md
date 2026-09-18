@@ -2,30 +2,34 @@
 
 # LPM-10A PN Custom Firmware
 
-**PN 1.3: an unofficial, industrial-grade firmware for the FNIRSI LPM-10A network cable tester,
+**PN 2.1: an unofficial, industrial-grade firmware for the FNIRSI LPM-10A network cable tester,
 built by patching the official V2.0.7 image, proving every change by CPU emulation, and
-validated on a real unit: PN 1.3 passed every function on hardware on 2026-09-18.**
+validated on a real unit: PN 2.0 with its complete Thai user interface passed every function
+on hardware on 2026-09-18.**
 
-![version](https://img.shields.io/badge/version-PN%201.3-orange)
+![version](https://img.shields.io/badge/version-PN%202.1-orange)
 ![base](https://img.shields.io/badge/base-FNIRSI%20V2.0.7-lightgrey)
-![patches](https://img.shields.io/badge/patches-14-blue)
-![verified](https://img.shields.io/badge/verify.py-155%20checks%20pass-brightgreen)
-![hardware](https://img.shields.io/badge/hardware%20test-PN%201.3%20passed-brightgreen)
+![patches](https://img.shields.io/badge/patches-16-blue)
+![languages](https://img.shields.io/badge/UI-English%20%2F%20%E0%B9%84%E0%B8%97%E0%B8%A2-blue)
+![verified](https://img.shields.io/badge/verify.py-181%20checks%20pass-brightgreen)
+![hardware](https://img.shields.io/badge/hardware%20test-PN%202.0%20passed-brightgreen)
 ![license](https://img.shields.io/badge/tooling%20license-MIT-lightgrey)
 [![release](https://img.shields.io/github/v/release/patnawa/LPM-10A_PN_Custom?label=download)](https://github.com/patnawa/LPM-10A_PN_Custom/releases/latest)
 
-<img src="docs/img/length_screen.png" alt="Length screen: stock vs PN Custom, NVP and Zero calibration, English and Chinese" width="1000">
+<img src="docs/img/length_screen.png" alt="Length screen: stock vs PN Custom, NVP and Zero calibration" width="1000">
 
 </div>
 
 ---
 
-> **Status: PN 1.3 runs on a real unit and every function was tested there on
-> 2026-09-18** (after PN 1.0's first-power-on checklist and PN 1.1's calibration the same
-> day: Zero 0.5 m, NVP 68 % read a 2.9 m cable right). What still fails is the PHY's
-> own limit, not the firmware: cables of about 2 m and under cannot be measured, see
-> [Known limitations](#known-limitations). Next is a **Thai user interface** (PN 2.0);
-> the mock-ups of every screen are in [docs/THAI-UI.md](docs/THAI-UI.md).
+> **Status: PN 2.0, with the Thai interface on every screen, passed every function on a
+> real unit on 2026-09-18** (as did PN 1.3 the same day, with the Zero 0.5 m / NVP 68 %
+> calibration reading a 2.9 m cable right). **PN 2.1** adds two Cable Test fixes reported
+> from that session (Back returns to the Switch / Far end choice; the red "Result error!!"
+> is no longer hidden under the Test Retry button); they are verified by emulation
+> (181 checks, 56 screen states compared pixel for pixel) and await their flash. What still
+> fails is the PHY's own limit, not the firmware: cables of about 2 m and under cannot be
+> measured, see [Known limitations](#known-limitations).
 > Flash at your own risk, and read [How to go back to stock](#going-back-to-stock) first.
 
 ## Why
@@ -49,10 +53,11 @@ it, adds code in an unused flash tail, re-assembles, and verifies the result in 
 | Battery gauge | 4 steps | 10-step Li-ion curve, red at ≤ 20 % |
 | Auto Off | keeps counting while the SCAN tone or FLASH blink is running, so a trace ends with the unit switching itself off | held (and restarted) while a tone or blink session is active; unchanged elsewhere |
 | Settings save | 204 bytes leaked per save | freed on both exit paths |
-| Fonts | thin serif 8×16 ASCII, Song-style Chinese | **Ubuntu Sans Mono** (8×16, 6×12) and **Droid Sans Fallback** (16×16), both open-licensed |
-| Language | Chinese/English picker on first boot | boots to English; both languages kept, machine-translated strings corrected |
+| Fonts | thin serif 8×16 ASCII, Song-style Chinese | **Ubuntu Sans Mono** (8×16, 6×12) for English; **Sarabun** 13 px cells for Thai; all open-licensed |
+| Language | Chinese / English, picker on first boot | **ไทย / English** on every screen (PN 2.0); picker on first boot and after a factory reset; machine-translated English corrected |
 | SCAN modes | labelled "Noiseless" and "Normal" | labelled **Digital** (the 0xB6B6 coded pattern the probe decodes) and **825 Hz** (a plain keyed tone for any analogue probe) |
-| Identity | About screen reports `Software:V2.0.7` and `http://www.fnirsi.cn` | reports `Software:PN 1.3` and this repository's URL; the bootloader-facing image name is untouched |
+| Cable Test | Back leaves the screen from every step; "Result error!!" is painted under the Test Retry button | **Back returns to the Switch / Far end choice** from the armed and result screens (PN 2.1); the error line sits above the button, which moved 9 px down |
+| Identity | About screen reports `Software:V2.0.7` and `http://www.fnirsi.cn` | reports `Software:PN 2.1` and this repository's URL; the bootloader-facing image name is untouched |
 
 <img src="docs/img/about_screen.png" alt="About screen: stock and PN Custom" width="760">
 
@@ -66,7 +71,10 @@ the long form with addresses and verdicts is
 
 The firmware has exactly three glyph tables. They were located, decoded (column-major
 bitmaps; the Chinese strings are glyph indices, not GB2312), transcribed, and regenerated
-in the same cells so no screen layout changes.
+in the same cells so no screen layout changes. In PN 2.0 the 171-glyph Chinese table
+carries the Thai cells instead (see [Thai user interface](#thai-user-interface-pn-20));
+the Droid Sans Fallback Chinese table below is what PN 1.x shipped and is still built by
+`fonts.py`.
 
 <div align="center">
 <img src="docs/img/font_ascii.png" alt="ASCII font, stock vs new" width="700">
@@ -87,12 +95,12 @@ The firmware file is attached to every release on the
 
 1. Verify the download:
    ```
-   certutil -hashfile LPM-10A-TX_PN1.3.bin SHA256
-   e2f4d3a226ad6eaffef046b537130154f1147b2044c0108c4358b1c63619ad5a
+   certutil -hashfile LPM-10A-TX_PN2.1.bin SHA256
+   13679b1edaba91f7e475acbb119491f9731fce794d68d9947772268ace1c11c6
    ```
 2. Power the tester off. Hold **M + Power** until the firmware update screen appears.
 3. Connect USB-C; a removable drive appears.
-4. Copy [`LPM-10A-TX_PN1.3.bin`](LPM-10A/Firmware%20File/LPM-10A-TX_PN1.3.bin)
+4. Copy [`LPM-10A-TX_PN2.1.bin`](LPM-10A/Firmware%20File/LPM-10A-TX_PN2.1.bin)
    onto that drive. Do not unplug during the update.
 5. Long-press Power to shut down, then power on normally.
 
@@ -104,12 +112,25 @@ V2.x.x hardware, like stock V2.0.7.
 
 ### First power-on checklist
 
-The PN 1.0 and PN 1.1 items passed on a real unit on 2026-09-18 (the bootloader accepted
-the file under its own name; Zero and NVP calibrate as designed). The averaged length test
-is new in PN 1.2 and still needs its first check:
+Every PN 1.x item and the whole Thai interface of PN 2.0 passed on a real unit on
+2026-09-18. New in PN 2.1 and still to be checked on hardware:
 
-- Settings > About reads `Software:PN 1.3` and shows `github.com/patnawa/LPM-10A_PN_Custom`.
-- Text everywhere is the new bold sans font, in Chinese mode too.
+- Cable Test: choose Switch or Far end, OK to the wiremap layout, then Back: the choice
+  comes back (not Home). Back once more: Home. The same from a result.
+- A cable with a broken wire: the red "Result error!!" / "ผลลัพธ์ผิดพลาด!!" line is
+  readable between the wiremap and the Test Retry button.
+
+The PN 2.0 items, for a second unit:
+
+- Settings > Language (ภาษา): switch between `English` and `ไทย`; every screen follows.
+- In Thai: walk through Home (both pages), Cable Test, SCAN, FLASH, Length (a result and an
+  "Out of range"), QC Test, SPEED (a result), PoE, Settings, About and Factory Reset (answer
+  ไม่). Nothing overlaps, every word is readable, tone marks and vowels sit where they
+  should ([the expected pictures](docs/THAI-UI.md)).
+- Length in Thai: "กำลังทดสอบ" with the dots to its right, then the four readings with
+  เมตร / ซม. / ฟุต; unplug the cable for "เกินช่วงการวัด".
+- Switch back to English: every screen is exactly as PN 1.3.
+- Settings > About reads `Software:PN 2.1` and shows `github.com/patnawa/LPM-10A_PN_Custom`.
 - Length screen shows `ZERO 0.0m` left of the Unit box and `NVP 69%` right of it; UP/DOWN
   change the white one, a long press of OK swaps which is white, and after a test the four
   readings follow.
@@ -128,6 +149,53 @@ V2.0.7 package ([fnirsi.com](https://www.fnirsi.com), support / downloads). FNIR
 are not distributed here. The bootloader lives in a separate flash region that is never
 touched, so the update screen stays reachable. The three settings bytes the mod uses (NVP,
 unit, Zero) are bytes the stock firmware ignores.
+
+## The science: why TDR needs NVP
+
+<div align="center">
+<img src="docs/img/tdr_nvp.png" alt="Time-domain reflectometry: pulse, echo, NVP scale and Zero offset" width="1000">
+</div>
+
+The tester measures length the way every cable tester does, by **time-domain
+reflectometry**: the PHY (the Ethernet chip, a Motorcomm YT8531) launches a short pulse
+down a pair and times the echo that comes back from the far end. An open end reflects the
+pulse with the same polarity, a short with the opposite one, a properly terminated pair
+(a switch port) reflects nothing at all, which is why the Length screen wants the far end
+unplugged. The distance follows from the round-trip time:
+
+```
+L = v · t / 2              t   round-trip time of the echo
+v = NVP · c                c   speed of light, 299 792 458 m/s
+L = NVP · c · t / 2        NVP nominal velocity of propagation, a property of the cable
+```
+
+Nothing in the cable travels at *c*. The signal moves through the insulation around the
+copper, and its dielectric slows it to a fraction of *c* called the **nominal velocity of
+propagation**: about 0.64 to 0.70 for twisted pair, printed on the reel by good cable
+makers and different for every jacket, gauge and manufacturer. Because NVP multiplies the
+whole result, **every percent of NVP error is a percent of length error**: a 14 m cable
+measured with the NVP one point too high reads 14.2 m. Professional testers therefore let
+you set NVP or calibrate it on a cable of known length; stock's firmware used one fixed
+constant inside the PHY (equivalent to 69 %) and offered no way to change it.
+
+The PHY resolves the echo time to roughly ±1.5 ns per run, which at NVP 0.68 is ±0.3 m
+(0.68 × *c* × 1.5 ns / 2). That is the run-to-run scatter measured on the bench, and the
+reason PN runs the diagnostic four times and averages.
+
+Two things in the tested unit's readings were not NVP:
+
+- a constant **+0.5 m at every length**, the delay through the PHY's own front end and the
+  connector before the pulse reaches the cable. A factor cannot remove a constant, so PN 1.1
+  added **Zero**, an offset subtracted before the NVP scaling;
+- the **blind zone**: below about 2 m the echo returns while the outgoing pulse is still
+  being launched, and the timer cannot separate the two. That limit is physical; stock
+  reports "Out of range" there and PN keeps it (an experimental build lowers the cut-off to
+  0.5 m only to collect raw readings).
+
+So the PN formula is `length = (raw − Zero) × NVP / 69` with both constants yours to set,
+and the two-cable calibration below solves for them exactly. The same formula, with the
+addresses and every intermediate value, is written out in
+[The maths, formula by formula](#the-maths-formula-by-formula).
 
 ## Length calibration: Zero and NVP
 
@@ -280,8 +348,8 @@ pip install capstone unicorn        # pillow + pymupdf only to rebuild the fonts
 python test_thumb.py                # assembler self-test against Capstone
 python build.py --list              # the patch set
 python build.py                     # dry run: every byte it would change, disassembled
-python build.py --write             # emit LPM-10A-TX_PN1.3.bin
-python verify.py                    # 155 checks
+python build.py --write             # emit LPM-10A-TX_PN2.1.bin
+python verify.py                    # 181 checks
 ```
 
 `build.py --only a,b` builds a subset; every patch is independent. `build.py` refuses to
@@ -300,6 +368,8 @@ What `verify.py` proves, section by section:
 | 12–16 | Zero + NVP | 513 arithmetic vectors including the measured unit's numbers, key hook (clicks, repeat, clamps, OK long press, other screens), message routing, both rendered texts with their colours, screen-entry draw, Factory Reset defaults compared with stock byte for byte |
 | 17 | fonts | the firmware's own glyph drawers render all 361 glyphs; pixels must equal the designed bitmaps |
 | 18 | identity | the version strings through the firmware's `sprintf`; the container name is byte-identical to stock; the SCAN labels and the About URL line drawn through the stock code with `gui_blit` trapped |
+| 19 | Thai UI | the cell table, every one of the 64 string stubs resolved through the redirect table, the hook table, the three routines byte-identical to their assembled source, the drawer unit test; then **all 56 screen states drawn by the built firmware in Thai compared pixel for pixel with the design model, all 56 in English compared with the same build without the Thai patch**, and every Thai string drawn at least once |
+| 20 | Cable Test Back | the key dispatcher with action 7 in every function state, mod and stock: only CABLE_TEST with the layout shown re-enters the screen; everything else keeps stock's target |
 
 Each behavioural check runs the stock image too, so the report shows the defect and the fix
 side by side. The SDK internals (symbol database, assembler, cave allocator, font tool) are
@@ -310,11 +380,12 @@ documented in [`LPM-10A/Firmware File/sdk/README.md`](LPM-10A/Firmware%20File/sd
 ```
 LPM-10A/
   Firmware File/
-    LPM-10A-TX_PN1.3.bin              PN Custom image (the build output)
+    LPM-10A-TX_PN2.1.bin              PN Custom image (the build output)
     LPM-10A-TX_V2.0.7_260610.bin      stock image: NOT included, put FNIRSI's copy here to build
     MOD-README.txt                    change list, hashes, flashing, checklist
     FORMULA-AUDIT.md                  every measurement formula, with verdicts
     sdk/                              the transmitter toolkit: patches, assembler, verifier, fonts
+    sdk/thai/                         the Thai UI: cell font, drawers, wording, screen emulator, mock-ups
     APP_LPM-10RX_PN1.0.bin            receiver image (battery fix); flashing procedure unconfirmed
     RX-README.txt                     receiver change list, hash, warnings
     rx-sdk/                           the receiver toolkit: patches, verifier, disassembler
@@ -333,15 +404,22 @@ does not document how the receiver enters its update mode, and the way back to s
 be confirmed first. Details in
 [`LPM-10A/Firmware File/RX-README.txt`](LPM-10A/Firmware%20File/RX-README.txt).
 
-## Thai user interface (PN 2.0, in preparation)
+## Thai user interface (PN 2.0)
 
-The second UI language will become Thai instead of Chinese: Sarabun (OFL) rendered into
-16 × 16 one-bit cells, one per grapheme cluster, drawn proportionally by a replacement
-text drawer, with English kept exactly as it is. The wording for every string and the
-mock-ups of all 26 screens, rendered from the firmware's own drawing code, are in
-[docs/THAI-UI.md](docs/THAI-UI.md); the tooling is `sdk/thai/`.
+The second language of the tester is Thai instead of Chinese, on every screen. Sarabun
+(SIL OFL) is rendered into 16 × 16 one-bit cells, one per consonant cluster (118 cells,
+Latin letters and digits in the same face), and drawn proportionally by a replacement text
+drawer that keeps the stock drawers' signatures, so no coordinate in the firmware changes.
+Every Chinese string slot became a 3-byte redirect to the Thai text in the freed glyph
+slots; the four messages stock only had in English got Thai versions through a hook on
+`gui_blit` that is inert in English. English is byte-for-byte PN 1.3.
 
-<img src="docs/img/thai/thai_overview.png" alt="Every screen with the proposed Thai interface" width="1000">
+The wording of every string, how it was built and how it is verified are in
+[docs/THAI-UI.md](docs/THAI-UI.md); the tooling is `sdk/thai/`. The pictures below are
+not mock-ups: they are what the firmware draws (`verify.py` §19 proves the built image
+produces exactly these pixels), and the whole interface passed on a real unit on 2026-09-18.
+
+<img src="docs/img/thai/thai_overview.png" alt="Every screen of the Thai interface" width="1000">
 
 ## What next
 
@@ -370,9 +448,9 @@ Things that need vendor source or hardware, so they are documented rather than p
 - Tooling, patches and documentation: MIT (see [LICENSE](LICENSE)).
 - FNIRSI's firmware files are not redistributed here; the build takes the official V2.0.7
   image as its input and the flashing instructions send you to FNIRSI for it.
-- Fonts: Ubuntu Sans Mono under the Ubuntu Font Licence 1.0; Droid Sans Fallback under the
-  Apache License 2.0; Sarabun (the Thai mock-ups, `sdk/thai/`) under the SIL Open Font
-  License 1.1. All three permit redistribution of the rasterized glyphs.
+- Fonts: Ubuntu Sans Mono under the Ubuntu Font Licence 1.0; Sarabun (the Thai interface)
+  under the SIL Open Font License 1.1; Droid Sans Fallback (the PN 1.x Chinese table) under
+  the Apache License 2.0. All three permit redistribution of the rasterized glyphs.
 - Disassembly with [Capstone](https://www.capstone-engine.org/), emulation with
   [Unicorn](https://www.unicorn-engine.org/).
 

@@ -13,11 +13,23 @@ NOT AN OFFICIAL FNIRSI RELEASE.  Verified by disassembly and CPU
 emulation (rx-sdk/verify.py, 25 checks); NOT tested on hardware.
 FNIRSI's own files are not distributed with this build.
 
-!! THE RECEIVER FLASHING PROCEDURE IS NOT DOCUMENTED BY FNIRSI AND
-!! HAS NOT BEEN CONFIRMED.  Do not flash this until you know how the
-!! receiver enters its update mode and have confirmed that the stock
-!! image can be written back the same way.  The stock file is the only
-!! recovery.
+!! THE RECEIVER FLASHING PROCEDURE HAS NOT BEEN CONFIRMED HERE.  Do
+!! not flash this until the update mode and the way back to stock are
+!! confirmed on a real probe.  The stock file is the only recovery.
+!!
+!! Reported procedure (from the internet, 2026-09-18, unverified):
+!!   probe powered off -> hold SCAN and plug in the USB cable -> the
+!!   probe appears as a USB drive -> copy the receiver .bin onto it
+!!   -> unplug -> it updates.
+!! If you want to establish it, do it with FNIRSI's OWN stock file
+!! first (APP_LPM-10RX_V3.0.0_260416.bin from the official package):
+!! that proves both the entry into update mode and the way back
+!! without risking anything.  The bootloader may also insist on the
+!! stock file name, as the transmitter's does.
+!!
+!! Is it worth it?  Not really: this build changes only the
+!! low-battery shutdown of the probe.  Every PN transmitter firmware
+!! works with the stock probe firmware.
 
 ----------------------------------------------------------------
  CHANGES  (PN 1.0, 2026-09-17)

@@ -36,7 +36,7 @@ def load(out, sid, tag):
     return Image.open(os.path.join(HERE, out, f"{sid}_{tag}.png")).resize((240, 320), Image.NEAREST)
 
 
-def sheet(ids, path, out="out", cols=("en", "zh", "th"), heads=("English (PN 1.3)", "Chinese (stock strings)", "Thai (proposal)")):
+def sheet(ids, path, out="out", cols=("en", "zh", "th"), heads=("English", "Chinese (stock)", "Thai (PN 2.0)")):
     W = 250 + len(cols) * 256 + 24
     rowh = 350
     H = 70 + rowh * len(ids)
@@ -63,7 +63,7 @@ def overview(path, out="out", cols=6):
     H = 60 + rows * 356
     im = Image.new("RGB", (W, H), BG)
     d = ImageDraw.Draw(im)
-    d.text((16, 16), "LPM-10A PN Custom: Thai UI proposal, every screen (rendered from the firmware draw code)", fill=INK, font=f(22, True))
+    d.text((16, 16), "LPM-10A PN 2.0: the Thai interface, every screen (rendered from the firmware draw code)", fill=INK, font=f(22, True))
     for i, sid in enumerate(ids):
         r, c = divmod(i, cols)
         x, y = 12 + c * 252, 60 + r * 356
@@ -79,7 +79,7 @@ def sizes(path, ids=("home_1", "length_result", "settings", "qc_test_uncalibrate
     im = Image.new("RGB", (W, H), BG)
     d = ImageDraw.Draw(im)
     d.text((16, 16), "Thai cell font: 12 px (top row, no clipping) vs 13 px (bottom row, larger; ุ ู lose one pixel row)", fill=INK, font=f(20, True))
-    for r, out in enumerate(("out", "out13")):
+    for r, out in enumerate(("out12", "out13")):
         for c, sid in enumerate(ids):
             x, y = 12 + c * 256, 60 + r * 356
             im.paste(load(out, sid, "th"), (x, y))
@@ -94,4 +94,5 @@ if __name__ == "__main__":
     for n, g in enumerate(groups, 1):
         print(sheet(g, os.path.join(DOCS, f"thai_screens_{n}.png")))
     print(overview(os.path.join(DOCS, "thai_overview.png")))
-    print(sizes(os.path.join(DOCS, "thai_font_size.png")))
+    if os.path.isdir(os.path.join(HERE, "out12")) and os.path.isdir(os.path.join(HERE, "out13")):
+        print(sizes(os.path.join(DOCS, "thai_font_size.png")))

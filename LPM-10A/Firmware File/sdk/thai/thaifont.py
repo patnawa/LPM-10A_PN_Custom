@@ -101,6 +101,13 @@ class ThaiFont:
     def width(self, text):
         return sum(self.cell(c)[1] for c in clusters(text)) - (self.gap if text else 0)
 
+    def draw_word_cell(self, put, x, y, word, fg):
+        rows, adv, _ = self.cell(word)
+        for yy in range(CELL):
+            for xx in range(CELL):
+                if rows[yy][xx]:
+                    put(x + xx, y + yy, fg)
+
     def draw(self, put, x, y, text, fg, ascii_font=None, bg=None):
         """put(x, y, colour).  Thai cells are transparent (fg only); ASCII 0x20..0x7E
         goes through ascii_font (dict ch -> 16 rows of 8) opaque like the firmware."""

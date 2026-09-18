@@ -20,17 +20,20 @@ sdk/
   cjk_chars.py    the 171 Chinese characters, in glyph-table order
   fonts_out/      the replacement font tables the build uses (+ previews)
   test_thumb.py   assembler round-trip tests
-  thai/           Thai UI tooling (PN 2.0, in preparation): thaifont.py renders
-                  Sarabun (OFL) into 16x16 cells, engine.py runs the firmware's
-                  draw code under Unicorn with the CJK drawers swappable for Thai,
-                  mockup.py holds the wording table and one scenario per screen,
-                  sheets.py builds the contact sheets in docs/img/thai/
+  thai/           the Thai UI (PN 2.0): wording.py (every string), thaifont.py
+                  (Sarabun -> 16x16 cells), cells.py (the shipped table, encoders),
+                  sites.py (where every Chinese string lives), drawers.py (the
+                  Thumb sources of the two drawers and the gui_blit hook),
+                  engine.py (screen emulator: the firmware's draw code under
+                  Unicorn), mockup.py / sheets.py (every screen, docs images),
+                  compare.py + test_drawers.py (used by verify.py section 19)
 ```
 
 Requires `capstone` and `unicorn` (`pip install capstone unicorn`).
 Rebuilding the fonts (not needed for a build) also needs `pillow` and `pymupdf`;
-the Thai mock-ups (`python -m thai.mockup`, `python -m thai.sheets`) need `pillow`
-and `uharfbuzz`.
+the Thai mock-ups (`python -m thai.mockup`, `python -m thai.sheets`) need `pillow`;
+regenerating the Thai cells (`python -m thai.cells`, not needed for a build) also
+needs `uharfbuzz`.
 
 ---
 
@@ -40,7 +43,7 @@ and `uharfbuzz`.
 python test_thumb.py            # assembler self-test
 python build.py --list          # what patches exist
 python build.py                 # dry run: prints every byte it would change
-python build.py --write         # emit LPM-10A-TX_PN1.3.bin
+python build.py --write         # emit LPM-10A-TX_PN2.1.bin
 python verify.py                # prove the result is what was intended
 ```
 
@@ -133,7 +136,7 @@ The assembler rejects anything it does not recognise rather than guessing, and
 | id | risk | group | what |
 |---|---|---|---|
 | `autooff-hold` | low | bugfix | Auto Off is held (and restarted) while a SCAN tone or FLASH blink session is running; stock already resets it on every key event |
-| `boot-english` | low | english | Boot straight to English; no Chinese/English picker |
+| `boot-english` | low | english | Factory defaults come up in English with no language picker (off by default since PN 2.0: the Thai build keeps the English / ไทย picker) |
 | `english-strings` | safe | english | Corrects the machine-translated UI text |
 | `length-decimal` | low | measure | Length in **m / cm / ft with one decimal**, Zero- and NVP-corrected; the unit is remembered (stock: whole metres, inches, and cm forced on every screen entry) |
 | `nvp-calibration` | low | measure | **NVP 50–99 % and Zero 0.0–2.0 m**: UP/DOWN adjust the white value on the Length screen, holding OK for a second swaps them, shown as `ZERO 0.0m` / `NVP 69%`, results redraw live, both persisted, Factory Reset clears both |
@@ -142,18 +145,22 @@ The assembler rejects anything it does not recognise rather than guessing, and
 | `batt-debounce` | low | bugfix | Low-battery shutdown needs 3 consecutive samples < 3150 mV and is cancelled when the pack recovers to ≥ 3250 mV |
 | `batt-gauge` | low | ux | 10-step Li-ion battery gauge instead of 4 steps |
 | `settings-leak` | low | bugfix | Frees the 204-byte buffer leaked by every settings save |
-| `font-pro` | low | ux | Replaces all three fonts: 8x16 and 6x12 ASCII (Ubuntu Sans Mono) and the 171 Chinese glyphs (Droid Sans Fallback) |
-| `version-string` | safe | identity | About screen and boot log report `PN 1.3` (edit `VERSION` in patches.py, 7 characters max) |
+| `font-pro` | low | ux | Replaces all three fonts: 8x16 and 6x12 ASCII (Ubuntu Sans Mono) and the 171 Chinese glyphs (Droid Sans Fallback; superseded by the Thai cells when `thai-ui` is on) |
+| `version-string` | safe | identity | About screen and boot log report `PN 2.1` (edit `VERSION` in patches.py, 7 characters max) |
+| `cable-back` | low | ux | Cable Test: Back returns to the Switch / Far end selector from the armed and result screens (stock left the screen); code lives in the Thai region |
+| `cable-error-visible` | low | ux | Cable Test: the red "Result error!!" line moves above the Test Retry button (stock drew the button over it); the button moves 9 px down |
 | `scan-labels` | safe | identity | SCAN screen modes labelled `Digital` (0xB6B6 coded pattern) and `825 Hz` (keyed tone) instead of `Noiseless` / `Normal` |
 | `about-url` | safe | identity | About screen shows `github.com/patnawa/LPM-10A_PN_Custom` (string in the cave, 6x12 font, 216 px) where the vendor site was; edit `REPO_URL` in patches.py, 36 characters max |
-| `english-only` | untested | english | Removes Chinese from the language menu (off by default) |
+| `thai-ui` | low | thai | **The second language is Thai**: 118 Sarabun cells in the glyph table, proportional drawers with the stock signatures, every Chinese string slot a redirect stub to its Thai text, a `gui_blit` hook for the four English-only messages, the About labels 14 px left, YES / NO as whole-word cells. English untouched. See `thai/` and `docs/THAI-UI.md` |
 | `batt-grace` | low | tuning | Low-battery shutdown grace 30 s → 60 s (off by default) |
 
 `risk=untested` patches are excluded unless you pass `--all`; they are things
 that look right on paper but need a real device to confirm. Everything else
 is verified by emulation; the PN 1.0 set has also passed the first-power-on
-checklist on a real unit (2026-09-18). PN 1.1's Zero + NVP calibration was confirmed there too. **The PN 1.2 run
-averaging and the PN 1.3 labels have not been flashed yet.**
+checklist on a real unit (2026-09-18), PN 1.3 passed every function there and so did
+PN 2.0 with the Thai interface. **The two PN 2.1 Cable Test fixes have not been flashed
+yet.** `english-only` was dropped: the
+string it blanked was a log message, not the menu entry.
 
 The reasoning behind each measurement change, and the formulas that were
 checked and found correct, are in [`../FORMULA-AUDIT.md`](../FORMULA-AUDIT.md).
@@ -182,10 +189,12 @@ fresh in-memory build. Sections 4–18 execute the code:
 | 14b | end to end | `Action_key_Process` itself in LENGTH, mod and stock: stock actions 0x11/0x12/0x13 still dispatch, UP/DOWN and the OK hold act, holds and releases are ignored |
 | 15 | message | dispatcher routing for 0x10 / 0x3D / 0xFF; both texts through the real `sprintf`, `gui_blit` geometry, white/grey on black with the colour globals pre-loaded with a sentinel |
 | 16 | screen entry | the picker epilogue draws both texts and returns with the stack and r4–r7 intact |
-| 16b | Factory Reset | the defaults writer on mod and stock, the whole 0xC8-byte struct compared: only the first-boot flag and the Zero byte differ |
+| 16b | Factory Reset | the defaults writer on mod and stock, the whole 0xC8-byte struct compared: only the Zero byte differs |
 | 17 | fonts | the firmware's own glyph drawers render every glyph of all three tables; pixels must equal the designed bitmaps |
 | 18 | identity | both version strings through the firmware's `sprintf`; container name byte-identical to stock |
 | 18b | About URL | the About line's `gui_blit` call: geometry (12, 184, 216, 12), 12-px font, the URL text, stock colours; the stock draw for comparison |
+| 19 | Thai UI | the cell table and every cell through the stock glyph drawer; all 64 stubs resolved through RELOC to the wording table; the hook table against `wording.py`; the three routines byte-identical to `thai/drawers.py` assembled; the three jumps; the drawer unit test; then all 56 screen states in Thai pixel-identical to the model, all 56 in English pixel-identical to the same build without `thai-ui`, every Thai string drawn at least once |
+| 20 | Cable Test Back | action 7 through the key dispatcher in every function state, mod and stock |
 
 Each behavioural check runs the stock image as well, so the report shows the
 defect and the fix side by side.

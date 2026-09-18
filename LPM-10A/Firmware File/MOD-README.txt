@@ -1,28 +1,29 @@
 ================================================================
- LPM-10A PN Custom firmware  PN 1.3   (UNOFFICIAL build)
+ LPM-10A PN Custom firmware  PN 2.1   (UNOFFICIAL build)
 ================================================================
 
-File      : LPM-10A-TX_PN1.3.bin
-Version   : PN 1.3  (Settings > About shows "Software:PN 1.3")
+File      : LPM-10A-TX_PN2.1.bin
+Version   : PN 2.1  (Settings > About shows "Software:PN 2.1")
 Built from: LPM-10A-TX_V2.0.7_260610.bin  (official FNIRSI V2.0.7)
             sha256 29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b
-Result    : sha256 e2f4d3a226ad6eaffef046b537130154f1147b2044c0108c4358b1c63619ad5a
+Result    : sha256 13679b1edaba91f7e475acbb119491f9731fce794d68d9947772268ace1c11c6
 Size      : 389120 bytes (identical to stock)
-Changed   : 6811 bytes differ from stock: 5702 of them inside the
-            8132 bytes of font tables (rewritten in place), 775 inside
-            the 864 bytes of new code in the unused tail of the last
-            flash sector (payload_len in the header grows by 864), 114
-            in the dead body of the stock length_convert (reused as
-            code), 4 in the header length fields, 216 in hooks and
-            strings.
+Changed   : 7999 bytes differ from stock: the three font tables
+            (8132 bytes, rewritten in place; the Chinese table now
+            holds 118 Thai cells and, in its 53 unused slots, the Thai
+            strings and drawers), 864 bytes of new code in the unused
+            tail of the last flash sector (payload_len in the header
+            grows by 864), 114 in the dead body of the stock
+            length_convert (reused as code), 4 in the header length
+            fields, and the hooks, string stubs and strings.
             The image name stored inside the file
             is left as stock because the bootloader checks it.
 
 NOT AN OFFICIAL FNIRSI RELEASE.  Verified by disassembly and CPU
-emulation (sdk/verify.py, 155 checks).  PN 1.3 was flashed to a real
-unit on 2026-09-18 and every function was tested there (PN 1.0's
-checklist and PN 1.1's Zero + NVP calibration passed the same day).
-Use at your own risk.  Rebuild or audit it yourself with sdk/.
+emulation (sdk/verify.py, 181 checks).  PN 2.0, Thai interface
+included, was flashed to a real unit on 2026-09-18 and every function
+was tested there; the two Cable Test fixes of PN 2.1 are verified by
+emulation and await their flash.  Use at your own risk.  Rebuild or audit it yourself with sdk/.
 
 This file only updates the transmitter.  A separate receiver build,
 APP_LPM-10RX_PN1.0.bin (see RX-README.txt), exists but must not be
@@ -34,8 +35,39 @@ Every measurement formula in the firmware was traced and checked;
 see FORMULA-AUDIT.md for the full list with verdicts.
 
 ----------------------------------------------------------------
- CHANGES  (PN 1.3, 1.2, 1.1: 2026-09-18; PN 1.0 2026-09-17; mod 1..4)
+ CHANGES  (PN 2.1, 2.0, 1.3, 1.2, 1.1: 2026-09-18; PN 1.0 2026-09-17)
 ----------------------------------------------------------------
+
+[FIXED]   Cable Test: Back returns to the Switch / Far end choice (PN 2.1).
+        Stock's Back key left the screen from every step; from the
+        armed wiremap layout or a result it now goes back to the mode
+        selector, and from the selector to Home.  Every other screen's
+        Back is unchanged.  Reported from the PN 2.0 hardware test.
+
+[FIXED]   Cable Test: "Result error!!" was hidden under the button (PN 2.1).
+        Stock painted the red error line at y 284 and then drew the
+        Test Retry button over it; only an "R" and a "!" peeked out.
+        The line now sits at y 271, between the wiremap panel and the
+        button, and the button (with its Test Start / Test Retry
+        label) moved 9 px down to make room.  In Thai the line reads
+        ผลลัพธ์ผิดพลาด!!.
+
+[NEW]     Thai user interface (PN 2.0).
+        The second language is Thai instead of Chinese, on every
+        screen: Settings > Language offers English / ไทย.  Sarabun
+        (SIL Open Font License) rendered into 16x16 cells, one per
+        consonant cluster, 13 px, drawn proportionally.  The Chinese
+        glyph table now holds the 118 Thai cells; every Chinese
+        string in the firmware became a 3-byte redirect to its Thai
+        text; the messages stock only had in English ("Result
+        error!!", "Test timeout!!", "Error!!", "OFF") have Thai
+        versions too.  English is byte-for-byte PN 1.3 (proved by
+        emulation: all 26 screens identical).  The first-boot
+        language picker is back (English / ไทย) and also appears after
+        a Factory Reset; PN 1.x skipped it, which left a factory-reset
+        unit in Chinese.  docs/THAI-UI.md shows every screen.
+
+[CHANGED] Version reported as PN 2.1.
 
 [CHANGED] SCAN modes named by what they transmit (PN 1.3).
         "Noiseless" ("Silent" since PN 1.0) is now "Digital": the
@@ -44,8 +76,6 @@ see FORMULA-AUDIT.md for the full list with verdicts.
         mode.  "Normal" is now "825 Hz": the carrier keyed on and off
         at 825 Hz, a plain tone for any analogue probe.  Labels only;
         the signals are unchanged.
-
-[CHANGED] Version reported as PN 1.3.
 
 [CHANGED] Length test averages four CSD runs (PN 1.2).
         The PHY's cable diagnostic scatters by about +/-0.3 m from
@@ -178,7 +208,7 @@ From mod 1:
   1. Power the tester off.
   2. Hold M + Power until the firmware update screen appears.
   3. Connect USB-C; a removable drive appears.
-  4. Copy LPM-10A-TX_PN1.3.bin onto that drive.
+  4. Copy LPM-10A-TX_PN2.1.bin onto that drive.
   5. Do NOT unplug during the update.
   6. Long-press Power to shut down, then power on normally.
 
@@ -187,12 +217,18 @@ From mod 1:
   bootloaders match on the filename.  The name stored inside the
   file is unchanged either way.
 
-  Checked on a real unit with PN 1.0 and PN 1.1 (2026-09-18): the
-  bootloader accepted the file under its own name; every item below
-  passed, and Zero 0.5 m / NVP 68 % read a 2.9 m cable right.  New in
-  PN 1.2, still to check: a length test takes about four times as
-  long, and repeated tests of one cable agree much better.
-    - Text everywhere is the new bold sans font; Chinese mode too.
+  Checked on a real unit up to PN 2.0 (2026-09-18): the bootloader
+  accepted the file under its own name; every item below passed, and
+  Zero 0.5 m / NVP 68 % read a 2.9 m cable right.  New in PN 2.1,
+  still to check: Cable Test Back returns to the Switch / Far end
+  choice, and the red error line is readable above the button.
+    - Settings > Language (ภาษา): English / ไทย; every screen follows.
+    - In Thai walk through every screen (docs/THAI-UI.md shows what
+      to expect): nothing overlaps, tone marks and vowels sit right,
+      the Length "กำลังทดสอบ" has its dots to the right, results say
+      เมตร / ซม. / ฟุต, no cable gives "เกินช่วงการวัด".
+    - Back in English every screen is exactly as PN 1.3.
+    - Text everywhere is the new bold sans font.
     - SCAN with the tone on, or FLASH blinking, for longer than the
       Auto Off setting: the unit must stay on; the probe still hears it.
     - Length screen: "ZERO 0.0m" left of the Unit box, "NVP 69%"
