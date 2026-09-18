@@ -74,17 +74,27 @@ print(f"mod   : {os.path.basename(MOD)}  sha256 {hashlib.sha256(mod).hexdigest()
 # ---------------------------------------------------------------- 1
 print("\n1. container integrity")
 off, length, end = struct.unpack_from("<III", mod, 0x20)
-check(len(mod) == len(stock), "file size unchanged", f"{len(mod)} bytes")
+grown = len(mod) - len(stock)
+check(grown == 0 or (grown > 0 and grown % 0x1000 == 0),
+      "file size is stock's" if grown == 0 else f"file size is stock's + {grown // 1024} KB (whole 4 KB pages, the cave grew)",
+      f"{len(mod)} bytes")
 check(mod[:0x20] == stock[:0x20], "internal image name unchanged",
       mod[:0x20].split(b"\0")[0].decode())
 check(off == 0x1000, "payload offset 0x1000")
 check(off + length - 1 == end, "payload_len / payload_end consistent",
       f"len=0x{length:X} end=0x{end:X}")
 check(off + length <= len(mod), "payload fits inside the file")
+check(not any(mod[off + length:]), "every byte after payload_end is zero (nothing the bootloader would skip)")
+if grown:
+    check(len(mod) - 0x1000 < off + length <= len(mod),
+          "payload_end lies in the last (appended) page: the growth was needed and minimal",
+          f"payload ends at file 0x{off + length:X}, stock file ends at 0x{len(stock):X}")
+check(S.APP_BASE + length <= S.CONSTS["BOOTFLAG_PAGE"], "the payload ends below the bootloader's flag / settings pages",
+      f"0x{S.APP_BASE + length:08X} < 0x{S.CONSTS['BOOTFLAG_PAGE']:08X}")
 
 # ---------------------------------------------------------------- 2
 print("\n2. difference footprint")
-diff = [i for i in range(len(stock)) if stock[i] != mod[i]]
+diff = [i for i in range(len(stock)) if stock[i] != mod[i]] + [i for i in range(len(stock), len(mod)) if mod[i]]
 # the only header bytes allowed to change are payload_len / payload_end
 # (0x24..0x2B), and only when the cave was used
 hdr_ok = all(0x24 <= i < 0x2C for i in diff if i < off)
@@ -132,6 +142,8 @@ try:
     # patch that touches something it did not declare will fail this check.
     expected = set()
     for addr, old, new, why, kind in EXPECTED_EDITS:
+        if kind == "note":                      # a build note (e.g. the container grew), not an edit
+            continue
         span = max(len(old), len(new)) + (1 if kind == "text" else 0)
         expected.update(range(addr, addr + span + 1))
 
@@ -213,8 +225,9 @@ try:
     cases = [  # (state, tone, busy1, stock expected, mod expected, label)
         (5, 1, 0, 101, 0,   "SCAN, tone on         "),
         (5, 0, 0, 101, 101, "SCAN, tone off        "),
-        (8, 0, 2, 101, 0,   "FLASH, blink running  "),
-        (8, 0, 0, 101, 101, "FLASH, blink finished "),
+        (6, 0, 2, 101, 0,   "FLASH, blink running  "),
+        (6, 0, 0, 101, 101, "FLASH, blink finished "),
+        (8, 0, 2, 101, 101, "QC TEST (flags stale) "),
         (2, 1, 2, 101, 101, "HOME (flags stale)    "),
         (7, 0, 0, 101, 101, "LENGTH                "),
     ]
@@ -262,11 +275,15 @@ try:
             self.stops = set()
             self.traps = set()
             self.zero = set()                # trapped like traps, but return r0 = 0
+            self.fake = {}                   # addr -> callable(uc): a stand-in that sets r0 itself
             self.calls = []
             uc.hook_add(UC_HOOK_CODE, self._hook)
 
         def _hook(self, uc, addr, size, ud):
-            if addr in self.zero:
+            if addr in self.fake:
+                self.fake[addr](uc)
+                uc.reg_write(UC_ARM_REG_PC, uc.reg_read(UC_ARM_REG_LR))
+            elif addr in self.zero:
                 uc.reg_write(UC_ARM_REG_R0, 0)
                 uc.reg_write(UC_ARM_REG_PC, uc.reg_read(UC_ARM_REG_LR))
             elif addr in self.stops:
@@ -1078,7 +1095,7 @@ if any(_p.pid == "thai-ui" and _p.default for _p in patches.REGISTRY):
             if key != en.encode() + b"\0" or fl != flags or xx != x or (enc is not None and got != enc) or (enc is None and t_ptr != 0):
                 bad.append(en)
         end = struct.unpack("<I", rd(T["hooktab"] + 12 * len(entries), 4))[0]
-        check(not bad and end == 0, f"HOOKTAB: {len(entries)} entries (4 messages + 4 dot frames) match wording.py, 0-terminated",
+        check(not bad and end == 0, f"HOOKTAB: {len(entries)} entries ({len(TW.ASCII_TH)} messages + {len(TW.DOTS)} dot frames) match wording.py, 0-terminated",
               "" if not bad else f"{bad}")
         # 19e. drawers versus the model, by direct emulation (thai/test_drawers.py logic)
         import io, contextlib
@@ -1110,6 +1127,250 @@ if any(_p.pid == "thai-ui" and _p.default for _p in patches.REGISTRY):
               "" if want <= drawn else f"never drawn: {sorted(want - drawn)}")
     except Exception as ex:                                   # noqa: BLE001
         check(False, f"Thai section aborted: {type(ex).__name__}: {ex}")
+
+# ---------------------------------------------------------------------------
+# 21. PoE screen (poe-screen): hooks, live refresh, status text, mod vs stock
+# ---------------------------------------------------------------------------
+if any(_p.pid == "poe-screen" and _p.default for _p in patches.REGISTRY):
+    print("\n21. PoE screen: live voltage, 'Detecting...' / 'No PoE', timeout re-armed (mod and stock)")
+    try:
+        from thai.engine import Scene
+        from thai import mockup as TM
+        from thai.wording import ASCII_TH as _ATH
+        P = _probe.poe
+        LIVE = P["live"]
+        POE_SM, TIMEOUT = 0x08019F00, 0x200000C2
+        SITES = {0x08013ECC: ("bl", P["tick"]), 0x0801395C: ("b.w", P["live_check"]),
+                 0x080139AC: ("b.w", P["std_check"]), 0x0801327E: ("bl", P["entry"]), 0x08013632: ("b.w", P["latch_hook"])}
+        LATCH = P["latch"]
+
+        def rd21(buf, addr, n):
+            return buf[addr - S.APP_BASE + 0x1000: addr - S.APP_BASE + 0x1000 + n]
+
+        # 21a. the four hooks point at the emitted blocks (bl and b.w share the T4 encoding)
+        bad = [f"0x{site:08X}" for site, (kind, dst) in SITES.items() if bl_target(mod, site) != dst]
+        check(not bad, "the five hook sites branch to poe_tick / live_check / std_check / entry_hook / latch_hook",
+              "" if not bad else f"wrong: {bad}")
+        lits = [struct.unpack("<I", rd21(mod, a, 4))[0] for a in (0x08013A38, 0x08013A44, 0x08013A48)]
+        check(lits == [LATCH + 12, LATCH, LATCH + 10] and [struct.unpack("<I", rd21(stock, a, 4))[0] for a in (0x08013A38, 0x08013A44, 0x08013A48)] == [0x200000C0, 0x200000B4, 0x200000BE],
+              "the 0x14 handler's poe_mv / poe_adc_ch / min literals point at the latch (stock: the task's live block)", f"{[hex(x) for x in lits]}")
+        # 21b. the blocks in the file are the assembled sources, and they sit in the grown cave
+        blocks = [(a, new) for a, old, new, why, kind in EXPECTED_EDITS if kind == "code" and why.startswith(("poe", "live_check", "std_check", "entry_hook", "latch_hook"))]
+        same = all(rd21(mod, a, len(new)) == new for a, new in blocks)
+        lo21, hi21 = min(a for a, _ in blocks), max(a + len(n) for a, n in blocks)
+        check(same and len(blocks) == 6 and lo21 >= S.APP_END and hi21 <= S.APP_BASE + length,
+              f"the 6 emitted blocks are byte-identical to the sources and lie in the cave (0x{lo21:08X}..0x{hi21:08X})")
+        check(rd21(mod, P["strs"], 20) == b"No PoE\0Detecting...\0", "status strings: 'No PoE', 'Detecting...'")
+        check({"Detecting...", "No PoE"} <= set(_ATH), "both strings have a Thai variant in wording.py (drawn by the thai-ui hook)")
+
+        # 21c. poe_tick: the stock state machine runs, then the live refresh (state 10 + span != 0, every 50 ticks)
+        def ticks(image, state, span, n, live=(0, 0, 0), shutdown=0, sc=None):
+            if sc is None:
+                sc = Scene(image=image, lang=1, state=state)
+                sc.w8(LIVE, *live)
+                sc.calls = []
+                sc.at[POE_SM] = lambda uc: (sc.calls.append(1), sc.ret(0))
+            sc.vals["shutdown"] = shutdown
+            sc.w8(TM.POE_SPAN, span)
+            n0, m0 = len(sc.calls), len(sc.msgs)
+            for _ in range(n):
+                sc.call(P["tick"])
+            return len(sc.calls) - n0, [m for m in sc.msgs[m0:] if m[0] == 0x14], bytes(sc.uc.mem_read(LIVE, 3)), sc
+        n_sm, msgs, cell, sc = ticks(mod, 10, 1, patches.POE_LIVE_TICKS - 1)
+        check(n_sm == patches.POE_LIVE_TICKS - 1 and not msgs and cell == bytes([patches.POE_LIVE_TICKS - 1, 0, 1]),
+              f"POE screen, span 1: {patches.POE_LIVE_TICKS - 1} ticks run the state machine each time and post nothing", f"cell {cell.hex()}")
+        n_sm, msgs, cell, sc = ticks(mod, 10, 1, patches.POE_LIVE_TICKS)
+        check(msgs == [(0x14, b"")] and cell == bytes([0, 1, 1]),
+              f"tick {patches.POE_LIVE_TICKS}: one GUI 0x14 posted, counter back to 0, partial flag set", f"msgs {msgs} cell {cell.hex()}")
+        n_sm, msgs, cell, sc = ticks(mod, 10, 1, 4 * patches.POE_LIVE_TICKS)
+        check(len(msgs) == 4, f"{4 * patches.POE_LIVE_TICKS} ticks: four refreshes (every 0.5 s)", f"{len(msgs)}")
+        n_sm, msgs, cell, sc = ticks(mod, 10, 0, 300)
+        check(n_sm == 300 and not msgs and cell == b"\0\0\0", "POE screen, no span yet: nothing posted, counter untouched")
+        n_sm, msgs, cell, sc = ticks(mod, 2, 1, 300, live=(7, 1, 3))
+        check(n_sm == 300 and not msgs and cell == b"\0\0\0", "Home screen with a supply: nothing posted (the state machine still runs), the cell is zeroed")
+        for st, name in ((6, "FLASH"), (9, "SPEED")):
+            n_sm, msgs, cell, sc = ticks(mod, st, 1, 300)
+            check(n_sm == 300 and not msgs, f"{name} screen with a supply: nothing posted")
+        n_sm, msgs, cell, sc = ticks(mod, 10, 1, patches.POE_LIVE_TICKS)
+        sc.msgs.clear()
+        n_sm, msgs, cell, sc = ticks(mod, 10, 0, 1, sc=sc)
+        check(msgs == [(0x14, b"")] and cell == bytes([0, 0, 0]), "supply removed (span 1 -> 0): one full 0x14 at once, flag clear, counter reset", f"msgs {msgs} cell {cell.hex()}")
+        n_sm, msgs, cell, sc = ticks(mod, 10, 0, 300, sc=sc)
+        check(not msgs, "and nothing more while it stays away")
+
+        # 21d. screen entry: the timeout counter is re-armed, the live cell zeroed, "Detecting..." drawn while no span is known
+        def entry(image, span, cnt=0xFFFF, live=(7, 1)):
+            sc = Scene(image=image, lang=1, state=10)
+            sc.w16(TIMEOUT, cnt); sc.w8(LIVE, *live); sc.w8(TM.POE_SPAN, span)
+            sc.post(0x13); sc.drain(skip=(0x14,))
+            blits = [(t, x, y) for k, t, x, y, fg, ex in sc.log if k == "ascii" and t in ("Detecting...", "No PoE")]
+            return struct.unpack("<H", sc.uc.mem_read(TIMEOUT, 2))[0], bytes(sc.uc.mem_read(LIVE, 2)), blits, [m for m in sc.msgs if m[0] == 0x14]
+        cnt, cell, blits, m14 = entry(mod, 0)
+        check(cnt == 0 and cell == b"\0\0" and blits == [("Detecting...", patches.POE_VAL_X, patches.POE_ROW0_Y)] and not m14,
+              "mod entry, no supply: timeout counter 0xFFFF -> 0, live cell cleared, 'Detecting...' at (117, 220), no 0x14",
+              f"cnt {cnt} cell {cell.hex()} blits {blits}")
+        cnt, cell, blits, m14 = entry(mod, 1)
+        check(cnt == 0 and not blits and m14 == [(0x14, b"")],
+              "mod entry with a classified supply: no 'Detecting...', the stock 0x14 is posted", f"blits {blits} msgs {m14}")
+        cnt, cell, blits, m14 = entry(stock, 0)
+        check(cnt == 0xFFFF and not blits, "stock entry: counter stays parked at 0xFFFF, nothing written in the rows (the blank screen)")
+
+        # 21e. the 0x14 handler: standard 0 (the timeout) says "No PoE"; stock draws nothing
+        def result(image, lang=1, thai=False, **kw):
+            sc = Scene(image=image, lang=lang, thai=(TM.TH if thai else None), ascii_thai=(TM.ASCII_TH if thai else None), font=TM.FONT)
+            TM.sc_poe(sc, **kw)
+            return sc
+        sc = result(mod, std=0, span=0, mv=0)
+        blits = [(t, x, y) for k, t, x, y, fg, ex in sc.log if k == "ascii" and t in ("Detecting...", "No PoE")]
+        check(blits == [("Detecting...", 117, 220), ("No PoE", 117, 220)] and not [1 for k, t, x, y, fg, ex in sc.log if k == "ascii" and t in ("Standar", "Yes", "No", "END", "MID")],
+              "mod: entry draws 'Detecting...', the timeout's 0x14 replaces it with 'No PoE' and no result values", f"{blits}")
+        sc = result(stock, std=0, span=0, mv=0)
+        blits = [t for k, t, x, y, fg, ex in sc.log if k == "ascii" and t in ("Detecting...", "No PoE")]
+        check(not blits, "stock: the same sequence writes nothing (blank rows)")
+        sc = result("reference", lang=2, thai=True, std=0, span=0, mv=0)
+        th = [t for k, t, x, y, fg, ex in sc.log if k == "thai"]
+        check(_ATH["No PoE"]["text"] in th and _ATH["Detecting..."]["text"] in th,
+              "model, Thai: the two status strings are drawn (the firmware's own drawing is compared in 19f)")
+
+        # 21f. live refresh: only the voltage column changes, and to what a full redraw would draw
+        COL = (177, 60, 217, 220)                       # the column the 0x14 handler clears: x 177..217, y 60..220
+        full1 = result(mod, mv=48200).fb
+        sc = result(mod, mv=48200)
+        sc.w16(TM.POE_MV, 53100); sc.w8(LIVE + 1, 1)
+        sc.post(0x14); sc.drain()
+        live_fb = sc.fb
+        full2 = result(mod, mv=53100).fb
+        in_col = lambda x, y: COL[0] <= x <= COL[2] and COL[1] <= y <= COL[3]
+        outside = [(x, y) for y in range(320) for x in range(240) if not in_col(x, y) and live_fb[y][x] != full1[y][x]]
+        column = [(x, y) for y in range(COL[1], COL[3] + 1) for x in range(COL[0], COL[2] + 1) if live_fb[y][x] != full2[y][x]]
+        changed = [(x, y) for y in range(COL[1], COL[3] + 1) for x in range(COL[0], COL[2] + 1) if live_fb[y][x] != full1[y][x]]
+        check(not outside and not column and changed and bytes(sc.uc.mem_read(LIVE, 2))[1] == 0,
+              "live refresh 48.2 -> 53.1 V: the voltage column equals a full redraw at 53.1 V, every other pixel is untouched, flag consumed",
+              f"{len(outside)} outside, {len(column)} column mismatches, {len(changed)} pixels changed")
+        n14 = len([1 for k, t, x, y, fg, ex in sc.log if k == "ascii" and t == "IEEE 802.3AT"])
+        check(n14 == 1, "the result rows were drawn once (by the full 0x14), not by the live refresh", f"{n14}")
+        # 21g. the latch: the redraw uses one sample block; a value changed by the task mid-draw does not reach the screen
+        sc = Scene(image=mod, lang=1)
+        TM.sc_poe(sc, mv=48200)
+        latched = bytes(sc.uc.mem_read(LATCH, 14))
+        check(latched == bytes(sc.uc.mem_read(0x200000B4, 14)), "after a redraw the latch holds the task's sample block (adc[4], max, min, mv)")
+        sc = Scene(image=mod, lang=1)
+        hits = []
+        def bump(uc):                                          # the PoE task lands between the two wires: mv 48.2 -> 48.3 V
+            hits.append(1)
+            sc.w16(TM.POE_MV, 48300)
+        sc.at[0x080132B0] = bump                               # the per-wire voltage formatter
+        TM.sc_poe(sc, mv=48200)
+        fb_a = sc.fb
+        sc2 = Scene(image=mod, lang=1); TM.sc_poe(sc2, mv=48200)
+        check(hits and fb_a == sc2.fb, "a sample change during the redraw is not seen: both wires show the latched 48.2 V", f"{len(hits)} wire draws")
+        sc3 = Scene(image=stock, lang=1)
+        sc3.at[0x080132B0] = lambda uc: sc3.w16(TM.POE_MV, 48300)
+        TM.sc_poe(sc3, mv=48200)
+        sc4 = Scene(image=stock, lang=1); TM.sc_poe(sc4, mv=48200)
+        check(sc3.fb != sc4.fb, "stock: the same change shows up on the second wire (48.2 V and 48.3 V in one redraw)")
+    except Exception as ex:                                   # noqa: BLE001
+        check(False, f"poe-screen section aborted: {type(ex).__name__}: {ex}")
+
+# ---------------------------------------------------------------------------
+# 22. FLASH blink (flash-blink): the link-timed state machine, mod vs stock
+# ---------------------------------------------------------------------------
+if any(_p.pid == "flash-blink" and _p.default for _p in patches.REGISTRY):
+    print("\n22. FLASH: port blink timed from the link (mod), the 5-phase counter (stock)")
+    try:
+        FT = _probe.flash
+        GET_STATE, TICKS, GPIO_READ, PWR_DOWN = 0x0800F764, 0x0801C5B0, 0x08015AF2, 0x0801D178
+        MSG8, MSG8_END, PHASE, FLAGS1 = 0x0801494C, 0x08014992, 0x20000076, 0x200002B5
+        LOGGERS = {0x0801C6B4, 0x0801C6D8, 0x0800A82C, 0x0800A3B8, 0x08012C64, 0x0801CAA0}
+
+        class Blink:
+            """The message 8 handler under emulation with a simulated clock and link."""
+            def __init__(self, buf, state=6, flags1=2):
+                self.e = Emu(buf)
+                self.e.w(0x2000013C, bytes([state]))
+                self.e.w(FLAGS1, bytes([flags1]))
+                self.now, self.link, self.pwr = 0, 0, []
+                self.e.fake[TICKS] = lambda uc: uc.reg_write(UC_ARM_REG_R0, self.now)
+                self.e.fake[GPIO_READ] = lambda uc: uc.reg_write(UC_ARM_REG_R0, self.link)
+                self.e.fake[PWR_DOWN] = lambda uc: self.pwr.append((self.now, uc.reg_read(UC_ARM_REG_R0)))
+                self.e.zero.update(LOGGERS)
+
+            def tick(self, now=None, link=None):
+                if now is not None:
+                    self.now = now
+                if link is not None:
+                    self.link = link
+                n = len(self.pwr)
+                self.e.run(MSG8, until=MSG8_END, count=200000)
+                return self.pwr[n:]
+
+            def phase(self):
+                return self.e.r8(PHASE)
+
+        # 22a. the hook and the tick divisor
+        check(bl_target(mod, MSG8) == FT["tick"] and mod[MSG8 + 4 - S.APP_BASE + 0x1000: MSG8 + 6 - S.APP_BASE + 0x1000] == bytes.fromhex("1fe0"),
+              "message 8 handler: bl flash_tick, then b 0x08014992 (the stock phase counter is bypassed)")
+        from capstone import Cs, CS_ARCH_ARM, CS_MODE_THUMB, CS_MODE_MCLASS
+        md22 = Cs(CS_ARCH_ARM, CS_MODE_THUMB | CS_MODE_MCLASS)
+        def ins_at(buf, addr):
+            i = next(md22.disasm(buf[addr - S.APP_BASE + 0x1000: addr - S.APP_BASE + 0x1000 + 4], addr, 1))
+            return f"{i.mnemonic} {i.op_str}"
+        check(ins_at(mod, 0x0801BCEE) == f"mov.w r1, #0x{patches.FLASH_TICK_MS:x}" and ins_at(stock, 0x0801BCEE) == "mov.w r1, #0x3e8",
+              f"tick hook: message 8 every {patches.FLASH_TICK_MS} ms (stock 1000)", f"{ins_at(mod, 0x0801BCEE)}")
+        check(ins_at(mod, 0x0800DCA0) == "mov.w r0, #0x12c" and ins_at(stock, 0x0800DCA0) == "mov.w r0, #0x320",
+              "APP_Flash_task: the screen indicator clears 300 ms after the link drops (stock 800)")
+        code22 = [(a, new) for a, old, new, why, kind in EXPECTED_EDITS if kind == "code" and why.startswith("flash_tick")]
+        check(len(code22) == 1 and mod[code22[0][0] - S.APP_BASE + 0x1000: code22[0][0] - S.APP_BASE + 0x1000 + len(code22[0][1])] == code22[0][1],
+              f"flash_tick in the file is the assembled source ({len(code22[0][1])} bytes at 0x{code22[0][0]:08X})")
+        notes = [mod[a - S.APP_BASE + 0x1000:].split(b"\0")[0].decode() for a in (0x0800DB48, 0x0800DB58, 0x0800DB70)]
+        check(tuple(notes) == patches.FLASH_NOTE, "the note lines read " + " / ".join(patches.FLASH_NOTE))
+
+        # 22b. mod: wait for the link, hold it FLASH_ON_MS, drop it FLASH_OFF_MS, wait again
+        ON, OFF = patches.FLASH_ON_MS, patches.FLASH_OFF_MS
+        b = Blink(mod)
+        TK = patches.FLASH_TICK_MS
+        r = [b.tick(0, 0), b.tick(TK, 0), b.tick(2 * TK, 0)]
+        check(not sum(r, []) and b.phase() == 0, "no link yet: three ticks leave the PHY powered and the phase at 0")
+        r = b.tick(3 * TK + 7, 1)                                   # ticks carry a few ms of scheduling jitter
+        check(not r and b.phase() == 1, "link seen at the 4th tick: phase 1 (hold), no PHY call")
+        n_hold = ON // TK                                            # 3 ticks of 500 ms
+        r = [b.tick(3 * TK + 7 + k * TK + (3 if k % 2 else -4)) for k in range(1, n_hold)]
+        check(not sum(r, []) and b.phase() == 1, f"the next {n_hold - 1} ticks (jittered): still up")
+        t_drop = 3 * TK + 7 + n_hold * TK - 6
+        r = b.tick(t_drop)
+        check(r == [(t_drop, 1)] and b.phase() == 2, f"tick {n_hold} after the link, 6 ms early: yt8531_set_pwr_down(1), phase 2 (dark)", f"{r}")
+        t_up = t_drop + TK - 5
+        r = b.tick(t_up, 0)
+        check(r == [(t_up, 0)] and b.phase() == 0, f"the next tick ({OFF} ms dark, 5 ms early): yt8531_set_pwr_down(0), back to waiting for the link", f"{r}")
+        r = [b.tick(t_up + TK, 0), b.tick(t_up + 2 * TK, 0), b.tick(t_up + 3 * TK, 0)]
+        check(not sum(r, []) and b.phase() == 0, "a slow switch: 1.5 s without link, the PHY stays powered (no fixed cycle)")
+        t1 = t_up + 4 * TK
+        r = b.tick(t1, 1); r2 = [b.tick(t1 + k * TK) for k in range(1, n_hold + 1)]
+        check(not r and sum(r2[:-1], []) == [] and r2[-1] == [(t1 + n_hold * TK, 1)],
+              f"second cycle: on for {ON} ms from the tick that saw the link back, whatever the switch took", f"{r2[-1]}")
+        # bunched ticks (the messages queued during the initial link wait) cannot shorten a phase
+        b = Blink(mod); b.tick(0, 1)
+        r = [b.tick(0) for _ in range(20)]
+        check(not sum(r, []) and b.phase() == 1, "20 ticks at the same millisecond: the hold is timed by the clock, not counted")
+        # the session gates everything
+        b = Blink(mod, flags1=1); b.tick(0, 1); r = b.tick(5000, 1)
+        check(not r and b.phase() == 0, "flags[1] = 1 (the initial link wait): the handler does nothing")
+        b = Blink(mod, flags1=0); r = b.tick(0, 1)
+        check(not r and b.phase() == 0, "flags[1] = 0 (stopped): nothing")
+        b = Blink(mod, state=9); r = b.tick(0, 1)
+        check(not r and b.phase() == 0, "SPEED screen: nothing")
+
+        # 22c. stock: a phase counter, one power-down every fifth message, no look at the link
+        b = Blink(stock)
+        seq = [b.tick(i * 1000, 0) for i in range(10)]
+        calls = [(i, c) for i, r in enumerate(seq) for (t, c) in r]
+        check(calls == [(0, 0), (1, 0), (2, 0), (3, 0), (4, 1), (5, 0), (5, 0), (6, 0), (7, 0), (8, 0), (9, 1)],
+              "stock: powered up for four messages, down for one, regardless of the link (a 5 s cycle at 1 s per message; the wrap powers up twice)", f"{calls}")
+        b = Blink(stock, flags1=1)
+        seq = [b.tick(i * 1000, 0) for i in range(5)]
+        check(sum(len(r) for r in seq) == 5, "stock: the counter also runs while the session is not active (flags[1] = 1)")
+    except Exception as ex:                                   # noqa: BLE001
+        check(False, f"flash-blink section aborted: {type(ex).__name__}: {ex}")
 
 print("\n" + ("ALL CHECKS PASSED" if not fails else f"{fails} CHECK(S) FAILED"))
 sys.exit(1 if fails else 0)

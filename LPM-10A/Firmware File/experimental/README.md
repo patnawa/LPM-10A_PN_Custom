@@ -7,7 +7,7 @@ the undeclared instruction at the experiment's site); everything else must pass.
 
 | file | experiment | how to build |
 |---|---|---|
-| `LPM-10A-TX_PN2.2-exp-blindzone50.bin` | length blind zone 2.0 m → 0.5 m: cables of 0.5–2 m show whatever the PHY reports instead of *Out of range* | `python build.py --with blind-zone-50cm --out ../experimental/LPM-10A-TX_PN2.2-exp-blindzone50.bin --write` |
+| `LPM-10A-TX_PN2.3-exp-blindzone50.bin` | length blind zone 2.0 m → 0.5 m: cables of 0.5–2 m show whatever the PHY reports instead of *Out of range* | `python build.py --with blind-zone-50cm --out ../experimental/LPM-10A-TX_PN2.3-exp-blindzone50.bin --write` |
 
 ## What the blind-zone experiment is for
 
@@ -23,4 +23,5 @@ below 2 m. To find out whether short cables can be measured at all:
    lowered for real. If they scatter or collapse to a constant, the PHY cannot
    resolve that range and the 2 m limit stays.
 
-sha256 of the current experimental image: `1521ad745921ec8ad69b8d37dcc33d07efbae858b48263a14b8d522a17916917`
+sha256 of the current experimental image: `b6b18473777d777ebc2a287616d15dc3c831cfe192b16eabd087bd9451fbd3ec` (PN 2.3 base, so it also carries the PoE
+screen and FLASH changes and the 4 KB longer update file)

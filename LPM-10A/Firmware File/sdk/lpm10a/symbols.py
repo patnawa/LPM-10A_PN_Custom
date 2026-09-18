@@ -313,11 +313,12 @@ CONSTS = {
     "GUI_MSG_NVP_REDRAW": 0x3D,          # MOD: added by nvp-calibration
 }
 
-# sysState values
+# sysState values (6 / 8 / 9 confirmed by the screens each state draws, thai/mockup.py, and by
+# the 1 s tick: state 6 gets the FLASH blink message 8, 0x0801BCFC)
 STATES = {
     0: "OFF", 1: "BOOT", 2: "HOME", 3: "LANGUAGE_SELECT",
-    4: "CABLE_TEST", 5: "SCAN", 6: "SPEED", 7: "LENGTH",
-    8: "FLASH", 9: "QC_TEST", 10: "POE", 11: "SETTING",
+    4: "CABLE_TEST", 5: "SCAN", 6: "FLASH", 7: "LENGTH",
+    8: "QC_TEST", 9: "SPEED", 10: "POE", 11: "SETTING",
 }
 
 # keys as seen by Action_key_Process

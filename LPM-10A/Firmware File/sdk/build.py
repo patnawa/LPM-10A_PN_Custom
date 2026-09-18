@@ -39,6 +39,8 @@ def disasm_region(data, payload_off, addr, n):
 
 
 def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser()
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--write", action="store_true")
@@ -96,7 +98,9 @@ def main():
         edits = img.log[before:]
         print(f"  [{p.risk:8}] {p.pid:22} {p.title}")
         for addr, old, new, why, kind in edits:
-            if kind == "text":
+            if kind == "note":
+                print(f"              {why}")
+            elif kind == "text":
                 print(f"              0x{addr:08X}  \"{old.decode()}\" -> \"{new.decode()}\"")
             elif kind == "blob":
                 print(f"              0x{addr:08X}  {len(new)} bytes replaced   {why}")
@@ -108,10 +112,11 @@ def main():
 
     # ---- verification: show the CPU's view of every changed code site
     print("\ninstruction-level verification (stock -> patched):")
+    original = img.original + bytes(len(img.data) - len(img.original))    # stock, padded to the built length
     for addr in sorted(set(touched)):
         o = addr - S.APP_BASE + img.payload_off
         # only disassemble sites that live in the code region
-        a = disasm_region(img.original, img.payload_off, addr, 8)
+        a = disasm_region(original, img.payload_off, addr, 8)
         b = disasm_region(img.data, img.payload_off, addr, 8)
         print(f"  0x{addr:08X}")
         for (aa, ah, at), (ba, bh, bt) in zip(a, b):

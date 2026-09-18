@@ -51,24 +51,36 @@ def p_autooff_hold(img):
     returns 0 instead of the real state while
 
         state == SCAN  (5) and scan_state[0] != 0      (tone enabled), or
-        state == FLASH (8) and test_busy_flags[1] == 2 (blink running),
+        state == FLASH (6) and test_busy_flags[1] == 2 (blink running),
 
     and in that case also clears the idle counter, so the full timeout is
     available again once the session ends.  Everywhere else the state is
     returned unchanged and the behaviour is stock.
 
+    Correction (PN 2.3): PN 1.0 .. 2.2 compared the state with 8, which is
+    QC Test, not FLASH (the symbol table had the two swapped; the 1 ms tick
+    posts the blink message only in state 6 and flags[1] == 2 only ever
+    exists there), so those builds held Auto Off during a SCAN tone but not
+    during a port blink, contrary to what their notes said.  The hardware
+    checklist's "same for FLASH" line was never a real test of it.  Fixed
+    here with the value taken from the symbol table; verify.py section 4b
+    now tests state 6 and checks that state 8 is not held.
+
     (Mod 1's `autooff-keyreset` patch, which this replaces, added a second
     key-press reset that stock did not need.  Its description was wrong.)
     """
     from lpm10a.thumb import assemble
+    from lpm10a import symbols as _S
+    states = {v: k for k, v in _S.STATES.items()}
+    assert states["SCAN"] == 5 and states["FLASH"] == 6
 
-    hook = img.emit_code("""
+    hook = img.emit_code(f"""
     autooff_state:              ; -> r0 = sysState, or 0 while a tone / blink session is running
-            push {r4, lr}
+            push {{r4, lr}}
             movs r0, #0
             bl   get_sysState
             mov  r4, r0
-            cmp  r0, #5             ; SCAN
+            cmp  r0, #{states["SCAN"]}             ; SCAN
             bne  not_scan
             ldr  r1, =scan_state
             ldrb r1, [r1]           ; [0] = tone enabled
@@ -76,7 +88,7 @@ def p_autooff_hold(img):
             beq  out
             b    hold
     not_scan:
-            cmp  r0, #8             ; FLASH
+            cmp  r0, #{states["FLASH"]}             ; FLASH
             bne  out
             ldr  r1, =test_busy_flags
             ldrb r1, [r1, #1]       ; 2 = port blink running
@@ -86,7 +98,7 @@ def p_autooff_hold(img):
             ldr  r1, =auto_off_ctr
             strh r4, [r1]           ; and restart the timeout for afterwards
     out:    mov  r0, r4
-            pop  {r4, pc}
+            pop  {{r4, pc}}
     """, why="auto-off: hold while SCAN tone / FLASH blink is active")
 
     site = 0x0800F974
@@ -138,9 +150,10 @@ def p_english(img):
     means.
     """
     fixes = [
-        # PoE screen
+        # PoE screen: "Standard : Yes / No" (the value slots hold 7 characters; "Standard" does not fit)
         (0x080135E8, "Standard"),        # was "Standar Type"
-        (0x08013D60, "Non-std"),         # was "UnStandar"
+        (0x08013A54, "Yes"),             # was "Standar"
+        (0x08013D60, "No"),              # was "UnStandar"
         # Settings / factory reset confirmation
         (0x0801188F, " Factory Reset will"),      # was " Factory Reset should"
         (0x080118A8, "erase all your settings"),  # was "reset all of your modiy"
@@ -961,7 +974,7 @@ STOCK_FONT_SHA = {
 # Group: identity
 # =====================================================================
 
-VERSION = "PN 2.2"          # shown as "Software:PN 2.2" in About; max 7 characters
+VERSION = "PN 2.3"          # shown as "Software:PN 2.2" in About; max 7 characters
 
 
 @patch("version-string", f"Report the firmware version as {VERSION}",
@@ -1093,10 +1106,12 @@ def p_thai(img):
       5. The About page's three Chinese label lines start at x 57 instead of
          71 so the wider Thai labels clear the version column.
       6. gui_blit 0x080174E8 gets a hook (thai/drawers.py BLIT_HOOK) that, only
-         while the language is Thai, replaces the four messages stock has in
-         English alone ("Result error!!", "Test timeout!!", "Error!!", "OFF")
-         and moves the "..." animation from x 68 to DOTS_X, past the wider
-         Thai "Testing".  Any other string falls through to gui_blit unchanged.
+         while the language is Thai, replaces the messages stock has in
+         English alone (wording.py ASCII_TH: "Result error!!", "Test
+         timeout!!", "Error!!", "OFF" in PN 2.0, the PoE screen's
+         "Detecting..." / "No PoE" since PN 2.3) and moves the "..." animation
+         from x 68 to DOTS_X, past the wider Thai "Testing".  Any other string
+         falls through to gui_blit unchanged.
       7. The first-boot language picker is kept (boot-english is not part of
          this build): a fresh unit or a factory reset shows English / ไทย.
       8. The boot log's "Chinese" label becomes "Thai".
@@ -1364,6 +1379,386 @@ def p_length_blind(img):
     if (old[1] & 0xF8) != 0xF0 or (old[3] & 0xD0) != 0xD0:
         raise PatchError("length-blind-text needs length-decimal's bl at 0x08019B12")
     img.poke(site, old.hex(), assemble(site, f"bl 0x{fmt:08X}"), "sprintf site -> formatter with '< 2 m'")
+
+
+# =====================================================================
+# Group: PoE
+# =====================================================================
+
+POE_LIVE_TICKS = 50            # 10 ms PoE task ticks between live voltage refreshes (0.5 s)
+POE_VAL_X, POE_ROW0_Y = 117, 220   # the Standard row's value cell (layout record 0x0801E71E: x 7 + 110, y 55 + 5 + 20*8)
+POE_STRINGS = {"none": "No PoE", "detect": "Detecting..."}
+
+
+@patch("poe-screen", "PoE: live voltage every 0.5 s, 'Detecting...' / 'No PoE' status, timeout re-armed on every entry",
+       risk="low", group="poe")
+def p_poe_screen(img):
+    """
+    What stock does on the POE screen (disassembly of the PoE task 0x08013F64,
+    its state machine 0x08019F00 and the two GUI handlers 0x08013270 / 0x08013620):
+
+      * The PoE task samples the four pair voltages every 10 ms (tick hook
+        0x0801BD10), keeps the spread in poe_mv (0x200000C0, mV) and, the first
+        time it exceeds 40 V, classifies the supply and posts GUI message 0x14.
+      * The 0x14 handler draws "XX.YV" on the wires of the powered pair (0.1 V,
+        from poe_mv), "0.0V" on its return pair, and the four result rows.  It
+        is posted once per detection: the voltage on screen is the sample
+        current a tick or two after the first one above 40 V, i.e. taken on
+        the rising edge, and it is not refreshed while the screen is shown
+        (only leaving and re-entering redraws it, from whatever the sample is
+        then).  The handler loads poe_mv once per wire, so the two wires of a
+        pair can even disagree when a sample lands between the two draws.
+      * With no supply, a 350-tick (3.5 s) timeout posts 0x14 with nothing to
+        show: the handler returns before the rows and only the LED turns blue.
+        The counter (0x200000C2) is parked at 0xFFFF after that and is only
+        re-armed when a supply is seen and removed, so on every later visit the
+        screen simply stays blank -- which is what the tester shows most of the
+        time, since the counter runs out 3.5 s after boot.
+
+    What this patch changes (four 4..6 byte hooks; the code lives in the cave,
+    which grows the container by one 4 KB page for it):
+
+      1. Live voltage.  The task's `bl poe_state_machine` (0x08013ECC) goes
+         through poe_tick, which after the stock state machine counts ticks
+         while the tester is on the POE screen with a supply present (span
+         != 0) and every POE_LIVE_TICKS (0.5 s) sets a "partial" flag and
+         posts 0x14.  A hook at 0x0801395C -- between the eight voltages and
+         the result rows of the 0x14 handler -- returns early when the flag is
+         set, so a live refresh redraws the voltage column only (cleared and
+         redrawn exactly as stock does it) and the rows do not blink.  A full
+         0x14 (flag clear) draws everything as before.  The moment the supply
+         goes away (span back to 0) one full 0x14 is posted, so the column
+         clears and "No PoE" appears at once instead of the last reading
+         sitting there for 3.5 s.  While the low-battery countdown box is up
+         the stock GUI task discards every queued message but the battery
+         tick (0x0800F474), so the refresh cannot paint over it; the flag it
+         may leave set is cleared by entry_hook when the screen is redrawn.
+         Off the POE screen poe_tick keeps the cell zero (the arena is not
+         zero-initialised), so it is defined before the screen can be entered.
+      1b. Consistent values.  The 0x14 handler's first instruction (0x08013632)
+         goes through latch_hook, which copies the PoE task's sample block
+         (poe_adc_ch[4], max, min, poe_mv: 0x200000B4..0x200000C1) into a
+         RAM-arena latch, and the handler's three literal-pool words that
+         pointed at that block (0x08013A38 poe_mv, 0x08013A44 poe_adc_ch,
+         0x08013A48 min) point at the latch, so every wire of one redraw
+         shows the same sample whatever the PoE task does meanwhile.
+      2. Status text.  The screen-entry handler (0x0801327E, bl poe_screen_draw)
+         goes through entry_hook: it zeroes the live counter and flag, re-arms
+         the timeout counter, draws the screen and, when no span is known yet,
+         writes "Detecting..." in the Standard row.  The 0x14 handler's switch
+         on the standard (0x080139AC) goes through std_check: standard 0 (the
+         timeout) now draws "No PoE" there instead of returning silently; the
+         handler cleared the rows just before, as stock does.  Both strings
+         are English-only in stock terms and get their Thai text through the
+         thai-ui gui_blit hook (wording.py ASCII_TH): "กำลังตรวจหา..." /
+         "ไม่พบ PoE".
+      3. Because the timeout is re-armed on entry, "No PoE" appears 3.5 s
+         after entering the screen without a supply, every time.
+
+    Nothing about the measurement, the classification or the stock "unstable
+    supply" check changes; the latter can never trigger (see FORMULA-AUDIT.md)
+    and is left as documented.  Verified in verify.py section 21.
+    """
+    from lpm10a.thumb import assemble
+    live = img.alloc_ram(4)                       # [0] tick counter, [1] partial-redraw flag, [2] last span seen
+    latch = img.alloc_ram(16)                     # copy of 0x200000B4..0x200000C3: adc[4], max, min, mv (+2 spare)
+    syms = dict(
+        POE_SM=0x08019F00 | 1, GET_STATE=0x0800F764 | 1, GUI_MSG_SEND=0x0800E428 | 1,
+        GUI_BLIT=0x080174E8 | 1, POE_SCREEN_DRAW=0x08013334 | 1,
+        POE_RESULT_EXIT=0x0801362E, POE_RESULT_ROWS=0x08013960, POE_STD_CONT=0x080139B2,
+        POE_RESULT_CONT=0x08013636, POE_SAMPLES=0x200000B4, LATCH=latch,
+        POE_SPAN=0x20000C60, POE_TIMEOUT_CNT=0x200000C2, LIVE=live,
+        LIVE_TICKS=POE_LIVE_TICKS, VAL_X=POE_VAL_X, ROW0_Y=POE_ROW0_Y,
+    )
+    strs = img.emit_code(f'''
+    s_none:   .asciz "{POE_STRINGS["none"]}"
+    s_detect: .asciz "{POE_STRINGS["detect"]}"
+    ''', why="poe-screen: the two status strings")
+    syms["S_NONE"] = strs
+    syms["S_DETECT"] = strs + len(POE_STRINGS["none"]) + 1
+
+    tick = img.emit_code("""
+    poe_tick:                   ; the task's msg 1: stock state machine, then the live refresh
+            push {r4, lr}
+            bl   POE_SM
+            movs r0, #0
+            bl   GET_STATE
+            ldr  r4, =LIVE
+            cmp  r0, #10            ; POE screen?
+            beq  pt_on
+            movs r0, #0
+            str  r0, [r4]           ; elsewhere: keep the cell zero, so it is defined before any entry
+            b    pt_done
+    pt_on:
+            ldr  r0, =POE_SPAN
+            ldrb r0, [r0]           ; span now (0 = no supply classified)
+            ldrb r1, [r4, #2]       ; span at the previous tick
+            strb r0, [r4, #2]
+            cmp  r0, #0
+            bne  pt_live
+            cmp  r1, #0
+            beq  pt_done            ; still nothing
+            movs r0, #0             ; the supply went away: one full redraw now ("No PoE")
+            strb r0, [r4]
+            strb r0, [r4, #1]
+            b    pt_post
+    pt_live:
+            ldrb r0, [r4]
+            adds r0, #1
+            strb r0, [r4]
+            cmp  r0, #LIVE_TICKS
+            blo  pt_done
+            movs r0, #0
+            strb r0, [r4]
+            movs r0, #1
+            strb r0, [r4, #1]       ; partial: voltages only
+    pt_post:
+            movs r2, #0
+            movs r1, #0
+            movs r0, #0x14
+            bl   GUI_MSG_SEND
+    pt_done:
+            pop  {r4, pc}
+    """, extra_syms=syms, why="poe_tick: stock state machine + live refresh every 0.5 s")
+
+    latch_hook = img.emit_code("""
+    latch_hook:                 ; 0x08013632: the 0x14 handler starts drawing
+            ldr  r0, =POE_SAMPLES
+            ldr  r1, =LATCH
+            ldr  r2, [r0]
+            str  r2, [r1]           ; adc[0..1]
+            ldr  r2, [r0, #4]
+            str  r2, [r1, #4]       ; adc[2..3]
+            ldr  r2, [r0, #8]
+            str  r2, [r1, #8]       ; max, min
+            ldr  r2, [r0, #12]
+            str  r2, [r1, #12]      ; mv (+ the u16 after it)
+            movw r0, #0x2105        ; the displaced instruction
+            b.w  POE_RESULT_CONT
+    """, extra_syms=syms, why="latch_hook: one sample for the whole redraw")
+
+    live_check = img.emit_code("""
+    live_check:                 ; 0x0801395C: the voltages are drawn, the rows come next
+            ldr  r0, =LIVE
+            ldrb r1, [r0, #1]
+            cmp  r1, #0
+            beq  lc_full
+            movs r1, #0
+            strb r1, [r0, #1]
+            b.w  POE_RESULT_EXIT    ; pop.w {r2-r8, pc}
+    lc_full:
+            movw r0, #0x2105        ; the displaced instruction
+            b.w  POE_RESULT_ROWS
+    """, extra_syms=syms, why="live_check: a live refresh stops before the result rows")
+
+    std_check = img.emit_code("""
+    std_check:                  ; 0x080139AC: r0 = standard, r4 = 8 (row 0)
+            cmp  r0, #0
+            beq  sc_none
+            cmp  r0, #1
+            b.w  POE_STD_CONT       ; beq (non-standard) / cmp #2 / bne: flags kept
+    sc_none:                    ; the timeout: say so instead of leaving the row blank
+            ldr  r0, =S_NONE
+            movs r1, #16
+            str  r1, [sp]           ; size
+            str  r0, [sp, #4]       ; string
+            movs r0, #VAL_X
+            movs r1, #ROW0_Y
+            movs r2, #0x5A
+            movs r3, #0x14
+            bl   GUI_BLIT
+            b.w  POE_RESULT_EXIT
+    """, extra_syms=syms, why="std_check: standard 0 draws 'No PoE'")
+
+    entry = img.emit_code("""
+    entry_hook:                 ; 0x0801327E: bl poe_screen_draw
+            push {r4, lr}
+            sub  sp, #8
+            movs r0, #0
+            ldr  r4, =LIVE
+            str  r0, [r4]           ; counter, flag, last span
+            ldr  r4, =POE_TIMEOUT_CNT
+            strh r0, [r4]           ; re-arm the 3.5 s "No PoE" timeout
+            bl   POE_SCREEN_DRAW
+            ldr  r0, =POE_SPAN
+            ldrb r0, [r0]
+            cmp  r0, #0
+            bne  eh_done            ; a result is known: the caller posts 0x14
+            ldr  r0, =S_DETECT
+            movs r1, #16
+            str  r1, [sp]
+            str  r0, [sp, #4]
+            movs r0, #VAL_X
+            movs r1, #ROW0_Y
+            movs r2, #0x5A
+            movs r3, #0x14
+            bl   GUI_BLIT
+    eh_done:
+            add  sp, #8
+            pop  {r4, pc}
+    """, extra_syms=syms, why="entry_hook: re-arm the timeout, draw the screen, 'Detecting...'")
+    img.poe = dict(strs=strs, tick=tick, live_check=live_check, std_check=std_check, entry=entry, latch_hook=latch_hook,
+                   live=live, latch=latch, syms=syms)
+
+    site = 0x08013ECC                   # bl poe_state_machine -> bl poe_tick
+    img.poke(site, "06f018f8", assemble(site, f"bl 0x{tick:08X}"), "PoE task tick -> poe_tick (live refresh)")
+    site = 0x0801395C                   # movw r0,#0x2105 -> b.w live_check
+    img.poke(site, "42f20510", assemble(site, f"b.w 0x{live_check:08X}"), "0x14 handler: rows only on a full redraw")
+    site = 0x080139AC                   # cmp r0,#0; beq 0x08013A96; cmp r0,#1 -> b.w std_check; nop
+    img.poke(site, "0028 72d0 0128", assemble(site, f"b.w 0x{std_check:08X}\n nop"), "standard 0 (timeout) draws 'No PoE'")
+    site = 0x0801327E                   # bl poe_screen_draw -> bl entry_hook
+    img.poke(site, "00f059f8", assemble(site, f"bl 0x{entry:08X}"), "screen entry: re-arm timeout, 'Detecting...'")
+    site = 0x08013632                   # 0x14 handler: movw r0,#0x2105 -> b.w latch_hook
+    img.poke(site, "42f20510", assemble(site, f"b.w 0x{latch_hook:08X}"), "0x14 handler: latch the sample block first")
+    import struct as _st
+    for lit, target, what in ((0x08013A38, latch + 12, "poe_mv"), (0x08013A44, latch, "poe_adc_ch"), (0x08013A48, latch + 10, "adc min")):
+        old = img.read(lit, 4)
+        img.poke(lit, old.hex(), _st.pack("<I", target), f"0x14 handler literal: {what} -> the latch")
+
+
+# =====================================================================
+# Group: FLASH (port blink)
+# =====================================================================
+
+FLASH_ON_MS, FLASH_OFF_MS = 1500, 500      # link held once seen / PHY powered down, per blink cycle
+FLASH_TICK_MS = 500                        # the net task's msg 8 period on the FLASH screen (stock 1000)
+FLASH_NOTE = ("Watch the port", "LED on the switch:", "it blinks when linked")
+
+
+@patch("flash-blink", "FLASH: the port LED blinks with a fixed 1.5 s on time, timed from the link, instead of a 5 s counter",
+       risk="low", group="flash")
+def p_flash_blink(img):
+    """
+    How stock makes a switch port blink (FLASH, sysState 6; disassembly of
+    leng_enter_state 0x08012EE4, LENG_link_test 0x0800D47C, the net task's
+    message 8 handler 0x0801494C and APP_Flash_task 0x0800DC5C):
+
+      * entering the screen resets the PHY, advertises 10BASE-T only
+        (yt8531_set_1000M(0) / set_100M(0), the fastest-linking speed, a sound
+        choice), shows "Testing" for about half a second while the PHY is
+        configured, then sets test_busy_flags[1] = 2 and shows the "Please
+        note LED" screen.  (The 20 s wait for the link with the "..." dots is
+        the SPEED screen's path, 0x0800D5E0; FLASH skips it.)
+      * from then on the 1 ms tick hook posts message 8 every 1000 ms
+        (0x0801BCEE) while the state is 6, and the handler runs a 5-phase
+        counter: phases 0..3 power the PHY up, phase 4 powers it down, phase 5
+        wraps.  It never looks at the link.  Every power-up costs the switch a
+        full re-link -- its Clause 28 break_link_timer (1.2..1.5 s) from the
+        moment the link dropped, then auto-negotiation -- so of the 4 s "up"
+        window the port LED is lit only for what is left after 2..3 s, and on
+        a switch that takes longer than the window it is never lit at all;
+      * the handler does not check that the session is active either;
+      * APP_Flash_task mirrors the PHY link output (PB5) on the screen and the
+        RGB LED, waiting 150 ms before showing "on" and 800 ms before "off".
+
+    What this patch does:
+
+      1. Message 8 arrives every FLASH_TICK_MS (500 ms) instead of 1000.
+      2. The handler becomes a small state machine timed from the link itself
+         (flash_tick, in the cave; hook at 0x0801494C): only while the session
+         is active (flags[1] == 2) it waits for the link (PB5 high, the same
+         input the vendor's screen indicator uses), holds it for FLASH_ON_MS
+         from the tick that first saw it, then powers the PHY down for
+         FLASH_OFF_MS and waits for the link again.  What that gives on the
+         switch: the LED on for 1.5..2 s, fixed by the tester whatever the
+         switch, then off for the switch's own re-link time (break_link_timer
+         plus auto-negotiation, about 2..3 s; FLASH_OFF_MS only sets the
+         minimum), a regular cycle of roughly 4 s.  Not faster than stock's
+         5 s counter, but the same on every cycle and every switch, and a
+         slow switch no longer swallows the on time.  Elapsed time comes from
+         xTaskGetTickCount; a phase ends at the first tick at or beyond its
+         length minus half a tick, so scheduling jitter cannot add a whole
+         tick to a phase, and queued ticks cannot shorten one.  The phase byte
+         is stock's leng_led_phase (0x20000076: zero at boot, cleared when the
+         session stops), the timestamp lives in the RAM arena and is only
+         read after the phase byte says it was written.
+      3. The screen indicator clears 300 ms after the link drops instead of
+         800, so it follows the port LED.
+      4. The English note reads "Watch the port / LED on the switch: / it
+         blinks when linked" (stock: "Please note LED / It will start blinking
+         / when connection successful"); the Thai wording already says this.
+
+    The on / off figures above are what the code and the standard give, not
+    a measurement: PN 2.3 is the first build with this patch.  Verified in
+    verify.py section 22 (the state machine under emulation with a simulated
+    link and clock, the tick divisor, the hook, mod against stock).
+    """
+    from lpm10a.thumb import assemble
+    start = img.alloc_ram(4)                       # u32: ms at which the current phase began
+    syms = dict(
+        GET_STATE=0x0800F764 | 1, TICKS=0x0801C5B0 | 1, GPIO_READ=0x08015AF2 | 1,
+        PWR_DOWN=0x0801D178 | 1, FLAGS1=0x200002B5, PHASE=0x20000076, START=start,
+        GPIOB=0x40010C00, PIN5=0x20,
+        T_ON=FLASH_ON_MS - FLASH_TICK_MS // 2, T_OFF=FLASH_OFF_MS - FLASH_TICK_MS // 2,   # half-tick margin
+    )
+    tick = img.emit_code("""
+    flash_tick:                 ; net task message 8, every FLASH_TICK_MS while sysState == 6
+            push {r4, r5, r6, lr}
+            movs r0, #0
+            bl   GET_STATE
+            cmp  r0, #6
+            bne  ft_done
+            ldr  r0, =FLAGS1        ; test_busy_flags[1]: 2 = blink session active
+            ldrb r0, [r0]
+            cmp  r0, #2
+            bne  ft_done            ; initial link wait, or stopped: leave the PHY alone
+            ldr  r4, =PHASE         ; 0 wait for link, 1 link held, 2 link dropped
+            ldr  r5, =START
+            bl   TICKS
+            mov  r6, r0             ; now (ms)
+            ldrb r0, [r4]
+            cmp  r0, #2
+            beq  ft_dark
+            cmp  r0, #1
+            beq  ft_hold
+            movs r1, #PIN5          ; phase 0: is the link up?  (PB5, the PHY's link output)
+            ldr  r0, =GPIOB
+            bl   GPIO_READ
+            cmp  r0, #0
+            beq  ft_done            ; not yet: keep waiting, PHY powered
+            str  r6, [r5]           ; link seen: hold it from now
+            movs r0, #1
+            strb r0, [r4]
+            b    ft_done
+    ft_hold:
+            ldr  r1, [r5]
+            subs r0, r6, r1
+            movw r1, #T_ON          ; FLASH_ON_MS less half a tick: the third tick, jitter or not
+            cmp  r0, r1
+            blo  ft_done
+            movs r0, #1
+            bl   PWR_DOWN           ; drop the link
+            str  r6, [r5]
+            movs r0, #2
+            strb r0, [r4]
+            b    ft_done
+    ft_dark:
+            ldr  r1, [r5]
+            subs r0, r6, r1
+            movw r1, #T_OFF         ; FLASH_OFF_MS less half a tick: the next tick
+            cmp  r0, r1
+            blo  ft_done
+            movs r0, #0
+            bl   PWR_DOWN           ; power up: the link comes back once the switch re-negotiates
+            movs r0, #0
+            strb r0, [r4]           ; and wait for it
+    ft_done:
+            pop  {r4, r5, r6, pc}
+    """, extra_syms=syms, why="flash_tick: link-timed blink state machine")
+    img.flash = dict(tick=tick, start=start)
+
+    site = 0x0801494C                   # msg 8 handler: movs r0,#0; bl get_sysState -> bl flash_tick; b 0x08014992
+    img.poke(site, "0020 faf709ff", assemble(site, f"bl 0x{tick:08X}\n b 0x08014992"),
+             "net task msg 8 -> flash_tick (stock phase counter bypassed)")
+    # mov.w with a modified immediate is not in the SDK assembler: the two words are the T2
+    # encodings, checked against Capstone in verify.py section 22
+    assert FLASH_TICK_MS == 500
+    site = 0x0801BCEE                   # tick hook: mov.w r1,#1000 -> mov.w r1,#500 (msg 8 every FLASH_TICK_MS)
+    img.poke(site, "4ff47a71", bytes.fromhex("4ff4fa71"), f"FLASH tick 1000 ms -> {FLASH_TICK_MS} ms")
+    site = 0x0800DCA0                   # APP_Flash_task: mov.w r0,#800 -> mov.w r0,#300 before the indicator clears
+    img.poke(site, "4ff44870", bytes.fromhex("4ff49670"), "screen indicator off after 300 ms, not 800")
+    for addr, text in zip((0x0800DB48, 0x0800DB58, 0x0800DB70), FLASH_NOTE):
+        img.set_string(addr, text)
 
 
 # =====================================================================

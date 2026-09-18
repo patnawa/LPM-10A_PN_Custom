@@ -74,27 +74,26 @@ _ref_cache = {}
 def reference_image(without=("thai-ui",)):
     """The default PN build minus the given patches, as container bytes, built in memory
     from the stock image: the mock-up model needs the Chinese strings in place.  Patches
-    that put their code in the Thai patch's region (cable-back, length-blind-text) get a
-    stand-in region in flash beyond the image (0x08068000.., emulation only), so the
-    reference draws exactly what the real build draws in English."""
+    that would put their code in the Thai patch's region (cable-back, length-blind-text)
+    fall through to the cave, which grows past the end of the file as needed (the same
+    Image.extend() a real build uses), so the reference draws exactly what the real build
+    draws in English."""
+    return bytes(reference_build(without).data)
+
+
+def reference_build(without=("thai-ui",)):
+    """The Image object behind reference_image(): patches record what they placed where
+    (e.g. img.poe["live"], the PoE live-refresh RAM cell), which the scenarios need."""
     key = tuple(without)
     if key not in _ref_cache:
         from lpm10a.image import Image, require_stock
         import patches
         img = Image(require_stock(os.path.join(FW_DIR, "LPM-10A-TX_V2.0.7_260610.bin")))
-        extra = 0x800
-        img.data += b"\0" * extra
-        img.add_region("thai", APP + (len(img.data) - extra - img.payload_off), APP + (len(img.data) - img.payload_off))
         for p in patches.REGISTRY:
             if p.default and p.pid not in without:
                 p(img)
         img.finalize()
-        used = img.regions["thai"][2] - APP
-        if used > img.payload_len:                       # cover the stand-in region in the header
-            img.payload_len = used
-            struct.pack_into("<I", img.data, 0x24, img.payload_len)
-            struct.pack_into("<I", img.data, 0x28, img.payload_off + img.payload_len - 1)
-        _ref_cache[key] = bytes(img.data)
+        _ref_cache[key] = img
     return _ref_cache[key]
 
 
@@ -179,6 +178,7 @@ def ascii_font(payload):
 class Scene:
     def __init__(self, image=DEFAULT_IMAGE, lang=2, thai=None, ascii_thai=None, font=None, state=2,
                  pct=100, mv=4000, charging=0):
+        self.source = image                     # what this scene runs: "reference", a path, or bytes
         self.payload = load_payload(image)
         self.thai = thai                        # dict: decoded Chinese text -> Thai text (None = draw Chinese)
         self.ascii_thai = ascii_thai or {}      # dict: English-only string -> Thai (extra strings)
@@ -294,7 +294,8 @@ class Scene:
     # -- the hook -------------------------------------------------------------
     def hook(self, uc, addr, size, ud):
         if addr in self.at:
-            self.at[addr](uc)
+            if self.at[addr](uc):                   # True: the scenario handled the call itself
+                return
         if addr in STUB_RET0:
             self.ret(0); return
         if addr == 0x0801C5B0:                      # xTaskGetTickCount

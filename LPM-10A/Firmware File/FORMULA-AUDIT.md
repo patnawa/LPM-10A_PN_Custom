@@ -209,18 +209,90 @@ Not a physical formula; the constants are the vendor's tuning. **NOTE**
 
 Two comparator inputs (PA6, PA7 on GPIOA 0x40010800: both high → 3, PA6 only
 → 4, PA7 only → 6, both low → 8) give class code 3 / 4 / 6 / 8, mapped to
-IEEE 802.3af / at / bt / bt. The "Power Level" bar draws one segment per
-class step; there is no wattage arithmetic. **OK** for what it is.
+IEEE 802.3af / at / bt / bt. The "Power Level" row prints the code as
+"Class 3 / 4 / 6 / 8" (the top class of each type); there is no wattage
+arithmetic and, contrary to an earlier note here, no bar. **OK** for what it is.
 
 ### 3.4 Stability check — `poe_ring_is_stable` 0x08014C42 — **NOTE / OPEN**
 
-Scans the last 200 entries of a 2048-byte ring (each entry is `mV >> 8`) for max−min and
-returns "unstable" if the spread exceeds **40 000**. A byte spread can never
-exceed 255, so the function always returns "stable" and the `Flag=5` branch
-after it is dead code. The intended threshold is unknowable from the binary
-(40 000 would only make sense for mV data), so it is documented, not patched.
+Scans 200 entries of the 2048-byte sample ring (one byte per 10 ms tick, `mV >> 8`)
+for max−min and returns "unstable" if the spread exceeds **40 000**. A byte spread
+can never exceed 255, so the function always returns "stable" and the `Flag=5`
+branch after it (`DEVICE_TYPE_UNSTANDAR_1`) is dead code. The window is not even
+the last 200 samples: the caller (0x0801A11C) first walks back from the newest
+sample while entries are above 20 (5.1 V), so the window runs from 150 samples
+before the supply rose past 5 V to 50 after it. With the units made consistent
+(40 000 mV = 156 in ring units) every supply that rises from 0 to 48 V would be
+"unstable", so the vendor's intent cannot be recovered from the binary, and the
+check is documented, not patched. Non-standard supplies are still recognised by
+the other path (§3.5, `UNSTANDAR_2`).
+
+### 3.5 State machine and display — `poe_state_machine` 0x08019F00, GUI 0x13 / 0x14 handlers 0x08013270 / 0x08013620
+
+Read for PN 2.3. The PoE task receives message 1 every 10 ms (tick hook
+0x0801BD10, in every state but OFF / BOOT) and runs:
+
+```
+mv = poe_measure_mv()                ring[idx++ & 0x7FF] = mv >> 8
+mv < 2 V and std != 0                → "Votage low, reset buff": ring cleared, std = 0, timeout counter = 0
+span == 0                            → timeout counter++ ; at 350 (3.5 s): counter = 0xFFFF, GUI 0x14, LED blue
+4 V < mv < 40 V, nearflag == 0       → nearflag = mv >> 8, near timer = 0
+mv > 40 V and std != 2               → walk back to the last sample ≤ 5.1 V, poe_ring_is_stable() (always 1),
+                                       std = 2 (STANDAR), class = poe_class_detect(), proto 1 / 2 / 3
+nearflag != 0 and ++near timer > 100 → spread of the last 80 samples × 256 < mv / 4  → std = 1 (UNSTANDAR_2)
+                                       (the supply sat still between 4 and 40 V for a second: a passive injector)
+```
+
+`app_poe_set_standar(1|2)` posts task message 2 → `CheckPoESpan` (§3.2) → GUI
+0x14 and a green LED. The 0x14 handler (0x08013620) clears the voltage column,
+prints `mv / 10` as "XX.YV" on the two wires of the powered pair and "0.0V" on
+its return pair (span 5, both pair sets: each pair's own channel relative to
+the lowest, `(adc − min) × 3300 × 40 / 4096` mV, the §3.1 scale), clears the four result rows and
+prints Standard / Span / Protocol / Class; with standard 0 (the timeout) it
+returns before the rows.
+
+Two findings, both fixed in PN 2.3 (`poe-screen`): the voltage is drawn only
+when 0x14 is posted, i.e. from the sample a tick or two after the first one
+above 40 V, on the rising edge, and not refreshed while the screen is shown
+(the handler even loads poe_mv once per wire, so the two wires of a pair can
+disagree by a step); and the "no supply" timeout counter, parked at 0xFFFF once
+it has fired, is not re-armed when the screen is entered (0x08013270 draws the
+frame and, if a span is known, re-posts 0x14, nothing else), so after the first
+3.5 s of a power-on the screen simply stays blank without a supply. **NOTE**,
+fixed: a live refresh every 0.5 s (voltage column only, every wire from one
+latched sample block), the column cleared the moment the supply goes,
+"Detecting..." on entry, "No PoE" 3.5 s later, counter re-armed on every entry.
 
 ---
+
+### 3.6 FLASH (port blink) — `leng_enter_state` 0x08012EE4, `LENG_link_test` 0x0800D47C, net-task message 8 at 0x0801494C — **FIXED**
+
+Entering FLASH resets the PHY, advertises 10BASE-T only (`yt8531_set_1000M(0)`,
+`set_100M(0)`: the fastest-linking speed, a sound choice), shows "Testing" for
+half a second while the PHY is configured, then starts the blink session (the
+20 s wait for the link at 0x0800D5E0 is the SPEED screen's path). Stock then
+blinks by a counter: net-task message 8 every 1000 ms (0x0801BCEE), phases
+0..3 `yt8531_set_pwr_down(0)`, phase 4 `set_pwr_down(1)`, phase 5 wraps (and
+powers up twice); it never reads the link. Every power-down costs the switch its
+re-link: IEEE 802.3 Clause 28 keeps it in TRANSMIT DISABLE for break_link_timer
+(1.2–1.5 s) from the drop, then auto-negotiation, 2–3 s in all, taken out of the
+4 s "up" window, so the port LED is lit for what is left and, on a switch slower
+than the window, not at all. Mod (`flash-blink`): message 8 every 500 ms; the
+handler waits for the link (PB5, the PHY's link output that the screen
+indicator already uses), holds it `FLASH_ON_MS` = 1500 from the tick that saw
+it, drops it `FLASH_OFF_MS` = 500, waits again; elapsed time from
+`xTaskGetTickCount`, a phase ending at the first tick at or past its length
+less half a tick. On the switch: LED on 1.5–2 s (fixed by the tester), off for
+its own re-link (about 2–3 s, independent of `FLASH_OFF_MS`), a regular cycle
+of roughly 4 s. Figures from the code and the standard; PN 2.3 is unmeasured.
+Emulated in verify.py §22.
+
+### 3.7 Auto Off during FLASH — `autooff-hold` — **FIXED in PN 2.3, was wrong in PN 1.0–2.2**
+
+The hold routine compared the state with 8 (QC Test) instead of 6 (FLASH): the
+symbol table had the two swapped, and verify §4b tested state 8. So PN 1.0–2.2
+held Auto Off during a SCAN tone but not during a port blink. Corrected with
+the value from the symbol table; §4b tests 6 and checks 8 is not held.
 
 ## 4. Wiremap / continuity — `CNT_run_test` 0x0800BF40
 

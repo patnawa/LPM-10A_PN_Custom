@@ -9,7 +9,11 @@ experimental `blind-zone-50cm` build exists to collect raw readings for it, see
 `LPM-10A/Firmware File/experimental/README.md`. The Thai UI ([THAI-UI.md](THAI-UI.md))
 shipped as PN 2.0 and passed on the unit the same day, as did PN 2.1's two Cable Test
 fixes (Back to the mode selector, the error line above the button) and PN 2.2's `< 2 m`
-text for blind pairs.
+text for blind pairs. PN 2.3 (the PoE screen: live voltage, "Detecting..." / "No PoE",
+the timeout re-armed on every visit; FLASH: the port blink timed from the link, 1.5 s
+on time fixed by the tester instead of a 5 s counter that ignored the link; and the Auto Off
+hold during FLASH, which PN 1.0–2.2 keyed on the wrong state number, actually working) is
+built and emulation-verified, not yet flashed.
 
 ### Earlier: PN 1.0 first power-on
 
@@ -28,12 +32,12 @@ for each item, including "looks fine", because the negative results matter too:
 
 | what | why it matters |
 |---|---|
-| Bootloader accepts the file | the payload is 864 bytes longer than stock (it accepted PN 1.0's 528); a refusal means the bootloader checks length |
+| Bootloader accepts the file | since PN 2.3 the update file is one 4 KB page longer than stock (393 216 bytes; payload 0x5E188 instead of 0x5DC98) because the code cave grew past 0x08068000; every earlier PN build only lengthened the payload inside the stock file size. A refusal means the bootloader checks the file size, and the PoE code would then have to be squeezed back into the image |
 | About screen: `Software:PN 1.2` and the GitHub URL line | proves the string patches and both fonts in one look |
 | Length screen: `ZERO 0.0m` left of the Unit box, `NVP 69%` right of it, nothing overlaps | the positions came from the layout table, not from a photo |
 | UP/DOWN change the white value, OK long press swaps it, the four readings follow | proves the key hook, the GUI message and the live redraw |
 | Leave Length, come back, power-cycle: unit, NVP and Zero kept | proves the settings bytes survive the power-off flash write |
-| SCAN with tone on for longer than Auto Off; same for FLASH | proves the hold; **also confirm the receiver still finds the tone** |
+| SCAN with tone on for longer than Auto Off; same for FLASH | proves the hold; **also confirm the receiver still finds the tone**. The FLASH half only works from PN 2.3 on (earlier builds compared state 8, QC Test, instead of 6), so it was never really tested |
 | Chinese mode: every screen readable, no clipped glyphs | dense glyphs (置 量 模) are the ones to look at |
 | Battery icon shows intermediate steps while discharging | proves the 10-step gauge in the real drawing path |
 | Ten quick settings changes in a row, unit stays responsive | proves the heap fix under the real allocator |
@@ -72,10 +76,22 @@ Ranked by value against risk. All are byte patches in the same style as PN 1.x.
    more than "done"; if it carries open/short per pair (as Marvell-style VCT does), the
    screen can show "1-2 open 12.3 m" instead of a bare distance. Needs the register
    bits confirmed on hardware with a deliberately cut cable.
-3. **PoE voltage as a number.** The firmware already measures PoE in millivolts
-   (`poe_measure_mv`) but only draws a class bar. Drawing "48.2 V" next to it is a
-   small, verifiable change. Also fix the dead "unstable supply" check, whose
-   threshold is impossible (40 000 against byte data).
+3. ~~PoE voltage as a number~~ Done in PN 2.3, after a correction of the record: this
+   item claimed stock "only draws a class bar", which was wrong. Stock already prints
+   the voltage as "48.2V" on the two wires of the powered pair (0.1 V, from
+   `poe_mv`) and "Class 3 / 4 / 6 / 8" in the Power Level row; there is no bar. What
+   stock actually lacked, found by reading the 0x14 handler and the PoE state machine
+   (`FORMULA-AUDIT.md` §3.5): the voltage is drawn once, from the first 10 ms sample
+   above 40 V (the rising edge), and not refreshed while the screen is shown; with no supply the screen stays
+   blank forever, because the 3.5 s "no PoE" timeout is parked after it fires once
+   (3.5 s after boot, usually) and is never re-armed on entering the screen. PN 2.3
+   refreshes the voltage every 0.5 s while a supply is present, writes "Detecting..."
+   on entry and "No PoE" after 3.5 s without one, every time. Needs the hardware
+   pass: a PoE switch (802.3af/at/bt) and, if available, a passive injector.
+   The dead "unstable supply" check stays as documented: the vendor's intent cannot be
+   recovered from the binary (the window it examines is 150 samples before the rise
+   and 50 after, which would flag every supply once the units were made consistent),
+   and making it live could only change classifications that work today.
 4. ~~Average CSD runs~~ Done in PN 1.2: four runs averaged per pair, every test.
    Confirm on hardware that repeated tests of one cable now agree to about ±0.15 m
    at 14 m and that the longer test time is acceptable; `AVG_RUNS` in `patches.py`
@@ -105,8 +121,11 @@ The probe firmware has its own audit in [`RX-AUDIT.md`](RX-AUDIT.md) and its own
 toolkit (`LPM-10A/Firmware File/rx-sdk`). The uncancellable low-battery shutdown is
 fixed in `APP_LPM-10RX_PN1.0.bin`; the exact-match tone decoder (whose 5 ms sample is
 0.94 % shorter than the transmitter's slot by construction) and the missing strength
-grading in digital mode are the next body of work after the transmitter is validated. Before any receiver flash: find out how the
-probe enters its update mode and confirm the way back to stock.
+grading in digital mode are the next body of work after the transmitter is validated.
+Update mode confirmed 2026-09-18 (probe off, hold SCAN, plug USB → "UDISK" drive); the
+probe runs V3.0.1, newer than the V3.0.0 in the package, so the PN 1.0 receiver build is a
+downgrade with no way back and stays unflashed. Next steps: read whatever the drive exposes
+(a 3.0.1 image would be the way back), or obtain 3.0.1 from FNIRSI, then re-audit on 3.0.1.
 
 ## 6. Not planned
 

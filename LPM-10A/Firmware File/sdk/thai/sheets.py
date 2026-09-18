@@ -28,7 +28,7 @@ THAI_TITLE = {
     "length_timeout": "วัดความยาว: หมดเวลา",
     "qc_test": "ทดสอบเข้าหัว", "qc_test_uncalibrated": "ทดสอบเข้าหัว: ยังไม่ปรับเทียบ",
     "speed_idle": "ความเร็ว: พร้อม", "speed_testing": "ความเร็ว: กำลังทดสอบ", "speed_result": "ความเร็ว: ผล",
-    "speed_timeout": "ความเร็ว: หมดเวลาเชื่อมต่อ", "poe": "ทดสอบ PoE", "settings": "ตั้งค่า", "about": "เกี่ยวกับ",
+    "speed_timeout": "ความเร็ว: หมดเวลาเชื่อมต่อ", "poe_detecting": "ทดสอบ PoE: กำลังตรวจหา", "poe": "ทดสอบ PoE: 802.3at, 48.2 V", "poe_none": "ทดสอบ PoE: ไม่พบ", "settings": "ตั้งค่า", "about": "เกี่ยวกับ",
     "factory_reset": "คืนค่าโรงงาน", "lowbatt": "แบตเตอรี่ต่ำ",
 }
 

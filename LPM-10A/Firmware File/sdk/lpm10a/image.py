@@ -15,6 +15,13 @@ stock payload and the end of the final 2 KB flash sector.  Those bytes are
 already inside the sector the bootloader must erase to write the end of the
 payload, so extending payload_len into them does not touch any sector the
 bootloader would otherwise leave alone.
+
+When the cave is exhausted it grows: the container gets another EXTEND_PAGE
+(4 KB, the unit the vendor's own file is padded to) of zeros appended and
+payload_len covers whatever of it is used.  The header has no size field
+beyond payload_len / payload_end, so a longer payload is the same mechanism
+the PN builds have always used, just past 0x08068000.  Every build that grew
+says so in its summary, and verify.py section 1 reports it.
 """
 import struct
 import hashlib
@@ -38,6 +45,7 @@ or point the LPM10A_STOCK environment variable at it.
 sha256 must be 29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b"""
 
 ORIGINALS_DIR = "LPM-10A_FNIRSI_originals"      # sibling of the repository root
+EXTEND_PAGE = 0x1000                            # the cave grows by this much at a time (vendor pads to 4 KB)
 
 
 def require_stock(path):
@@ -80,6 +88,9 @@ class Image:
         self.cave_ptr = self.cave_start
         if any(self.data[self.f(self.cave_start):self.f(self.cave_end)]):
             raise PatchError("cave is not empty -- refusing to allocate")
+
+        self.extended = 0                                      # bytes appended by extend()
+        self.extendable = True                                 # alloc_code may grow the file
 
         self.log = []
         self.syms = S.asm_symbols()
@@ -145,13 +156,40 @@ class Image:
         return addr
 
     # ---------------------------------------------------------- allocation
+    @property
+    def file_end(self):
+        """Flash address just past the container's last byte."""
+        return S.APP_BASE + len(self.data) - self.payload_off
+
+    def extend(self, n=EXTEND_PAGE):
+        """Append n zero bytes (whole 4 KB pages, the vendor's padding unit) to the
+        container and give them to the cave.  Never past the bootloader's own pages."""
+        if n <= 0 or n % EXTEND_PAGE:
+            raise PatchError(f"extend: {n} is not a whole number of {EXTEND_PAGE // 1024} KB pages")
+        if self.cave_end != self.file_end:
+            raise PatchError("extend: the cave does not reach the end of the file")
+        if self.cave_end + n > S.CONSTS["BOOTFLAG_PAGE"]:
+            raise PatchError("extend: would reach the bootloader's flag / settings pages")
+        if any(self.data[self.f(self.cave_ptr):]):
+            raise PatchError("extend: unallocated cave bytes are not zero")
+        self.data += b"\0" * n
+        self.cave_end += n
+        self.extended += n
+        self.log.append((self.cave_end - n, b"", b"", f"container extended by {n} bytes (file +{n // 1024} KB)", "note"))
+        return self.cave_end
+
+    def cave_left(self):
+        return self.cave_end - self.cave_ptr
+
     def alloc_code(self, size, align=4):
         self.cave_ptr = (self.cave_ptr + align - 1) & ~(align - 1)
-        if self.cave_ptr + size > self.cave_end:
-            raise PatchError(
-                f"code cave exhausted: need {size} bytes, "
-                f"{self.cave_end - self.cave_ptr} left"
-            )
+        while self.cave_ptr + size > self.cave_end:
+            if not self.extendable:
+                raise PatchError(
+                    f"code cave exhausted: need {size} bytes, "
+                    f"{self.cave_end - self.cave_ptr} left"
+                )
+            self.extend()
         addr = self.cave_ptr
         self.cave_ptr += size
         return addr
@@ -251,7 +289,9 @@ class Image:
 
     # ---------------------------------------------------------- reporting
     def diff_offsets(self):
-        return [i for i in range(len(self.data)) if self.data[i] != self.original[i]]
+        n = len(self.original)
+        return ([i for i in range(n) if self.data[i] != self.original[i]]
+                + [i for i in range(n, len(self.data)) if self.data[i]])     # appended: non-zero bytes count
 
     def summary(self):
         d = self.diff_offsets()
@@ -260,7 +300,8 @@ class Image:
             f"payload len     : 0x{self.orig_payload_len:X} -> 0x{self.payload_len:X}"
             + ("  (extended into cave)" if self.payload_len != self.orig_payload_len else ""),
             f"cave            : 0x{self.cave_start:08X}..0x{self.cave_end:08X} "
-            f"({self.cave_end - self.cave_start} bytes, {self.cave_ptr - self.cave_start} used)",
+            f"({self.cave_end - self.cave_start} bytes, {self.cave_ptr - self.cave_start} used)"
+            + (f"  [file extended by {self.extended // 1024} KB]" if self.extended else ""),
             f"bytes changed   : {len(d)}",
         ]
         return "\n".join(lines)

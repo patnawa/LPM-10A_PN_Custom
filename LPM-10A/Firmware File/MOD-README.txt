@@ -1,29 +1,45 @@
 ================================================================
- LPM-10A PN Custom firmware  PN 2.2   (UNOFFICIAL build)
+ LPM-10A PN Custom firmware  PN 2.3   (UNOFFICIAL build)
 ================================================================
 
-File      : LPM-10A-TX_PN2.2.bin
-Version   : PN 2.2  (Settings > About shows "Software:PN 2.2")
+File      : LPM-10A-TX_PN2.3.bin
+Version   : PN 2.3  (Settings > About shows "Software:PN 2.3")
 Built from: LPM-10A-TX_V2.0.7_260610.bin  (official FNIRSI V2.0.7)
             sha256 29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b
-Result    : sha256 94f1b15e8b331dd38d5576734661a1337711df493983146868d6d98a380b88c7
-Size      : 389120 bytes (identical to stock)
-Changed   : 8016 bytes differ from stock: the three font tables
+Result    : sha256 4bca1773fb2060927fbb75e23ccfe481a9e522aef42819659523ad99c385e476
+Size      : 393216 bytes = stock + one 4 KB flash page (see below)
+Changed   : 8479 bytes differ from stock: the three font tables
             (8132 bytes, rewritten in place; the Chinese table now
             holds 118 Thai cells and, in its 53 unused slots, the Thai
-            strings and drawers), 864 bytes of new code in the unused
-            tail of the last flash sector (payload_len in the header
-            grows by 864), 114 in the dead body of the stock
-            length_convert (reused as code), 4 in the header length
-            fields, and the hooks, string stubs and strings.
-            The image name stored inside the file
-            is left as stock because the bootloader checks it.
+            strings and drawers), 1272 bytes of new code in the unused
+            tail of the last flash sector and the appended page
+            (payload_len in the header grows by 1272), 114 in the dead
+            body of the stock length_convert (reused as code), 4 in
+            the header length fields, and the hooks, string stubs and
+            strings.  The image name stored inside the file is left
+            as stock because the bootloader checks it.
+
+            The file is longer than stock for the first time: the
+            872-byte code tail was full, so the build appends one
+            4 KB page of zeros (the unit FNIRSI's own file is padded
+            to) and uses 400 bytes of it (the PoE and FLASH code).
+            The header has no size field beyond the payload length
+            every PN build has already changed, so the bootloader is
+            expected to accept it, but that is unconfirmed until the
+            first flash.  If it refuses the file, say so: PN 2.2
+            flashes as before.  If it takes the file but the new page
+            is not programmed right, the tester will not boot (the
+            watchdog keeps restarting it: the page holds code the PoE
+            task calls every 10 ms), not a PoE symptom; the update
+            screen is in the untouched bootloader, so M + Power and
+            PN 2.2 or FNIRSI's file bring it back.
 
 NOT AN OFFICIAL FNIRSI RELEASE.  Verified by disassembly and CPU
-emulation (sdk/verify.py, 184 checks).  PN 2.2 was flashed to a real
+emulation (sdk/verify.py, 231 checks).  PN 2.2 was flashed to a real
 unit on 2026-09-18 and every function was tested there, the Thai
-interface, the Cable Test fixes and the blind-pair text included.
-Use at your own risk.  Rebuild or audit it yourself with sdk/.
+interface, the Cable Test fixes and the blind-pair text included;
+PN 2.3's PoE screen changes are emulation-verified and await their
+flash.  Use at your own risk.  Rebuild or audit it yourself with sdk/.
 
 This file only updates the transmitter.  A separate receiver build,
 APP_LPM-10RX_PN1.0.bin (see RX-README.txt), exists but must not be
@@ -35,8 +51,53 @@ Every measurement formula in the firmware was traced and checked;
 see FORMULA-AUDIT.md for the full list with verdicts.
 
 ----------------------------------------------------------------
- CHANGES  (PN 2.2, 2.1, 2.0, 1.3, 1.2, 1.1: 2026-09-18; PN 1.0 2026-09-17)
+ CHANGES  (PN 2.3, 2.2, 2.1, 2.0, 1.3, 1.2, 1.1: 2026-09-18; PN 1.0 2026-09-17)
 ----------------------------------------------------------------
+
+[CHANGED] FLASH (port blink): a regular blink timed from the link (PN 2.3).
+        Stock powered the PHY up for 4 s and down for 1 s on a fixed
+        counter that never looked at the link.  Every power-down costs
+        the switch its re-link (its break_link_timer of 1.2..1.5 s,
+        then auto-negotiation: 2..3 s in all), taken out of the 4 s
+        window, so the port LED was lit for whatever was left, and on
+        a slow switch not at all.  Now the tester waits for the link,
+        holds it 1.5 s from the tick that saw it, drops it and waits
+        for it again: the LED on 1.5..2 s every cycle whatever the
+        switch, off for the switch's own re-link (about 2..3 s), a
+        regular cycle of roughly 4 s.  Not faster than stock, but the
+        same every time.  These figures come from the code and the
+        standard, not from a measurement yet.  The green dot on the
+        screen follows within 0.3 s (was 0.8), and the note reads
+        "Watch the port / LED on the switch: / it blinks when linked".
+        Stock's 10BASE-T only negotiation (the fastest-linking speed)
+        is kept.
+
+[FIXED]   Auto Off is now really held during a FLASH blink (PN 2.3).
+        PN 1.0 .. 2.2 compared the screen state with 8, which is the
+        QC Test screen, not FLASH (6): the symbol table had the two
+        swapped, so the hold worked for the SCAN tone only and a port
+        blink left running still switched the unit off at 5 / 10 / 15
+        min, contrary to what these notes said.  Found by the review
+        of the FLASH change; verify.py now tests the right state and
+        checks that QC Test is not held.
+
+[FIXED]   PoE screen: live voltage, "Detecting...", "No PoE" (PN 2.3).
+        Stock drew the pair voltage once per detection, from the
+        sample a tick or two after the first one above 40 V (the
+        rising edge), and not again while the screen was shown; and with no
+        supply the screen stayed blank, because its 3.5 s "no PoE"
+        timeout fires once per power-on (usually before the screen
+        is opened) and was never re-armed.  Now the voltage column
+        is redrawn every 0.5 s while a supply is present (the result
+        rows are not touched, so nothing blinks; every wire of a
+        redraw shows one latched sample, so the two wires of a pair
+        always agree), it clears the moment the supply goes, the Standard row
+        says "Detecting..." on entry and "No PoE" after 3.5 s without
+        a supply, every visit (Thai: "กำลังตรวจหา..." / "ไม่พบ PoE"),
+        and the value reads "Yes" / "No" instead of "Standar" /
+        "UnStandar".  Measurement and classification are unchanged.
+        Correction to earlier notes: stock did print the voltage as
+        a number ("48.2V"); there never was a bar.
 
 [CHANGED] Length: a pair the PHY could not time reads "< 2 m" (PN 2.2).
         The cable diagnostic cannot time an echo from inside its
@@ -78,7 +139,7 @@ see FORMULA-AUDIT.md for the full list with verdicts.
         a Factory Reset; PN 1.x skipped it, which left a factory-reset
         unit in Chinese.  docs/THAI-UI.md shows every screen.
 
-[CHANGED] Version reported as PN 2.2.
+[CHANGED] Version reported as PN 2.3.
 
 [CHANGED] SCAN modes named by what they transmit (PN 1.3).
         "Noiseless" ("Silent" since PN 1.0) is now "Digital": the
@@ -134,7 +195,8 @@ see FORMULA-AUDIT.md for the full list with verdicts.
         port-blink was running, so with Auto Off at 5 / 10 / 15 min
         the tester powered itself down mid-trace.  The timer is now
         held, and restarted, while a tone or blink session is active.
-        Everywhere else Auto Off behaves exactly as stock.
+        Everywhere else Auto Off behaves exactly as stock.  (The blink
+        half only works from PN 2.3, see above.)
 
         Correction: mod 1 claimed stock never reset Auto Off on key
         presses.  That was wrong - stock does, on every key event -
@@ -202,7 +264,9 @@ From mod 1:
 
   * Cables under 2 m read "Out of range" (PHY blind zone).
   * PoE "unstable supply" check compares byte data with 40000 and
-    can never trigger (dead code; intended threshold unknown).
+    can never trigger (dead code; the window it looks at would flag
+    every supply once the units were consistent, so the intent is
+    not recoverable).
   * FreeRTOS task-level queue calls made from interrupt handlers
     (likely cause of rare lockups / unexpected shutdowns).
   * TIM2 interrupt above configMAX_SYSCALL_INTERRUPT_PRIORITY.
@@ -219,7 +283,7 @@ From mod 1:
   1. Power the tester off.
   2. Hold M + Power until the firmware update screen appears.
   3. Connect USB-C; a removable drive appears.
-  4. Copy LPM-10A-TX_PN2.2.bin onto that drive.
+  4. Copy LPM-10A-TX_PN2.3.bin onto that drive.
   5. Do NOT unplug during the update.
   6. Long-press Power to shut down, then power on normally.
 
@@ -230,7 +294,27 @@ From mod 1:
 
   Checked on a real unit up to PN 2.2 (2026-09-18): the bootloader
   accepted the file under its own name; every item below passed, and
-  Zero 0.4 m / NVP 68 % read a 2.9 m cable right.
+  Zero 0.4 m / NVP 68 % read a 2.9 m cable right.  New in PN 2.3,
+  not yet checked:
+    - The bootloader accepts the 4 KB longer file.
+    - PoE screen without a cable: "Detecting..." in the Standard row,
+      then "No PoE" and a blue LED after about 3.5 s; leave and
+      re-enter: the same again (stock stayed blank).
+    - PoE screen on a PoE switch port: the result within a second or
+      two (Standard : Yes, END or MID, IEEE 802.3AF/AT/BT, Class
+      3/4/6/8), the two powered wires reading e.g. 48.2V and updating
+      every half second, the return pair 0.0V, the result rows steady,
+      both wires of the pair always the same.  Unplug: "No PoE" at once.
+    - A passive 12 / 24 V injector, if available: Standard : No,
+      "--" for protocol and class.
+    - FLASH on a switch port: after "Testing", the note "Watch the
+      port / LED on the switch: / it blinks when linked"; the port's
+      link LED on about 1.5..2 s, then off about 2..3 s while the
+      switch re-links, the same on time every cycle; note the times
+      you see (gigabit and 100 Mb switch if both are at hand).  On a
+      managed switch the LED may show amber (spanning tree).
+    - FLASH left blinking for longer than Auto Off: the unit stays on
+      (PN 1.0 .. 2.2 held Auto Off in SCAN only).
     - A 1 m cable reads "< 2 m" on the blind pairs (or "Out of
       range" when all four are blind), never "0.0 m".
     - Cable Test: Back returns to the Switch / Far end choice from

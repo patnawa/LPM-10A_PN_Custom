@@ -13,19 +13,23 @@ NOT AN OFFICIAL FNIRSI RELEASE.  Verified by disassembly and CPU
 emulation (rx-sdk/verify.py, 25 checks); NOT tested on hardware.
 FNIRSI's own files are not distributed with this build.
 
-!! THE RECEIVER FLASHING PROCEDURE HAS NOT BEEN CONFIRMED HERE.  Do
-!! not flash this until the update mode and the way back to stock are
-!! confirmed on a real probe.  The stock file is the only recovery.
+!! DO NOT FLASH THIS BUILD.  Two things are known since 2026-09-18:
 !!
-!! Reported procedure (from the internet, 2026-09-18, unverified):
-!!   probe powered off -> hold SCAN and plug in the USB cable -> the
-!!   probe appears as a USB drive -> copy the receiver .bin onto it
-!!   -> unplug -> it updates.
-!! If you want to establish it, do it with FNIRSI's OWN stock file
-!! first (APP_LPM-10RX_V3.0.0_260416.bin from the official package):
-!! that proves both the entry into update mode and the way back
-!! without risking anything.  The bootloader may also insist on the
-!! stock file name, as the transmitter's does.
+!! 1. The update mode exists and is entered as reported: probe
+!!    powered off -> hold SCAN and plug in the USB cable -> the probe
+!!    shows up as a USB drive ("UDISK", firmware upgrade mode).
+!!    Confirmed on a real probe.  What the drive holds, whether the
+!!    write itself works and whether the file name matters are still
+!!    unconfirmed: nothing has been copied onto it.
+!! 2. That probe runs V3.0.1 (the drive carries a "3.0.1" text
+!!    file), newer than the V3.0.0 image in FNIRSI's LPM-10A V2.0.7
+!!    package that this build was patched from.  Flashing this build
+!!    would DOWNGRADE the probe with no 3.0.1 file to return to, and
+!!    the patch offsets were taken from 3.0.0.
+!!
+!! Until a V3.0.1 file is in hand (read from the drive if the
+!! bootloader exposes it, or from FNIRSI), the probe stays on its
+!! own firmware.  Any future receiver work starts from 3.0.1.
 !!
 !! Is it worth it?  Not really: this build changes only the
 !! low-battery shutdown of the probe.  Every PN transmitter firmware

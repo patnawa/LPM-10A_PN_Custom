@@ -2,7 +2,7 @@
 
 > **Status: shipped in PN 2.0, passed on a real unit on 2026-09-18, every screen (PN 2.1 too).**
 > The pictures below are what the firmware draws: `verify.py` §19 runs the built image's
-> own drawing code through the real GUI dispatcher for 57 screen states and compares the
+> own drawing code through the real GUI dispatcher for 61 screen states and compares the
 > pixels with this design; it also proves the English screens are pixel-identical to the
 > same build without the Thai patch (i.e. the patch changes nothing in English).
 
@@ -20,7 +20,7 @@ Screen by screen, English / Chinese (stock strings) / Thai (PN 2.0):
 <img src="img/thai/thai_screens_1.png" alt="Thai mock-ups, sheet 1: language picker, home, cable test" width="1000">
 <img src="img/thai/thai_screens_2.png" alt="Thai mock-ups, sheet 2: scan, flash, length" width="1000">
 <img src="img/thai/thai_screens_3.png" alt="Thai mock-ups, sheet 3: length results, QC test, speed" width="1000">
-<img src="img/thai/thai_screens_4.png" alt="Thai mock-ups, sheet 4: speed timeout, PoE, settings, about, factory reset, low battery" width="1000">
+<img src="img/thai/thai_screens_4.png" alt="Thai mock-ups, sheet 4: speed timeout, PoE (detecting, a result, no supply), settings, about, factory reset, low battery" width="1000">
 
 ### The font
 
@@ -68,8 +68,10 @@ centred; "left" means it starts at the same pixel as the Chinese one.
 | | Full-duplex / Half-duplex | 全双工 / 半双工 | ฟูลดูเพล็กซ์ / ฮาล์ฟดูเพล็กซ์ | centred |
 | | Error!! | (English only) | ผิดพลาด!! | hook, left |
 | POE | Standard / Span Type / Protocol / Power Level | 交换机标准 / 供电方式 / 标准协议 / 功率等级 | ประเภท / รูปแบบจ่ายไฟ / โปรโตคอล / ระดับกำลัง | left |
-| | Standard / Non-standard | 标准 / 非标准 | มาตรฐาน / ไม่มาตรฐาน | left |
+| | Yes / No (standard supply; "Standar" / "UnStandar" in stock) | 标准 / 非标准 | มาตรฐาน / ไม่มาตรฐาน | left |
 | | END / MID | 末端跨接 / 中间跨接 | End-span / Mid-span | left |
+| | Detecting... (PN 2.3, on entry) | (none) | กำลังตรวจหา... | hook, left |
+| | No PoE (PN 2.3, 3.5 s without a supply) | (none) | ไม่พบ PoE | hook, left |
 | Settings | Language / Light / Volume / Auto Off / About | 语言 / 亮度 / 音量 / 自动关机 / 关于 | ภาษา / ความสว่าง / เสียง / ปิดอัตโนมัติ / เกี่ยวกับ | left |
 | | English (current language) | 中文 | ไทย | centred |
 | | OFF / 5min / 10min / 15min | OFF / 5分钟 / 10分钟 / 15分钟 | ปิด / 5 นาที / 10 นาที / 15 นาที | centred (ปิด through the hook) |
@@ -120,14 +122,16 @@ adversarially before release (like every PN change).
    first-boot picker (English / ไทย) is shown again on a fresh unit and after a
    Factory Reset (PN 1.x skipped it, which left a factory-reset unit in Chinese).
 6. **A hook on `gui_blit`** (the ASCII text drawer) that, only while the language is
-   Thai, replaces the four messages stock had in English alone ("Result error!!",
-   "Test timeout!!", "Error!!", "OFF") and moves the "…" animation; every other
-   string falls through untouched.
+   Thai, replaces the messages that exist in English alone ("Result error!!",
+   "Test timeout!!", "Error!!", "OFF", and since PN 2.3 the PoE screen's
+   "Detecting..." / "No PoE") and moves the "…" animation; every other string falls
+   through untouched. The table (`wording.py` ASCII_TH) is matched by content, so a
+   later patch only has to add its English string there to get the Thai one drawn.
 7. **Verification** (`verify.py` §19, 15 checks): the cell table in the image is the
    shipped one and every cell renders through the stock glyph drawer as designed; all 64
    stubs resolve to this wording; the routines are byte-identical to their assembled
    sources and the three jumps are in place; the hook table matches `wording.py`; the
-   drawer unit test; then every one of 57 screen states drawn by the built firmware in
+   drawer unit test; then every one of 61 screen states drawn by the built firmware in
    Thai is pixel-identical to the model (a build without the Thai patch with the Chinese
    drawers intercepted and the Thai text drawn from the same cells), every state in
    English is pixel-identical to that build, and every Thai string is drawn at least

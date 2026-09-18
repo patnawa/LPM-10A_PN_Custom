@@ -43,7 +43,7 @@ needs `uharfbuzz`.
 python test_thumb.py            # assembler self-test
 python build.py --list          # what patches exist
 python build.py                 # dry run: prints every byte it would change
-python build.py --write         # emit LPM-10A-TX_PN2.2.bin
+python build.py --write         # emit LPM-10A-TX_PN2.3.bin
 python verify.py                # prove the result is what was intended
 ```
 
@@ -89,7 +89,18 @@ file will be flashed as-is. That is why `verify.py` exists.
 * **Code cave** — 872 bytes at `0x08067C98`, the zero tail between the end of
   the payload and the end of its 2 KB flash sector. Because it is inside a
   sector the bootloader must already erase, extending `payload_len` into it
-  does not touch any sector that would otherwise be left alone.
+  does not touch any sector that would otherwise be left alone. **When it is
+  exhausted it grows** (`Image.extend()`, called by `alloc_code`): the
+  container gets another 4 KB page of zeros appended (the unit the vendor's
+  own file is padded to) and `payload_len` covers whatever of it is used.
+  The header has nothing but the two length fields, so this is the same
+  mechanism every PN build has used, now past `0x08068000`; the build summary
+  says `[file extended by 4 KB]` and `verify.py` §1 reports the size. PN 2.3
+  is the first build that needed it (393 216 bytes, payload `0x5E188`); until
+  its hardware pass, a bootloader that checks the file size is the one risk.
+* **Thai region** — the 53 glyph slots the Thai cell table does not use
+  (`0x08067248..0x080678C8`, 1696 bytes), owned by `thai-ui`; its strings,
+  tables and the three routines live there (4 bytes left).
 * **RAM arena** — `0x2000F000`, above the stack top (`0x2000E888`); nothing in
   the stock firmware references RAM above that. It is **outside the ZI region,
   so it is not zero-initialised** — which makes it the right place for a crash
@@ -135,7 +146,7 @@ The assembler rejects anything it does not recognise rather than guessing, and
 
 | id | risk | group | what |
 |---|---|---|---|
-| `autooff-hold` | low | bugfix | Auto Off is held (and restarted) while a SCAN tone or FLASH blink session is running; stock already resets it on every key event |
+| `autooff-hold` | low | bugfix | Auto Off is held (and restarted) while a SCAN tone or FLASH blink session is running; stock already resets it on every key event. PN 1.0–2.2 compared the FLASH state with 8 (QC Test) instead of 6, so only the SCAN half worked; fixed in PN 2.3, the value now comes from `symbols.STATES` |
 | `boot-english` | low | english | Factory defaults come up in English with no language picker (off by default since PN 2.0: the Thai build keeps the English / ไทย picker) |
 | `english-strings` | safe | english | Corrects the machine-translated UI text |
 | `length-decimal` | low | measure | Length in **m / cm / ft with one decimal**, Zero- and NVP-corrected; the unit is remembered (stock: whole metres, inches, and cm forced on every screen entry) |
@@ -146,13 +157,15 @@ The assembler rejects anything it does not recognise rather than guessing, and
 | `batt-gauge` | low | ux | 10-step Li-ion battery gauge instead of 4 steps |
 | `settings-leak` | low | bugfix | Frees the 204-byte buffer leaked by every settings save |
 | `font-pro` | low | ux | Replaces all three fonts: 8x16 and 6x12 ASCII (Ubuntu Sans Mono) and the 171 Chinese glyphs (Droid Sans Fallback; superseded by the Thai cells when `thai-ui` is on) |
-| `version-string` | safe | identity | About screen and boot log report `PN 2.2` (edit `VERSION` in patches.py, 7 characters max) |
+| `version-string` | safe | identity | About screen and boot log report `PN 2.3` (edit `VERSION` in patches.py, 7 characters max) |
 | `length-blind-text` | low | measure | A pair the PHY could not time prints `< 2` / `< 200` / `< 7` (m / cm / ft) instead of `0.0`; the formatter is a copy of length-decimal's with the zero case, in the Thai region |
 | `cable-back` | low | ux | Cable Test: Back returns to the Switch / Far end selector from the armed and result screens (stock left the screen); code lives in the Thai region |
 | `cable-error-visible` | low | ux | Cable Test: the red "Result error!!" line moves above the Test Retry button (stock drew the button over it); the button moves 9 px down |
 | `scan-labels` | safe | identity | SCAN screen modes labelled `Digital` (0xB6B6 coded pattern) and `825 Hz` (keyed tone) instead of `Noiseless` / `Normal` |
 | `about-url` | safe | identity | About screen shows `github.com/patnawa/LPM-10A_PN_Custom` (string in the cave, 6x12 font, 216 px) where the vendor site was; edit `REPO_URL` in patches.py, 36 characters max |
-| `thai-ui` | low | thai | **The second language is Thai**: 118 Sarabun cells in the glyph table, proportional drawers with the stock signatures, every Chinese string slot a redirect stub to its Thai text, a `gui_blit` hook for the four English-only messages, the About labels 14 px left, YES / NO as whole-word cells. English untouched. See `thai/` and `docs/THAI-UI.md` |
+| `thai-ui` | low | thai | **The second language is Thai**: 118 Sarabun cells in the glyph table, proportional drawers with the stock signatures, every Chinese string slot a redirect stub to its Thai text, a `gui_blit` hook for the six English-only messages (`wording.py` ASCII_TH), the About labels 14 px left, YES / NO as whole-word cells. English untouched. See `thai/` and `docs/THAI-UI.md` |
+| `flash-blink` | low | flash | FLASH: the port LED blinks with a **fixed 1.5–2 s on time, timed from the link** (PB5), off for the switch's own re-link (about 2–3 s), a regular ~4 s cycle, instead of stock's 4 s up / 1 s down counter that ignored the link and lost the switch's 2–3 s re-link out of every "up" window; message 8 every 500 ms, phases end at the first tick past their length less half a tick, the screen indicator clears after 300 ms, the note reads "Watch the port / LED on the switch: / it blinks when linked". `FLASH_ON_MS` / `FLASH_OFF_MS` in patches.py; the cadence figures are from the standard, unmeasured until the first flash |
+| `poe-screen` | low | poe | PoE screen: the voltage column is **refreshed every 0.5 s** while a supply is present (stock drew it once per detection, from the sample just after the first one above 40 V, and not again while the screen was shown), every wire from one latched sample, cleared the moment the supply goes; **"Detecting..."** on entry and **"No PoE"** 3.5 s later without a supply (stock: blank, and its timeout only ever fired once per power-on because the counter was never re-armed). Five hooks and three literal-pool words, code in the cave, which grew the file by 4 KB |
 | `batt-grace` | low | tuning | Low-battery shutdown grace 30 s → 60 s (off by default) |
 
 `risk=untested` patches are excluded unless you pass `--all`; they are things
@@ -160,7 +173,8 @@ that look right on paper but need a real device to confirm. Everything else
 is verified by emulation; the PN 1.0 set has also passed the first-power-on
 checklist on a real unit (2026-09-18), PN 1.3 passed every function there and so did
 PN 2.0 with the Thai interface, PN 2.1 with the two Cable Test fixes and PN 2.2 with
-the blind-pair text. `english-only` was dropped: the
+the blind-pair text; PN 2.3 (the PoE screen) is verified by emulation and awaits its
+flash. `english-only` was dropped: the
 string it blanked was a log message, not the menu entry.
 
 The reasoning behind each measurement change, and the formulas that were
@@ -175,7 +189,7 @@ fresh in-memory build. Sections 4–18 execute the code:
 
 | § | check | how |
 |---|---|---|
-| 4 | auto-off | a key event through `Action_key_Process` resets the counter on stock too (the corrected claim); the 1 s housekeeping holds in SCAN/FLASH only while the session flags are set |
+| 4 | auto-off | a key event through `Action_key_Process` resets the counter on stock too (the corrected claim); the 1 s housekeeping holds in SCAN (5) / FLASH (6) only while the session flags are set, and not in QC Test (8) with stale flags |
 | 5 | factory defaults | run the defaults writer, read the settings page image |
 | 6 | unit conversion | run `length_convert` for 12 values × 3 units against a Python reference |
 | 7 | on-screen text | run the cave formatter **through the firmware's own `sprintf`** and read the string |
@@ -194,8 +208,10 @@ fresh in-memory build. Sections 4–18 execute the code:
 | 17 | fonts | the firmware's own glyph drawers render every glyph of all three tables; pixels must equal the designed bitmaps |
 | 18 | identity | both version strings through the firmware's `sprintf`; container name byte-identical to stock |
 | 18b | About URL | the About line's `gui_blit` call: geometry (12, 184, 216, 12), 12-px font, the URL text, stock colours; the stock draw for comparison |
-| 19 | Thai UI | the cell table and every cell through the stock glyph drawer; all 64 stubs resolved through RELOC to the wording table; the hook table against `wording.py`; the three routines byte-identical to `thai/drawers.py` assembled; the three jumps; the drawer unit test; then all 57 screen states in Thai pixel-identical to the model, all 57 in English pixel-identical to the same build without `thai-ui` (which gets a stand-in region beyond the image for the patches whose code lives in the Thai region), every Thai string drawn at least once |
+| 19 | Thai UI | the cell table and every cell through the stock glyph drawer; all 64 stubs resolved through RELOC to the wording table; the hook table against `wording.py`; the three routines byte-identical to `thai/drawers.py` assembled; the three jumps; the drawer unit test; then all 61 screen states in Thai pixel-identical to the model, all 61 in English pixel-identical to the same build without `thai-ui` (whose cave grows the same way), every Thai string drawn at least once |
 | 20 | Cable Test Back | action 7 through the key dispatcher in every function state, mod and stock |
+| 22 | FLASH blink | the hook, the 500 ms tick divisor and the indicator delay as Capstone reads them, `flash_tick` byte-identical to its source, the note lines; the handler under emulation with a simulated clock and jittered link ticks: waits for the link, drops it at the third tick after it (not the second, not the fourth), powers up at the next, waits again, the hold timed by the clock (20 bunched ticks cannot shorten it), nothing while the session is not active or on another screen; stock's counter: up four messages, down one, regardless of the link |
+| 21 | PoE screen | the five hook sites branch to the emitted blocks, the three literals point at the latch, and the blocks are the assembled sources, in the cave; `poe_tick` under emulation on the POE screen with a supply: 49 ticks post nothing, the 50th posts one 0x14 with the partial flag set, 200 ticks post four, no span / other screens post nothing, the supply going away posts one full redraw at once; screen entry: timeout counter 0xFFFF → 0, live cell cleared, "Detecting..." at (117, 220), the stock 0x14 still posted when a span is known, stock leaves the counter parked; the timeout's 0x14 draws "No PoE" (stock: nothing); a live refresh 48.2 → 53.1 V changes only the voltage column, to exactly what a full redraw draws, and the rows are drawn once; a sample changed mid-redraw does not reach the screen (stock: the second wire shows it) |
 
 Each behavioural check runs the stock image as well, so the report shows the
 defect and the fix side by side.
@@ -279,7 +295,8 @@ they need a rebuild from vendor source:
   fault; a hung *task* is never caught because the watchdog is fed from TIM2.
 * Cables of 2 m or less read "Out of range" (results ≤ 200 cm are zeroed).
 * `poe_ring_is_stable` (0x08014C42) compares a byte spread with 40000 and can
-  never report "unstable"; the intended threshold is not recoverable.
+  never report "unstable"; the intended threshold is not recoverable (the
+  window it looks at would flag every supply once the units were consistent).
 
 Fixed since the first mod: single-sample low-battery shutdown, the settings
 save heap leak, the sticky length result, whole-metre display, Auto Off

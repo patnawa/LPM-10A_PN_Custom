@@ -156,12 +156,41 @@ def sc_speed_timeout(s):
     s.call(0x0800D47C); s.drain()
 
 
-def sc_poe(s, values=True, std=2, span=1, proto=2):
+# PoE task data: the 2 KB sample ring at 0x2000045D is followed by the result struct
+POE_STD, POE_PROTO, POE_SPAN, POE_CLASS = 0x20000C5D, 0x20000C5F, 0x20000C60, 0x20000C62
+POE_MV, POE_ADC, POE_ADC_MIN = 0x200000C0, 0x200000B4, 0x200000BE
+
+
+def poe_live_cell(s):
+    """The poe-screen patch's RAM cell (tick counter, partial-redraw flag, last span) of the build
+    the scene runs: the reference build for the model, the full default build otherwise (a built
+    image is byte-identical to it, verify.py section 2)."""
+    from thai.engine import reference_build
+    return reference_build(() if s.source != "reference" else ("thai-ui",)).poe["live"]
+
+
+def sc_poe(s, values=True, std=2, span=1, proto=2, mv=48200, cls=4, adc=None):
+    """Enter the POE screen (msg 0x13: the frame, the eight wires, "Detecting..." while no span
+    is known), then, with `values`, post the task's result message 0x14 as the state machine
+    does once it has classified the supply: poe_mv is the pair-to-pair spread in mV, cls the
+    comparator class code (3/4/6/8), adc the four channel readings (only span 5 draws them)."""
     s.set_state(10)
     s.post(0x13); s.drain()
     if values:
-        s.w8(0x20000C5D, std); s.w8(0x20000C60, span); s.w8(0x20000C5F, proto)
+        s.w16(POE_MV, mv); s.w8(POE_CLASS, cls)
+        if adc:
+            s.w16(POE_ADC, *adc); s.w16(POE_ADC_MIN, min(adc))
+        s.w8(POE_STD, std); s.w8(POE_SPAN, span); s.w8(POE_PROTO, proto)
         s.post(0x14); s.drain()
+
+
+def sc_poe_live(s, mv2=53100):
+    """A live refresh: the tick hook set the partial flag and posted 0x14; only the voltage
+    column is redrawn (the result rows are left as they are)."""
+    sc_poe(s)
+    s.w16(POE_MV, mv2)
+    s.w8(poe_live_cell(s) + 1, 1)
+    s.post(0x14); s.drain()
 
 
 def sc_settings(s, item=1, autooff=0):
@@ -227,7 +256,9 @@ SCREENS = [
     ("speed_testing", "SPEED: testing", sc_speed_testing, {}),
     ("speed_result", "SPEED: result", sc_speed_result, {}),
     ("speed_timeout", "SPEED: connect timeout", sc_speed_timeout, {}),
-    ("poe", "POE", sc_poe, {}),
+    ("poe_detecting", "POE: detecting", sc_poe, dict(values=False)),
+    ("poe", "POE: 802.3at, 48.2 V", sc_poe, {}),
+    ("poe_none", "POE: no supply after 3.5 s", sc_poe, dict(std=0, span=0, mv=0)),
     ("settings", "Settings", sc_settings, {}),
     ("about", "About", sc_about, {}),
     ("factory_reset", "Factory reset", sc_factory_reset, {}),
@@ -257,9 +288,12 @@ EXTRA_SCREENS = [
     ("speed_half_100", "SPEED: 100 half", sc_speed_result, dict(reg11=0x4000)),
     ("speed_10", "SPEED: 10 half", sc_speed_result, dict(reg11=0x2000)),
     ("speed_error", "SPEED: Error!!", sc_speed_result, dict(reg11=0xC000, retries=1)),
-    ("poe_unstd_mid", "POE: non-standard, mid-span", sc_poe, dict(std=1, span=3)),
-    ("poe_std_mid", "POE: standard, mid-span", sc_poe, dict(std=2, span=4)),
-    ("poe_none", "POE: nothing detected", sc_poe, dict(std=0, span=0)),
+    ("poe_unstd_mid", "POE: non-standard, mid-span", sc_poe, dict(std=1, span=3, proto=0, mv=24100)),
+    ("poe_std_mid", "POE: standard, mid-span (802.3at)", sc_poe, dict(std=2, span=4, proto=2, cls=4, mv=54000)),
+    ("poe_std_end2", "POE: standard, end-span reversed", sc_poe, dict(std=2, span=2, proto=1, cls=3, mv=47900)),
+    ("poe_both", "POE: both pair sets powered (span 5)", sc_poe, dict(std=2, span=5, proto=3, cls=6, mv=52000,
+                                                                     adc=(1620, 30, 1590, 25))),
+    ("poe_live", "POE: live refresh, 53.1 V", sc_poe_live, {}),
     ("settings_5min", "Settings: Auto Off 5 min", sc_settings, dict(item=4, autooff=1)),
     ("settings_10min", "Settings: Auto Off 10 min", sc_settings, dict(item=4, autooff=2)),
     ("settings_15min", "Settings: Auto Off 15 min", sc_settings, dict(item=4, autooff=3)),

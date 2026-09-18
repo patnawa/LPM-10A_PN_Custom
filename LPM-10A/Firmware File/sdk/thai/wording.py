@@ -46,6 +46,9 @@ ASCII_TH = {
     "Test timeout!!": {"text": "หมดเวลาทดสอบ!!", "layout": "x", "x": 12, "clear": True},
     "Error!!": {"text": "ผิดพลาด!!", "layout": "left"},
     "OFF": {"text": "ปิด", "layout": "centre"},
+    # poe-screen (PN 2.3): the Standard row's status text, left-aligned in the value cell
+    "Detecting...": {"text": "กำลังตรวจหา...", "layout": "left"},
+    "No PoE": {"text": "ไม่พบ PoE", "layout": "left"},
 }
 # the Length / Speed "..." animation is drawn at x = 68, right after the English "Testing";
 # in Thai it moves to DOTS_X (past the wider Thai label).  Only strings drawn at x = 68 move.
