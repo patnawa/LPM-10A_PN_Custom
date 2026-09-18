@@ -4,7 +4,7 @@
 
 **PN 2.2: an unofficial, industrial-grade firmware for the FNIRSI LPM-10A network cable tester,
 built by patching the official V2.0.7 image, proving every change by CPU emulation, and
-validated on a real unit: PN 2.1, complete Thai user interface included, passed every function
+validated on a real unit: PN 2.2, complete Thai user interface included, passed every function
 on hardware on 2026-09-18.**
 
 ![version](https://img.shields.io/badge/version-PN%202.2-orange)
@@ -12,7 +12,7 @@ on hardware on 2026-09-18.**
 ![patches](https://img.shields.io/badge/patches-17-blue)
 ![languages](https://img.shields.io/badge/UI-English%20%2F%20%E0%B9%84%E0%B8%97%E0%B8%A2-blue)
 ![verified](https://img.shields.io/badge/verify.py-184%20checks%20pass-brightgreen)
-![hardware](https://img.shields.io/badge/hardware%20test-PN%202.1%20passed-brightgreen)
+![hardware](https://img.shields.io/badge/hardware%20test-PN%202.2%20passed-brightgreen)
 ![license](https://img.shields.io/badge/tooling%20license-MIT-lightgrey)
 [![release](https://img.shields.io/github/v/release/patnawa/LPM-10A_PN_Custom?label=download)](https://github.com/patnawa/LPM-10A_PN_Custom/releases/latest)
 
@@ -22,14 +22,13 @@ on hardware on 2026-09-18.**
 
 ---
 
-> **Status: PN 2.1 passed every function on a real unit on 2026-09-18**: the Thai interface
+> **Status: PN 2.2 passed every function on a real unit on 2026-09-18**: the Thai interface
 > on every screen, the two Cable Test fixes (Back returns to the Switch / Far end choice; the
-> red "Result error!!" is no longer hidden under the Test Retry button), and everything
-> from PN 1.x (Zero 0.4 m / NVP 68 % read a 2.9 m cable right). **PN 2.2** changes one
-> thing: a pair the PHY could not time shows `< 2 m` instead of `0.0 m` (emulation-verified,
-> 184 checks, 57 screen states, awaiting its flash). What still fails is the PHY's own
-> limit, not the firmware: cables of about 2 m and under cannot be measured, see
-> [Known limitations](#known-limitations).
+> red "Result error!!" is no longer hidden under the Test Retry button), the `< 2 m` text
+> for a pair the PHY could not time, and everything from PN 1.x (Zero 0.4 m / NVP 68 % read
+> a 2.9 m cable right). Also verified by emulation: 184 checks, 57 screen states compared
+> pixel for pixel. What still fails is the PHY's own limit, not the firmware: cables of
+> about 2 m and under cannot be measured, see [Known limitations](#known-limitations).
 > Flash at your own risk, and read [How to go back to stock](#going-back-to-stock) first.
 
 ## Why
@@ -112,9 +111,10 @@ V2.x.x hardware, like stock V2.0.7.
 
 ### First power-on checklist
 
-Every item below passed on a real unit on 2026-09-18 (PN 2.1). New in PN 2.2 and still to
-be checked: a 1 m cable reads `< 2 m` on the pairs the PHY could not time (or *Out of
-range* when it timed none), never `0.0 m`. For a second unit:
+Every item below passed on a real unit on 2026-09-18 (PN 2.2). For a second unit:
+
+- A 1 m cable reads `< 2 m` on the pairs the PHY could not time (or *Out of range* when it
+  timed none), never `0.0 m`.
 
 - Cable Test: choose Switch or Far end, OK to the wiremap layout, then Back: the choice
   comes back (not Home). Back once more: Home. The same from a result.
