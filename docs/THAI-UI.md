@@ -1,6 +1,6 @@
 # Thai user interface (PN 2.0)
 
-> **Status: shipped in PN 2.0 and passed on a real unit on 2026-09-18, every screen.**
+> **Status: shipped in PN 2.0, passed on a real unit on 2026-09-18, every screen (PN 2.1 too).**
 > The pictures below are what the firmware draws: `verify.py` §19 runs the built image's
 > own drawing code through the real GUI dispatcher for 56 screen states and compares the
 > pixels with this design; it also proves the English screens are pixel-identical to the

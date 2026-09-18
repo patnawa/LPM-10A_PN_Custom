@@ -4,7 +4,7 @@
 
 **PN 2.1: an unofficial, industrial-grade firmware for the FNIRSI LPM-10A network cable tester,
 built by patching the official V2.0.7 image, proving every change by CPU emulation, and
-validated on a real unit: PN 2.0 with its complete Thai user interface passed every function
+validated on a real unit: PN 2.1, complete Thai user interface included, passed every function
 on hardware on 2026-09-18.**
 
 ![version](https://img.shields.io/badge/version-PN%202.1-orange)
@@ -12,7 +12,7 @@ on hardware on 2026-09-18.**
 ![patches](https://img.shields.io/badge/patches-16-blue)
 ![languages](https://img.shields.io/badge/UI-English%20%2F%20%E0%B9%84%E0%B8%97%E0%B8%A2-blue)
 ![verified](https://img.shields.io/badge/verify.py-181%20checks%20pass-brightgreen)
-![hardware](https://img.shields.io/badge/hardware%20test-PN%202.0%20passed-brightgreen)
+![hardware](https://img.shields.io/badge/hardware%20test-PN%202.1%20passed-brightgreen)
 ![license](https://img.shields.io/badge/tooling%20license-MIT-lightgrey)
 [![release](https://img.shields.io/github/v/release/patnawa/LPM-10A_PN_Custom?label=download)](https://github.com/patnawa/LPM-10A_PN_Custom/releases/latest)
 
@@ -22,14 +22,13 @@ on hardware on 2026-09-18.**
 
 ---
 
-> **Status: PN 2.0, with the Thai interface on every screen, passed every function on a
-> real unit on 2026-09-18** (as did PN 1.3 the same day, with the Zero 0.5 m / NVP 68 %
-> calibration reading a 2.9 m cable right). **PN 2.1** adds two Cable Test fixes reported
-> from that session (Back returns to the Switch / Far end choice; the red "Result error!!"
-> is no longer hidden under the Test Retry button); they are verified by emulation
-> (181 checks, 56 screen states compared pixel for pixel) and await their flash. What still
-> fails is the PHY's own limit, not the firmware: cables of about 2 m and under cannot be
-> measured, see [Known limitations](#known-limitations).
+> **Status: PN 2.1 passed every function on a real unit on 2026-09-18**: the Thai interface
+> on every screen, the two Cable Test fixes (Back returns to the Switch / Far end choice; the
+> red "Result error!!" is no longer hidden under the Test Retry button), and everything
+> from PN 1.x (Zero 0.5 m / NVP 68 % read a 2.9 m cable right). Verified by emulation too:
+> 181 checks, 56 screen states compared pixel for pixel. What still fails is the PHY's own
+> limit, not the firmware: cables of about 2 m and under cannot be measured, see
+> [Known limitations](#known-limitations).
 > Flash at your own risk, and read [How to go back to stock](#going-back-to-stock) first.
 
 ## Why
@@ -112,15 +111,12 @@ V2.x.x hardware, like stock V2.0.7.
 
 ### First power-on checklist
 
-Every PN 1.x item and the whole Thai interface of PN 2.0 passed on a real unit on
-2026-09-18. New in PN 2.1 and still to be checked on hardware:
+Every item below passed on a real unit on 2026-09-18 (PN 2.1). For a second unit:
 
 - Cable Test: choose Switch or Far end, OK to the wiremap layout, then Back: the choice
   comes back (not Home). Back once more: Home. The same from a result.
 - A cable with a broken wire: the red "Result error!!" / "ผลลัพธ์ผิดพลาด!!" line is
   readable between the wiremap and the Test Retry button.
-
-The PN 2.0 items, for a second unit:
 
 - Settings > Language (ภาษา): switch between `English` and `ไทย`; every screen follows.
 - In Thai: walk through Home (both pages), Cable Test, SCAN, FLASH, Length (a result and an
@@ -417,7 +413,8 @@ slots; the four messages stock only had in English got Thai versions through a h
 The wording of every string, how it was built and how it is verified are in
 [docs/THAI-UI.md](docs/THAI-UI.md); the tooling is `sdk/thai/`. The pictures below are
 not mock-ups: they are what the firmware draws (`verify.py` §19 proves the built image
-produces exactly these pixels), and the whole interface passed on a real unit on 2026-09-18.
+produces exactly these pixels), and the whole interface passed on a real unit on 2026-09-18
+(PN 2.0 and PN 2.1).
 
 <img src="docs/img/thai/thai_overview.png" alt="Every screen of the Thai interface" width="1000">
 

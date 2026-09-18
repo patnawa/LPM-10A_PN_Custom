@@ -158,8 +158,7 @@ The assembler rejects anything it does not recognise rather than guessing, and
 that look right on paper but need a real device to confirm. Everything else
 is verified by emulation; the PN 1.0 set has also passed the first-power-on
 checklist on a real unit (2026-09-18), PN 1.3 passed every function there and so did
-PN 2.0 with the Thai interface. **The two PN 2.1 Cable Test fixes have not been flashed
-yet.** `english-only` was dropped: the
+PN 2.0 with the Thai interface and PN 2.1 with the two Cable Test fixes. `english-only` was dropped: the
 string it blanked was a log message, not the menu entry.
 
 The reasoning behind each measurement change, and the formulas that were

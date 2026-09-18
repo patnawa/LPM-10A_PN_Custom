@@ -20,10 +20,10 @@ Changed   : 7999 bytes differ from stock: the three font tables
             is left as stock because the bootloader checks it.
 
 NOT AN OFFICIAL FNIRSI RELEASE.  Verified by disassembly and CPU
-emulation (sdk/verify.py, 181 checks).  PN 2.0, Thai interface
-included, was flashed to a real unit on 2026-09-18 and every function
-was tested there; the two Cable Test fixes of PN 2.1 are verified by
-emulation and await their flash.  Use at your own risk.  Rebuild or audit it yourself with sdk/.
+emulation (sdk/verify.py, 181 checks).  PN 2.1 was flashed to a real
+unit on 2026-09-18 and every function was tested there, the Thai
+interface and the two Cable Test fixes included.  Use at your own
+risk.  Rebuild or audit it yourself with sdk/.
 
 This file only updates the transmitter.  A separate receiver build,
 APP_LPM-10RX_PN1.0.bin (see RX-README.txt), exists but must not be
@@ -217,11 +217,12 @@ From mod 1:
   bootloaders match on the filename.  The name stored inside the
   file is unchanged either way.
 
-  Checked on a real unit up to PN 2.0 (2026-09-18): the bootloader
+  Checked on a real unit up to PN 2.1 (2026-09-18): the bootloader
   accepted the file under its own name; every item below passed, and
-  Zero 0.5 m / NVP 68 % read a 2.9 m cable right.  New in PN 2.1,
-  still to check: Cable Test Back returns to the Switch / Far end
-  choice, and the red error line is readable above the button.
+  Zero 0.5 m / NVP 68 % read a 2.9 m cable right.
+    - Cable Test: Back returns to the Switch / Far end choice from
+      the wiremap layout and from a result; the red error line is
+      readable above the button.
     - Settings > Language (ภาษา): English / ไทย; every screen follows.
     - In Thai walk through every screen (docs/THAI-UI.md shows what
       to expect): nothing overlaps, tone marks and vowels sit right,
