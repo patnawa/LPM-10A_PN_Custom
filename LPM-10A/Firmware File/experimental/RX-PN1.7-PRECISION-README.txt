@@ -1,0 +1,58 @@
+LPM-10RX PN 1.7 - Precision digital cable tracing
+2026-09-19 - experimental prerelease; owner-reported device test pass
+
+Device: RX probe only
+File: APP_LPM-10RX_PN1.7-precision.bin
+Size: 26152 bytes (unchanged)
+SHA-256: 5ccd7990043507911aeb357d83b0bc6fd054208ff6d253b7feea718e963d38e6
+Vendor-facing version remains 3.0.0. Identify this candidate by its hash.
+
+Hardware follow-up, 2026-09-19: the owner reports "Tested pass" for PN 1.7.
+Recorded as a functional device test pass. No detailed test matrix or
+quantitative range/cable-selection measurements accompanied the report.
+
+Use TX Digital with the receiver's existing digital mode. There is no new key
+combination; the normal mode button still switches digital/analog operation.
+
+Changes from PN 1.6:
+- Five strength levels spread over a wider ADC contrast range.
+- Remove one extreme high and low deviation from the strength score.
+- Apply 10% hysteresis around grade boundaries to reduce rate switching.
+- Sound fixed 30 ms pulses; stronger grades shorten the gap between pulses.
+  Requested gaps, weak to strong: 160, 110, 75, 45, 20 ms.
+- Stop further repeats after the first completed rejected sample window.
+  If no new result arrives, repeats expire 300 ms after the last accepted one.
+- Let active tones finish, including 100 ms key confirmation. Retain the
+  separate 800 ms recent-signal hold for idle auto-off protection.
+
+The digital window remains approximately 240 ms. Faster release deliberately
+provides less smoothing of occasional missed windows; weak or drifting signals
+may sound less continuous than PN 1.6. Thresholds are provisional and do not
+represent cable distance or calibrated sensitivity. Adjacent cables carrying
+the same coupled code can still be detected.
+
+Includes every PN 1.6 fix. Signal eligibility, ADC transactions, sampling,
+analog/mains analysis, buttons, battery handling, timer configuration, image
+size, and binding/version handling retain their prior behavior. No additional
+persistent RAM or countdown timer is allocated. Earlier binaries are retained.
+
+Build and verify from rx-sdk:
+  python build.py --precision --write
+  python -m unittest test_image test_roadmap test_firmware_audit test_rx_followup test_rx_precision -v
+  python boot_emu.py ../experimental/APP_LPM-10RX_PN1.7-precision.bin
+
+Validation uses actual firmware instructions with ADC/GPIO/interrupt models;
+80 test groups passed: 58 image/profile and prior RX groups plus 22 precision
+groups. The saved binary matches its deterministic rebuild and checksum.
+The CPU tests do not establish real cable selectivity or range; the separate
+owner-reported device pass is recorded above. Published without binary changes:
+  https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.7
+Full results and implementation details:
+  docs/RX-PRECISION-PN1.7-2026-09-19.md
+
+For quantitative follow-up, compare the known target and adjacent cables at the same probe
+position/orientation. Check stationary level stability, moving between cables,
+signal removal/reacquisition, weak coupling, and sustained tracing. Also check
+mode changes, lamp/key confirmation, analog mode, battery indication and power.
+Use the RX update procedure established for your probe and retain the prior
+working image. TX and RX files are not interchangeable.

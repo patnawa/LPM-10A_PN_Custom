@@ -1,5 +1,28 @@
 # Experimental builds
 
+**RX PN 1.7 precision prerelease:** digital cable tracing with five strength
+levels, outlier-resistant grading, stable level transitions and faster release.
+Build `python build.py --precision --write` and run
+`python -m unittest test_rx_precision -v` in `rx-sdk`.
+Download [APP_LPM-10RX_PN1.7-precision.bin](APP_LPM-10RX_PN1.7-precision.bin);
+see [device notes](RX-PN1.7-PRECISION-README.txt),
+[checksum](RX-PRECISION-SHA256SUMS.txt), and
+[implementation report](../../../docs/RX-PRECISION-PN1.7-2026-09-19.md).
+It includes PN 1.6; the owner reports a device test pass on 2026-09-19.
+Quantitative range and cable-selection measurements were not supplied.
+The exact binary is published in the
+[RX PN 1.7 experimental prerelease](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.7).
+
+**RX PN 1.6 local candidate:** corrects mode/gate sample ownership and digital
+beep timing. Build `python build.py --followup --write` and run
+`python -m unittest test_rx_followup -v` in `rx-sdk`.
+Download [APP_LPM-10RX_PN1.6-followup.bin](APP_LPM-10RX_PN1.6-followup.bin);
+see [device notes](RX-PN1.6-FOLLOWUP-README.txt),
+[checksum](RX-FOLLOWUP-SHA256SUMS.txt), and
+[implementation report](../../../docs/RX-FIXES-PN1.6-2026-09-19.md).
+This intermediate image has no separate device pass; its fixes are included
+in the PN 1.7 prerelease above.
+
 This directory also retains the exact binaries published as
 [TX PN 2.12](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.12) and
 [RX PN 1.5 experimental prerelease](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.5).

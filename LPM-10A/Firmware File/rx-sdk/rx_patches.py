@@ -132,7 +132,7 @@ def p_activity_autooff(img):
 
 @patch("digital-correlation", "Experimental digital detector: phase search and bounded bit-error tolerance",
        risk="untested", default=False, group="scan")
-def p_digital_correlation(img, strength=False):
+def p_digital_correlation(img, strength=False, scheduled=False):
     """Replace only analyse_mode0, in its existing 336-byte footprint.
 
     Keep the ADC sampler, 48-sample snapshot, trimmed threshold, PA2 gate,
@@ -148,6 +148,8 @@ def p_digital_correlation(img, strength=False):
     The ISR remains paused until the snapshot is complete, then may overwrite
     the shared buffer while analysis uses its stack copy, just as in stock.
     No persistent RAM, image growth, vector, binding, version-page or ADC edits.
+    The PN 1.6 scheduled variant instead uses sampling_fixes' guarded entry
+    and result publisher; that profile owns two additional padding bytes.
     """
     site, size = 0x08009E08, 0x150
     old = img.read(site, size)
@@ -308,6 +310,24 @@ def p_digital_correlation(img, strength=False):
     grade_on:
         ldr r0, =0x2000010C
         strb r1, [r0]""")
+    if scheduled:
+        if not strength:
+            raise PatchError("scheduled digital feedback requires strength grading")
+        source = source.replace("""        ldr  r0, =0x20000008
+        ldrb r1, [r0]
+        cmp  r1, #0
+        bne  early_out
+        ldr  r1, =0x20000068
+        ldrh r1, [r1]
+        cmp  r1, #2
+        bhs  snapshot""", """        bl sampling_ready
+        cmp r0, #0
+        bne snapshot""")
+        begin = source.index("    grade_ready:")
+        end = source.index("    done:", begin)
+        source = source[:begin] + """    grade_ready:
+        bl publish_digital
+""" + source[end:]
     code = img.assemble_at(site, source)
     if len(code) > size:
         raise PatchError(f"digital detector exceeds in-place footprint: {len(code)} > {size}")
@@ -464,3 +484,9 @@ def p_digital_strength(img):
 
 from audit_fixes import register as _register_audit
 _register_audit(patch)
+
+from followup_fixes import register as _register_followup
+_register_followup(patch)
+
+from precision_fixes import register as _register_precision
+_register_precision(patch)

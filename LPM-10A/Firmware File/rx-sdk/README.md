@@ -1,6 +1,23 @@
 # LPM-10A receiver (probe) firmware SDK
 
-**PN 1.5 experimental prerelease:** `python build.py --audit --write` builds
+**PN 1.7 precision experimental prerelease:** `python build.py --precision --write` builds
+`../experimental/APP_LPM-10RX_PN1.7-precision.bin`. Its existing digital mode
+adds robust strength grading, five beep levels, hysteresis and faster release
+for comparing cables in a bundle. Includes PN 1.6; earlier profiles remain
+available. Run `python -m unittest test_rx_precision -v`. See the
+[implementation and validation report](../../../docs/RX-PRECISION-PN1.7-2026-09-19.md).
+The owner reports a device test pass on 2026-09-19. Threshold calibration and
+quantitative cable-selection measurements remain undocumented.
+Download the [RX PN 1.7 prerelease](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.7).
+
+**PN 1.6 local candidate:** `python build.py --followup --write` builds
+`../experimental/APP_LPM-10RX_PN1.6-followup.bin`. It includes PN 1.5 plus fresh
+sample ownership across mode/gate changes and stable digital beep scheduling.
+Run `python -m unittest test_rx_followup -v`. Earlier profiles remain byte-exact.
+See the [implementation report](../../../docs/RX-FIXES-PN1.6-2026-09-19.md).
+Device validation is pending; this candidate has not been published or flashed.
+
+**Previous PN 1.5 experimental prerelease:** `python build.py --audit --write` builds
 `../experimental/APP_LPM-10RX_PN1.5-audit.bin`. It includes PN 1.4 plus a mains
 sampler handoff correction and a DFT arithmetic fix that prevents strong
 analog/mains signals from overflowing to zero. Run

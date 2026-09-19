@@ -6,6 +6,8 @@ LPM-10A receiver firmware build tool.
     python build.py                        dry run with the default patch set
     python build.py --write                emit APP_LPM-10RX_PN1.0.bin
     python build.py --audit --write        emit the PN 1.5 audit candidate
+    python build.py --followup --write     emit the PN 1.6 sampling/feedback candidate
+    python build.py --precision --write    emit the PN 1.7 cable pinpointing candidate
     python build.py --only a,b --write     build a specific set
     python build.py --all --write          include patches marked untested
 
@@ -25,6 +27,8 @@ from lpm10rx.image import Image, PatchError, STOCK_NAME   # noqa: E402
 from lpm10rx import symbols as S                          # noqa: E402
 import rx_patches as patches                               # noqa: E402
 from audit_fixes import PATCHES as AUDIT_PATCHES            # noqa: E402
+from followup_fixes import PATCHES as FOLLOWUP_PATCHES      # noqa: E402
+from precision_fixes import PATCHES as PRECISION_PATCHES    # noqa: E402
 
 FW_DIR = os.path.dirname(HERE)
 STOCK = os.path.join(FW_DIR, STOCK_NAME)
@@ -46,9 +50,15 @@ def main():
     ap.add_argument("--all", action="store_true", help="include risk=untested")
     ap.add_argument("--roadmap", action="store_true", help="build the PN 1.4 roadmap experiment")
     ap.add_argument("--audit", action="store_true", help="build PN 1.5 with sampler handoff and DFT overflow fixes")
+    ap.add_argument("--followup", action="store_true", help="build PN 1.6 with fresh sample ownership and stable beep timing")
+    ap.add_argument("--precision", action="store_true", help="build PN 1.7 with finer digital strength feedback and faster release")
     ap.add_argument("--only", help="comma-separated patch ids")
     ap.add_argument("--out", help="output path (experimental builds use a distinct filename)")
     args = ap.parse_args()
+    if args.precision and (args.followup or args.audit or args.roadmap or args.all or args.only is not None):
+        ap.error("--precision is a fixed profile; do not combine it with --followup, --audit, --roadmap, --all or --only")
+    if args.followup and (args.audit or args.roadmap or args.all or args.only is not None):
+        ap.error("--followup is a fixed profile; do not combine it with --audit, --roadmap, --all or --only")
     if args.audit and (args.roadmap or args.all or args.only is not None):
         ap.error("--audit is a fixed profile; do not combine it with --roadmap, --all or --only")
     if args.roadmap and (args.all or args.only is not None):
@@ -72,21 +82,33 @@ def main():
             return 2
     else:
         sel = [p for p in patches.REGISTRY if p.default or args.all or
-               ((args.roadmap or args.audit) and p.pid in patches.ROADMAP_PATCHES) or
-               (args.audit and p.pid in AUDIT_PATCHES)]
+               ((args.roadmap or args.audit or args.followup or args.precision) and p.pid in patches.ROADMAP_PATCHES) or
+               ((args.audit or args.followup or args.precision) and p.pid in AUDIT_PATCHES) or
+               ((args.followup or args.precision) and p.pid in FOLLOWUP_PATCHES) or
+               (args.precision and p.pid in PRECISION_PATCHES)]
 
-    if not args.audit and any(p.pid in AUDIT_PATCHES for p in sel) and not args.out:
+    if not args.precision and any(p.pid in PRECISION_PATCHES for p in sel) and not args.out:
+        ap.error("custom precision patch selections require --out; use --precision for PN 1.7")
+    if not args.followup and not args.precision and any(p.pid in FOLLOWUP_PATCHES for p in sel) and not args.out:
+        ap.error("custom followup patch selections require --out; use --followup for PN 1.6")
+    if not args.audit and not args.followup and not args.precision and any(p.pid in AUDIT_PATCHES for p in sel) and not args.out:
         ap.error("custom audit patch selections require --out; use --audit for PN 1.5")
     reliability = any(p.pid == "activity-before-autooff" for p in sel)
     experimental = reliability or any(p.pid == "digital-correlation" for p in sel)
     # A nonstandard subset must have an explicit name, not impersonate PN 1.2.
-    if reliability and not args.roadmap and not args.audit and {p.pid for p in sel} != {"batt-critical-recover", "activity-before-autooff", "digital-correlation"} and not args.out:
+    if reliability and not args.roadmap and not args.audit and not args.followup and not args.precision and {p.pid for p in sel} != {"batt-critical-recover", "activity-before-autooff", "digital-correlation"} and not args.out:
         ap.error("the PN 1.2 candidate needs all three patches; give --out for a custom subset")
     name = patches.RELIABILITY_EXPERIMENT if reliability else patches.DIGITAL_EXPERIMENT
     if args.roadmap:
         name = patches.ROADMAP_EXPERIMENT
     if args.audit:
         from audit_fixes import OUTPUT
+        name = OUTPUT
+    if args.followup:
+        from followup_fixes import OUTPUT
+        name = OUTPUT
+    if args.precision:
+        from precision_fixes import OUTPUT
         name = OUTPUT
     out = args.out or (os.path.join(FW_DIR, name) if experimental else OUT)
     if experimental:

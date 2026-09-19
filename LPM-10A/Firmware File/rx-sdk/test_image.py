@@ -55,6 +55,34 @@ class ImageTests(unittest.TestCase):
 
 
 class ProfileTests(unittest.TestCase):
+    def test_precision_selection_rejected_before_loading_or_overwriting_image(self):
+        import build
+        for args in (("--precision", "--followup"), ("--precision", "--audit"),
+                     ("--precision", "--roadmap"), ("--precision", "--all"),
+                     ("--precision", "--only", "batt-critical-recover"),
+                     ("--only", "rx-precision", "--write")):
+            with self.subTest(args=args), mock_patch("sys.argv", ["build.py", *args]), \
+                    mock_patch.object(build, "Image") as loader, \
+                    contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as caught:
+                    build.main()
+                self.assertEqual(caught.exception.code, 2)
+                loader.assert_not_called()
+
+    def test_followup_selection_rejected_before_loading_or_overwriting_image(self):
+        import build
+        for args in (("--followup", "--audit"), ("--followup", "--roadmap"),
+                     ("--followup", "--all"),
+                     ("--followup", "--only", "batt-critical-recover"),
+                     ("--only", "rx-followup", "--write")):
+            with self.subTest(args=args), mock_patch("sys.argv", ["build.py", *args]), \
+                    mock_patch.object(build, "Image") as loader, \
+                    contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as caught:
+                    build.main()
+                self.assertEqual(caught.exception.code, 2)
+                loader.assert_not_called()
+
     def test_audit_selection_rejected_before_loading_or_overwriting_image(self):
         import build
         for args in (("--audit", "--roadmap"), ("--audit", "--all"),

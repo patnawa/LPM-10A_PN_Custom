@@ -1,0 +1,49 @@
+LPM-10RX PN 1.6 - Sampling and digital feedback corrections
+2026-09-19 - local experimental candidate; device validation pending
+
+Device: RX probe only
+File: APP_LPM-10RX_PN1.6-followup.bin
+Size: 26152 bytes (unchanged)
+SHA-256: 159bd15f50e3329fd866bdd7e1ebdac2900569dbd2686e2956d82585280457dc
+Vendor-facing version remains 3.0.0. Identify this candidate by its hash.
+
+Changes from PN 1.5:
+- Apply mode changes between analysis passes and discard the previous window.
+  Reset every sampler index and digital sub-step before fresh acquisition.
+- Latch detection-gate transitions. Reopening requires a complete fresh window;
+  pending analysis cannot replay a signal collected before closure.
+- Keep digital beep timing independent of incoming detection windows. The
+  current beep/gap finishes normally; strength changes affect the next pulse.
+- Preserve key/lamp confirmation tones. An already active beep may finish
+  after a mode/gate change; old detection results and further repeats are blocked.
+
+Retains PN 1.5 battery recovery, serialized ADC completion/timeout, main-loop
+watchdog, strong-signal DFT correction and clear-before-rearm mains handoff.
+No image growth. Vectors, binding/version-page routines, timer configuration
+and ADC transaction instructions are unchanged. Two zero-initialized padding
+bytes hold mode requests and gate validity; sample buffers are not borrowed.
+
+Validation executes real firmware instructions with GPIO/ADC/interrupt models.
+The final combined run passes 57 tests, including 28 PN 1.6 candidate groups;
+the binary matches a deterministic rebuild and the checksum above.
+It covers mode changes, gate close/reopen, repeated detections, key feedback,
+ADC completion, watchdog/power handling, and deterministic image rebuilding.
+It does not establish device timing, electrical sensitivity, calibration, or
+compatibility with other hardware revisions. This candidate has not been flashed
+or published. The previous PN 1.5 binary is preserved.
+
+Build and verify from rx-sdk:
+  python build.py --followup --write
+  python -m unittest test_image test_roadmap test_firmware_audit test_rx_followup -v
+
+Device checks:
+1. Compare digital, analog and mains behavior with the prior working RX image.
+2. Switch repeatedly between modes, including while detecting a strong signal.
+3. Check weak/medium/strong digital feedback, signal removal/reacquisition,
+   lamp/mode key tones, power-off, and a sustained detection session.
+4. Measure worst-case ADC/interrupt timing and noise/adjacent-cable response
+   before treating CPU-model results as hardware validation.
+
+Use the RX update procedure already established for your probe and retain the
+prior working image. TX and RX firmware are not interchangeable.
+Implementation and exact validation scope: docs/RX-FIXES-PN1.6-2026-09-19.md
