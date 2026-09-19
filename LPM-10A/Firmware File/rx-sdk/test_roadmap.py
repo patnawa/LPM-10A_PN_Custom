@@ -24,7 +24,7 @@ class Roadmap(unittest.TestCase):
         cls.data = bytes(cls.img.data)
 
     def test_image_ownership_and_unchanged_size_vectors_binding(self):
-        path = Path(__file__).resolve().parent.parent / "experimental/APP_LPM-10RX_PN1.3-roadmap.bin"
+        path = Path(__file__).resolve().parent.parent / "experimental/APP_LPM-10RX_PN1.4-roadmap.bin"
         self.assertEqual(path.read_bytes(), self.data)
         self.assertEqual(len(self.data), len(self.img.original))
         rebuilt = bytearray(self.img.original)
@@ -186,7 +186,7 @@ class Roadmap(unittest.TestCase):
         c, model = self.adc(2, 0, complete=False)
         self.assertEqual(model["resets"], [0x05FA0004])
         self.assertEqual(model["reads"], [])
-        self.assertLess(model["steps"], 1000)
+        self.assertLess(model["steps"], 3500)
 
 
 if __name__ == "__main__":

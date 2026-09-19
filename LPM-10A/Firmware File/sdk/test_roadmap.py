@@ -36,7 +36,7 @@ class Roadmap(unittest.TestCase):
         m.uc.mem_write(addr, struct.pack("<I", n))
 
     def test_candidate_matches_disk(self):
-        path = Path(__file__).resolve().parent.parent / "experimental/LPM-10A-TX_PN2.8-roadmap.bin"
+        path = Path(__file__).resolve().parent.parent / "experimental/LPM-10A-TX_PN2.9-roadmap.bin"
         self.assertEqual(path.read_bytes(), self.data)
 
     def test_events_init_and_every_tick_path(self):
@@ -46,6 +46,7 @@ class Roadmap(unittest.TestCase):
             m.uc.mem_write(state, b"\xA5" * 12)
             m.call(self.img.events["init"])
             self.assertEqual(bytes(m.uc.mem_read(state, 12)), bytes(12))
+            self.assertEqual(self.read32(m, 0xE000ED24) & 0x70000, 0x70000)
             calls = []
             for _, function, _ in self.img.events["calls"]:
                 m.handlers[function] = lambda machine, f=function: (calls.append((f, machine.arg(0))), machine.ret())
@@ -191,11 +192,9 @@ class Roadmap(unittest.TestCase):
         for exc_return in (0xFFFFFFF9, 0xFFFFFFFD, 0xFFFFFFE9, 0xFFFFFFED):
             for invalid in (False, True):
                 m = self.machine()
-                m.uc.mem_map(0xE000E000, 0x1000)
                 frame = 0x2000C000 if exc_return & 4 else 0x2000D000
-                offset = 0 if exc_return & 16 else 72
-                self.write32(m, frame+offset+24, 0x08011A6E)
-                self.write32(m, frame+offset+20, 0x080119ED)
+                self.write32(m, frame+24, 0x08011A6E)
+                self.write32(m, frame+20, 0x080119ED)
                 self.write32(m, 0xE000ED28, 0x10000 if not invalid else 0x1000)
                 self.write32(m, 0xE000ED2C, 0x40000000)
                 self.write32(m, 0xE000ED0C, 0x300)

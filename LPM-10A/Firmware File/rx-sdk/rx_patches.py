@@ -17,7 +17,7 @@ REGISTRY = []
 
 DIGITAL_EXPERIMENT = "APP_LPM-10RX_PN1.1-digital-experimental.bin"
 RELIABILITY_EXPERIMENT = "APP_LPM-10RX_PN1.2-reliability-experimental.bin"
-ROADMAP_EXPERIMENT = "experimental/APP_LPM-10RX_PN1.3-roadmap.bin"
+ROADMAP_EXPERIMENT = "experimental/APP_LPM-10RX_PN1.4-roadmap.bin"
 ROADMAP_PATCHES = {"batt-critical-recover", "activity-before-autooff", "digital-correlation",
                    "recent-signal-autooff", "adc-complete", "main-watchdog", "digital-strength"}
 
@@ -389,7 +389,7 @@ def p_adc_complete(img):
         movs r1, #0x4D
         str r1, [r0]          ; clear ENDC, ENDCA and STR before starting
         bl adc_software_start_conv
-        movs r2, #128
+        movw r2, #500
     poll:
         ldr r0, [r4]
         lsls r0, r0, #30

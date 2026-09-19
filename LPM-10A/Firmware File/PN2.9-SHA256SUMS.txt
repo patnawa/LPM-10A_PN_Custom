@@ -1,0 +1,2 @@
+2a82c86de8bf9d81dd191ca742d83e6d4b6d359db22daf9a6b0c65f48b5583dd  LPM-10A-TX_PN2.9-roadmap.bin
+f9d8cbfe3995e2e8e03a205808a93ec2c07fcc39fd6e6917ae1da40b74e4d6a0  LPM-10A-TX_PN2.9.bin

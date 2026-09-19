@@ -1032,7 +1032,7 @@ STOCK_FONT_SHA = {
 # Group: identity
 # =====================================================================
 
-VERSION = "PN 2.8"          # roadmap profile: owner-reported device pass, 2026-09-19
+VERSION = "PN 2.9"          # fault handling, SHCSR activation and ADC timeout fix, 2026-09-19
 
 
 @patch("version-string", f"Report the firmware version as {VERSION}",

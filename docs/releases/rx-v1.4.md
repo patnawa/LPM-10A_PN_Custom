@@ -1,0 +1,59 @@
+# RX PN 1.4 ADC Timeout Fix — extended sampling margin, graded beeps and watchdog
+
+**Experimental prerelease for the LPM-10RX probe.** This release addresses the ADC
+conversion poll timeout margin to prevent spurious hardware resets during valid
+sampling cycles, while retaining all graded digital feedback and reliability features.
+
+## Downloads
+
+- `APP_LPM-10RX_PN1.4-roadmap.bin` — RX only, 26152 bytes.
+- `RX-PN1.4-README.txt` — changes, update instructions and validation limits.
+- `RX-PN1.4-SHA256SUMS.txt` — binary checksum.
+
+```text
+f2faee8220231ff6b4b80d9c916307c801d246ecaae438677d2929734442430c
+```
+
+The vendor-facing RX version remains `3.0.0`; identify this build by filename
+and checksum. The required vendor build input is `APP_LPM-10RX_V3.0.0_260416.bin`.
+
+## Changes from PN 1.3
+
+- **ADC conversion timeout expansion:** Increased polling loop count from 128 to
+  500 iterations (`movw r2, #500`). At 64 MHz CPU clock, the previous 128-iteration
+  loop yielded an 896-cycle ($14.0\ \mu\text{s}$) timeout before requesting a hardware
+  reset via `AIRCR`. Under sample time 7, N32L40x ADC conversions require 252 ADC
+  cycles ($15.75\ \mu\text{s}$ at 16 MHz, $31.5\ \mu\text{s}$ at 8 MHz), causing
+  spurious resets during valid conversions. The new 500-iteration bound provides
+  $54.7\ \mu\text{s}$ of margin, ensuring conversion completion while maintaining
+  fault recovery.
+- Retains all established probe enhancements:
+  - IntelliTone-style graded contrast feedback: strong = **30 ms on / 30 off**,
+    medium = **50/50**, weak = **50/100**.
+  - Main-loop watchdog refresh, removing TIM1's unconditional refresh.
+  - Channel selection serialization through conversion completion.
+  - Idle time reset while `signal_recent` or beep countdown is active.
+  - Critical-battery recovery, physical power-off and stock analog/mains analysis.
+
+Companion tester: [TX PN 2.9](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.9).
+
+## Validation and limits
+
+- Nine roadmap CPU test groups and five image-tool tests pass (`test_roadmap`, `test_image`).
+- Delayed ADC completion and timeout boundaries verified under Unicorn emulation.
+- 25 base verifier checks pass (`verify.py`).
+- 41 digital detection checks pass (`verify.py --digital`).
+
+## Build, update and recovery
+
+From `LPM-10A/Firmware File/rx-sdk`:
+
+```text
+python build.py --roadmap --write
+python -m unittest test_roadmap test_image -v
+```
+
+1. Verify: `certutil -hashfile APP_LPM-10RX_PN1.4-roadmap.bin SHA256`.
+2. With the probe off, hold **Power** until the LED indicator illuminates.
+3. Connect USB-C and copy the RX binary to the update drive.
+4. Power-cycle and verify operation with TX in digital scan mode.

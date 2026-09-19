@@ -1,4 +1,4 @@
-"""Opt-in PN 2.8 reliability experiments. Register after the established patches.
+"""Opt-in PN 2.9 reliability experiments. Register after the established patches.
 
 No vendor source is available. CPU tests establish instruction behavior, not
 peripheral timing, flash power-fail atomicity, or complete task-health coverage.
@@ -40,8 +40,19 @@ def register(patch):
                  (0x0801BD5A, 0x080131B0, 1), (0x0801BD88, 0x0800E428, 4)]
         state = img.alloc_ram(12)  # pending, service heartbeat, watchdog armed
         syms = {"EVENTS": state}
-        init = startup(img, "ldr r0, =EVENTS\nmovs r1, #0\nstr r1, [r0]\n"
-                       "str r1, [r0, #4]\nstr r1, [r0, #8]", syms)
+        init = startup(img, """
+            ldr r0, =EVENTS
+            movs r1, #0
+            str r1, [r0]
+            str r1, [r0, #4]
+            str r1, [r0, #8]
+            ldr r0, =0xE000ED24
+            ldr r1, [r0]
+            movw r2, #0
+            movt r2, #7
+            orrs r1, r2
+            str r1, [r0]
+        """, syms)
         producers = []
         for bit, (site, function, message) in enumerate(calls):
             producer = img.emit_code(f"""
@@ -266,11 +277,6 @@ def register(patch):
             movw r1, #0x3838
             ands r1, r5
             bne commit
-            movs r1, #16
-            ands r1, r2
-            bne basic
-            adds r0, #72
-        basic:
             movs r1, #3
             ands r1, r0
             bne commit

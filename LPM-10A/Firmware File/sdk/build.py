@@ -28,7 +28,7 @@ FW_DIR = os.path.dirname(HERE)
 STOCK = os.path.join(FW_DIR, "LPM-10A-TX_V2.0.7_260610.bin")
 STOCK_SHA = "29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b"
 OUT = os.path.join(FW_DIR, f"LPM-10A-TX_{patches.VERSION.replace(' ', '')}.bin")
-ROADMAP_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.8-roadmap.bin")
+ROADMAP_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.9-roadmap.bin")
 
 
 def disasm_region(data, payload_off, addr, n):
@@ -46,7 +46,7 @@ def main():
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--all", action="store_true", help="include risk=untested")
-    ap.add_argument("--roadmap", action="store_true", help="PN 2.8 roadmap experiment (distinct output file)")
+    ap.add_argument("--roadmap", action="store_true", help="PN 2.9 roadmap experiment (distinct output file)")
     ap.add_argument("--only", help="comma-separated patch ids")
     ap.add_argument("--with", dest="extra", help="comma-separated non-default patch ids to add to the default set")
     ap.add_argument("--out")

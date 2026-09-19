@@ -25,7 +25,7 @@ class Machine:
         self.payload = data[off:off + size]
         self.uc = uc = Uc(UC_ARCH_ARM, UC_MODE_THUMB | UC_MODE_MCLASS)
         for base, size in ((0x08000000, 0x80000), (0x20000000, 0x10000),
-                           (0x40000000, 0x30000), (STOP, 0x1000)):
+                           (0x40000000, 0x30000), (STOP, 0x1000), (0xE000E000, 0x1000)):
             uc.mem_map(base, size)
         uc.mem_write(APP, self.payload)
         uc.mem_write(0x20000000, ram_init(self.payload))

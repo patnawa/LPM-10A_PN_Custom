@@ -42,7 +42,7 @@ def main():
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--all", action="store_true", help="include risk=untested")
-    ap.add_argument("--roadmap", action="store_true", help="build the PN 1.3 roadmap experiment")
+    ap.add_argument("--roadmap", action="store_true", help="build the PN 1.4 roadmap experiment")
     ap.add_argument("--only", help="comma-separated patch ids")
     ap.add_argument("--out", help="output path (experimental builds use a distinct filename)")
     args = ap.parse_args()
