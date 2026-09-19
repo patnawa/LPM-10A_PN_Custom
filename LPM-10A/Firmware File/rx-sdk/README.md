@@ -1,6 +1,16 @@
 # LPM-10A receiver (probe) firmware SDK
 
-**PN 1.7 precision experimental prerelease:** `python build.py --precision --write` builds
+**PN 1.8 pinpoint experimental prerelease:** `python build.py --pinpoint --write` builds
+`../experimental/APP_LPM-10RX_PN1.8-pinpoint.bin`. It adds finer digital beep
+intervals across a wider strength range, with a small deadband to reduce jitter.
+Signal eligibility, sampling and PN 1.7 release behavior remain unchanged.
+Run `python -m unittest test_rx_pinpoint -v`. See the
+[implementation report](../../../docs/RX-PINPOINT-PN1.8-2026-09-19.md).
+The owner reports a PN 1.8 device test pass on 2026-09-19. Quantitative
+cable-selection measurements were not supplied; PN 1.7 is preserved.
+Download the [RX PN 1.8 prerelease](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.8).
+
+**Previous PN 1.7 precision experimental prerelease:** `python build.py --precision --write` builds
 `../experimental/APP_LPM-10RX_PN1.7-precision.bin`. Its existing digital mode
 adds robust strength grading, five beep levels, hysteresis and faster release
 for comparing cables in a bundle. Includes PN 1.6; earlier profiles remain

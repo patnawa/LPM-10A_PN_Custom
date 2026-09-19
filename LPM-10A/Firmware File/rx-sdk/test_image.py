@@ -55,6 +55,21 @@ class ImageTests(unittest.TestCase):
 
 
 class ProfileTests(unittest.TestCase):
+    def test_pinpoint_selection_rejected_before_loading_or_overwriting_image(self):
+        import build
+        for args in (("--pinpoint", "--precision"), ("--pinpoint", "--followup"),
+                     ("--pinpoint", "--audit"), ("--pinpoint", "--roadmap"),
+                     ("--pinpoint", "--all"),
+                     ("--pinpoint", "--only", "batt-critical-recover"),
+                     ("--only", "rx-pinpoint", "--write")):
+            with self.subTest(args=args), mock_patch("sys.argv", ["build.py", *args]), \
+                    mock_patch.object(build, "Image") as loader, \
+                    contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as caught:
+                    build.main()
+                self.assertEqual(caught.exception.code, 2)
+                loader.assert_not_called()
+
     def test_precision_selection_rejected_before_loading_or_overwriting_image(self):
         import build
         for args in (("--precision", "--followup"), ("--precision", "--audit"),

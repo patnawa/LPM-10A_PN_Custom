@@ -1,6 +1,18 @@
 # Experimental builds
 
-**RX PN 1.7 precision prerelease:** digital cable tracing with five strength
+**RX PN 1.8 pinpoint prerelease:** replaces PN 1.7's five broad digital
+grades with an interpolated beep interval across a wider strength range.
+Build `python build.py --pinpoint --write` and run
+`python -m unittest test_rx_pinpoint -v` in `rx-sdk`.
+Download [APP_LPM-10RX_PN1.8-pinpoint.bin](APP_LPM-10RX_PN1.8-pinpoint.bin);
+see [device notes](RX-PN1.8-PINPOINT-README.txt),
+[checksum](RX-PINPOINT-SHA256SUMS.txt), and
+[implementation report](../../../docs/RX-PINPOINT-PN1.8-2026-09-19.md).
+The owner reports a device test pass on 2026-09-19. The exact binary is published
+in the [RX PN 1.8 experimental prerelease](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.8).
+Quantitative cable-selection measurements were not supplied; PN 1.7 is preserved.
+
+**Previous RX PN 1.7 precision prerelease:** digital cable tracing with five strength
 levels, outlier-resistant grading, stable level transitions and faster release.
 Build `python build.py --precision --write` and run
 `python -m unittest test_rx_precision -v` in `rx-sdk`.

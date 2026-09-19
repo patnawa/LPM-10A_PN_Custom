@@ -490,3 +490,6 @@ _register_followup(patch)
 
 from precision_fixes import register as _register_precision
 _register_precision(patch)
+
+from pinpoint_fixes import register as _register_pinpoint
+_register_pinpoint(patch)

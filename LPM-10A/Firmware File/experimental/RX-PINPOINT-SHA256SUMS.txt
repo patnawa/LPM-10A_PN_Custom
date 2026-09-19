@@ -1,0 +1,1 @@
+a588af8e0883fca119b9ed00e30761502ec0c4e0d2b6fee16a67c8b7cacc615d  APP_LPM-10RX_PN1.8-pinpoint.bin
