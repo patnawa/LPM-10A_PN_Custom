@@ -93,7 +93,9 @@ class Machine:
         elif addr == 0x08012C64:
             self.ret(0x2000F800)
         elif addr == 0x080178F0:
-            self.ret(0)
+            # Current MII link status for the direct-status FLASH candidate.
+            # Other registers keep this high-level harness's previous default.
+            self.ret(0x24 if self.arg(0) == 1 and self.link else 0)
         elif addr == 0x08017AFC:
             self.mdios.append((self.arg(0), self.arg(1)))
             self.ret()

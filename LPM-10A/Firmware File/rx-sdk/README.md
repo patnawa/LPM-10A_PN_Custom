@@ -1,11 +1,21 @@
 # LPM-10A receiver (probe) firmware SDK
 
-**PN 1.3 Digital Strength experimental prerelease:** `python build.py --roadmap --write`
-builds `../experimental/APP_LPM-10RX_PN1.3-roadmap.bin`. It adds recent-signal
+**PN 1.5 experimental prerelease:** `python build.py --audit --write` builds
+`../experimental/APP_LPM-10RX_PN1.5-audit.bin`. It includes PN 1.4 plus a mains
+sampler handoff correction and a DFT arithmetic fix that prevents strong
+analog/mains signals from overflowing to zero. Run
+`python -m unittest test_firmware_audit -v`. See the
+[full TX/RX audit](../../../docs/FULL-FIRMWARE-AUDIT-2026-09-19.md).
+CPU-tested; device validation pending. Vendor-facing version remains `3.0.0`.
+Download the [RX prerelease](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.5).
+
+**PN 1.4 ADC Timeout Fix experimental prerelease:** `python build.py --roadmap --write`
+builds `../experimental/APP_LPM-10RX_PN1.4-roadmap.bin`. It adds recent-signal
 auto-off protection, serialized ADC completion, main-loop watchdog feeding and
-three digital beep cadences. Run `python -m unittest test_roadmap -v`.
-The owner reported a device test pass on 2026-09-19; the release preserves the
-tested binary. The existing PN 1.0/1.1/1.2 profiles remain reproducible.
+three digital beep cadences and the expanded ADC timeout margin.
+Run `python -m unittest test_roadmap -v`.
+The owner reported a PN 1.3 device test pass on 2026-09-19; PN 1.4 adds the ADC
+timeout correction. The existing PN 1.0/1.1/1.2 profiles remain reproducible.
 See the [implementation report](../../../docs/ROADMAP-IMPLEMENTATION-2026-09-19.md).
 
 **Previous PN 1.2 Reliability experimental prerelease; owner-reported hardware pass.**

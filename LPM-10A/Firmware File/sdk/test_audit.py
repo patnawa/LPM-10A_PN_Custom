@@ -98,7 +98,17 @@ class FirmwareTests(unittest.TestCase):
     def test_cli_rejects_ambiguous_or_empty_selection(self):
         import build
         for args in (("--only", ""), ("--only", "font-pro", "--all"),
-                     ("--only", "font-pro", "--with", "batt-grace")):
+                     ("--only", "font-pro", "--with", "batt-grace"),
+                     ("--portflash", "--roadmap"), ("--portflash", "--all"),
+                     ("--portflash", "--only", "flash-blink"),
+                     ("--portflash", "--with", "batt-grace"),
+                     ("--audit", "--roadmap"), ("--audit", "--portflash"),
+                     ("--audit", "--all"), ("--audit", "--only", "flash-blink"),
+                     ("--audit", "--with", "batt-grace"),
+                     ("--portflash-status", "--audit"), ("--portflash-status", "--roadmap"),
+                     ("--portflash-status", "--portflash"), ("--portflash-status", "--all"),
+                     ("--portflash-status", "--only", "flash-blink"),
+                     ("--portflash-status", "--with", "batt-grace")):
             with self.subTest(args=args), mock_patch("sys.argv", ["build.py", *args]), \
                     mock_patch.object(build, "Image") as loader, \
                     contextlib.redirect_stdout(io.StringIO()), \

@@ -460,3 +460,7 @@ def p_digital_strength(img):
         pop {r4, pc}
     """)
     _replace(img, site, size, code, "digital cadence: high 30/30, medium 50/50, low 50/100 ms")
+
+
+from audit_fixes import register as _register_audit
+_register_audit(patch)

@@ -1,11 +1,33 @@
 # LPM-10A firmware SDK
 
-**TX PN 2.8 roadmap release; owner-reported hardware pass.** The base build fixes partial
+**PN 2.12 Port FLASH release:** `python build.py --portflash-status --write`
+includes PN 2.11 plus direct PHY link reads and an indicator using the same
+controller state. This follows the owner's intermittent long-on report with
+PN 2.11 / D-Link gigabit. Run `python -m unittest test_portflash_status -v`.
+See the [follow-up](../../../docs/PORT-FLASH-STATUS-2026-09-19.md).
+Download the [TX release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.12).
+CPU-tested; owner confirms the Port FLASH fix on the D-Link gigabit switch
+(2026-09-19). Other functions await separate device validation.
+
+**PN 2.11 audit candidate:** `python build.py --audit --write` includes all
+Port FLASH fixes below, keeps battery monitoring active during FLASH and uses
+the checked static settings writer for every save path. Run
+`python -m unittest test_firmware_audit -v`. See the
+[full TX/RX audit](../../../docs/FULL-FIRMWARE-AUDIT-2026-09-19.md).
+CPU-tested; device validation pending. Default/released profiles are preserved.
+
+**PN 2.10 Port FLASH candidate:** `python build.py --portflash --write` builds
+all PN 2.9 roadmap features plus three PHY/FLASH recovery corrections. Run
+`python -m unittest test_portflash -v`. This opt-in candidate awaits hardware
+validation; the default and `--roadmap` profiles still reproduce PN 2.9.
+See the [Port FLASH audit](../../../docs/PORT-FLASH-AUDIT-2026-09-19.md).
+
+**Earlier TX PN 2.9 roadmap release.** The base build fixes partial
 zero formatting and protects the PoE latch copy. `python build.py --roadmap --write`
 adds deferred ISR events, service-task watchdog gating, calibration autosave and
-retained crash diagnostics in `../experimental/LPM-10A-TX_PN2.8-roadmap.bin`.
+retained crash diagnostics in `../experimental/LPM-10A-TX_PN2.9-roadmap.bin`.
 Run `python -m unittest test_roadmap -v` for that profile. The owner reported a
-device test pass on 2026-09-19; the release preserves the tested binary. The
+PN 2.8 device test pass on 2026-09-19; PN 2.9 adds fault-handler corrections. The
 default base profile remains a separate unreleased comparison build. See the
 [implementation report](../../../docs/ROADMAP-IMPLEMENTATION-2026-09-19.md).
 
@@ -53,7 +75,7 @@ needs `uharfbuzz`.
 python test_thumb.py            # assembler self-test
 python build.py --list          # what patches exist
 python build.py                 # dry run: prints every byte it would change
-python build.py --write         # emit LPM-10A-TX_PN2.8.bin (unreleased base candidate)
+python build.py --write         # emit LPM-10A-TX_PN2.9.bin (unreleased base candidate)
 python verify.py                # prove the result is what was intended
 python verify_scan.py           # fast SCAN-only regressions (also in verify.py)
 python -m unittest test_audit -v # allocator, dependency and battery-cancellation regressions

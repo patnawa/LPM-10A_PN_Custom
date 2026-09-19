@@ -5,6 +5,9 @@ LPM-10A firmware build tool.
     python build.py --list                 show available patches
     python build.py                        dry run with the default patch set
     python build.py --write                emit the current PN version
+    python build.py --portflash --write    emit the PN 2.10 Port FLASH candidate
+    python build.py --audit --write        emit the PN 2.11 full TX audit candidate
+    python build.py --portflash-status --write  emit the PN 2.12 PHY-status candidate
     python build.py --with blind-zone-50cm --out ../experimental/x.bin --write
     python build.py --only a,b --write     build a specific set
     python build.py --all --write          include patches marked untested
@@ -29,6 +32,9 @@ STOCK = os.path.join(FW_DIR, "LPM-10A-TX_V2.0.7_260610.bin")
 STOCK_SHA = "29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b"
 OUT = os.path.join(FW_DIR, f"LPM-10A-TX_{patches.VERSION.replace(' ', '')}.bin")
 ROADMAP_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.9-roadmap.bin")
+PORTFLASH_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.10-portflash.bin")
+AUDIT_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.11-audit.bin")
+PORTFLASH_STATUS_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.12-portflash-status.bin")
 
 
 def disasm_region(data, payload_off, addr, n):
@@ -47,15 +53,24 @@ def main():
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--all", action="store_true", help="include risk=untested")
     ap.add_argument("--roadmap", action="store_true", help="PN 2.9 roadmap experiment (distinct output file)")
+    ap.add_argument("--portflash", action="store_true", help="PN 2.10 Port FLASH candidate, including all roadmap features")
+    ap.add_argument("--audit", action="store_true", help="PN 2.11 candidate: Port FLASH, battery monitoring and all settings-save paths")
+    ap.add_argument("--portflash-status", action="store_true", help="PN 2.12 candidate: PN 2.11 plus direct PHY link status for FLASH")
     ap.add_argument("--only", help="comma-separated patch ids")
     ap.add_argument("--with", dest="extra", help="comma-separated non-default patch ids to add to the default set")
     ap.add_argument("--out")
     args = ap.parse_args()
+    if args.portflash_status and (args.audit or args.portflash or args.roadmap or args.all or args.only is not None or args.extra is not None):
+        ap.error("--portflash-status is a fixed profile; do not combine it with other profile/patch selectors")
+    if args.audit and (args.portflash or args.roadmap or args.all or args.only is not None or args.extra is not None):
+        ap.error("--audit is a fixed profile; do not combine it with other profile/patch selectors")
+    if args.portflash and (args.roadmap or args.all or args.only is not None or args.extra is not None):
+        ap.error("--portflash is a fixed profile; do not combine it with --roadmap, --all, --only or --with")
     if args.roadmap and (args.all or args.only is not None or args.extra is not None):
         ap.error("--roadmap is a fixed profile; do not combine it with --all, --only or --with")
     if args.only is not None and (args.all or args.extra is not None or args.roadmap):
         ap.error("--only cannot be combined with --all, --with or --roadmap")
-    args.out = args.out or (ROADMAP_OUT if args.roadmap else OUT)
+    args.out = args.out or (PORTFLASH_STATUS_OUT if args.portflash_status else AUDIT_OUT if args.audit else PORTFLASH_OUT if args.portflash else ROADMAP_OUT if args.roadmap else OUT)
 
     if args.list:
         print(f"{'id':22} {'risk':9} {'group':8} {'default':8} title (required patches)")
@@ -76,9 +91,18 @@ def main():
             return 2
     else:
         extra = {x.strip() for x in args.extra.split(",")} if args.extra else set()
-        if args.roadmap:
+        if args.roadmap or args.portflash or args.audit or args.portflash_status:
             from roadmap import PATCHES
             extra.update(PATCHES)
+        if args.portflash or args.audit or args.portflash_status:
+            from portflash import PATCH_ID
+            extra.add(PATCH_ID)
+        if args.audit or args.portflash_status:
+            from audit_fixes import PATCHES
+            extra.update(PATCHES)
+        if args.portflash_status:
+            from portflash_status import PATCH_ID
+            extra.add(PATCH_ID)
         missing = extra - {p.pid for p in patches.REGISTRY}
         if missing:
             print(f"unknown patch id(s): {', '.join(sorted(missing))}")

@@ -13,7 +13,8 @@ from verify_digital import Detector, pattern, run_checks, RECENT, GAP, reference
 def candidate():
     img = Image(str(Path(__file__).resolve().parent.parent / STOCK_NAME))
     for patch in rx_patches.REGISTRY:
-        patch(img)
+        if patch.pid in rx_patches.ROADMAP_PATCHES:
+            patch(img)
     return img
 
 

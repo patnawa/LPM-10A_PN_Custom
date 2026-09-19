@@ -1,0 +1,37 @@
+TX PN 2.12 Port FLASH status release — 2026-09-19
+
+File: LPM-10A-TX_PN2.12-portflash-status.bin
+Size: 393216 bytes
+SHA-256: 3d2db80f8288744191fe1ddb2855a83b900166dd365e1583c6270dfb460a0076
+Status: CPU-tested release; owner confirms Port FLASH fixed. TX tester only.
+Release: https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.12
+
+Owner confirmation (2026-09-19): "confirm fix 2.12 port blink", following
+testing on the reported D-Link gigabit switch. Exact model, duration and
+unplug/replug results were not specified. Other TX/RX changes await separate
+device validation.
+
+Addresses the follow-up report: PN 2.11 on a D-Link gigabit switch sometimes
+leaves the switch LED on for a long time instead of blinking consistently.
+The GPIO-driven hold timer can be restarted indefinitely by input pulses.
+That failure is reproduced in emulation; its occurrence on the board remains
+unconfirmed.
+
+PN 2.12 uses the PHY's current link-status register for acquisition and hold
+decisions. It clears historical latch-low status and rejects invalid all-ones
+reads. The tester indicator uses the same controller state without making
+concurrent MDIO transactions. Includes all PN 2.11 features and fixes.
+
+Use the existing TX update procedure in the root README. With the tester off,
+hold M + Power, connect USB-C and copy the TX image to the update drive. Wait
+for completion, power-cycle and confirm About says PN 2.12. The README covers
+the vendor-filename fallback if needed. Retain the prior working TX image.
+
+Test the same D-Link port and cable for ten minutes, unplug/replug and
+exit/re-enter. Observe the switch LED and tester indicator separately.
+Negotiation can still produce long off gaps: this retains 10 Mb/s advertisement,
+500 ms polling and 4/8/16-second retries. RX firmware is unchanged.
+
+Build from sdk: python build.py --portflash-status --write
+Candidate tests: python -m unittest test_portflash_status -v
+Report: docs/PORT-FLASH-STATUS-2026-09-19.md

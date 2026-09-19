@@ -62,7 +62,7 @@ class Control:
         assert [uc.reg_read(r) for r in SAVED] == sentinels
 
 
-def run_checks(stock, mod, check, roadmap=False):
+def run_checks(stock, mod, check, roadmap=False, mains_rearm=False):
     def deadline(buf, idle, beep):
         c = Control(buf)
         c.w32(IDLE, idle); c.w8(BEEP, beep)
@@ -133,7 +133,8 @@ def run_checks(stock, mod, check, roadmap=False):
           "physical power key still powers off after 1200 ticks, regardless of recent activity")
 
     if roadmap:
-        for start, end in ((0x080085F4, 0x08008718), (0x08009F58, 0x0800A080)):
+        mains_ranges = ((0x080085F4, 0x080086F2), (0x0800870C, 0x08008718)) if mains_rearm else ((0x080085F4, 0x08008718),)
+        for start, end in (*mains_ranges, (0x08009F58, 0x0800A080)):
             check(stock[start-0x08006800:end-0x08006800] == mod[start-0x08006800:end-0x08006800],
                   f"analog/mains analyzer bytes unchanged at {start:#x}")
         return

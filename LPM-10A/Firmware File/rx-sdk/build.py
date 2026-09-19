@@ -5,6 +5,7 @@ LPM-10A receiver firmware build tool.
     python build.py --list                 show available patches
     python build.py                        dry run with the default patch set
     python build.py --write                emit APP_LPM-10RX_PN1.0.bin
+    python build.py --audit --write        emit the PN 1.5 audit candidate
     python build.py --only a,b --write     build a specific set
     python build.py --all --write          include patches marked untested
 
@@ -23,6 +24,7 @@ sys.path.insert(0, HERE)
 from lpm10rx.image import Image, PatchError, STOCK_NAME   # noqa: E402
 from lpm10rx import symbols as S                          # noqa: E402
 import rx_patches as patches                               # noqa: E402
+from audit_fixes import PATCHES as AUDIT_PATCHES            # noqa: E402
 
 FW_DIR = os.path.dirname(HERE)
 STOCK = os.path.join(FW_DIR, STOCK_NAME)
@@ -43,9 +45,12 @@ def main():
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--all", action="store_true", help="include risk=untested")
     ap.add_argument("--roadmap", action="store_true", help="build the PN 1.4 roadmap experiment")
+    ap.add_argument("--audit", action="store_true", help="build PN 1.5 with sampler handoff and DFT overflow fixes")
     ap.add_argument("--only", help="comma-separated patch ids")
     ap.add_argument("--out", help="output path (experimental builds use a distinct filename)")
     args = ap.parse_args()
+    if args.audit and (args.roadmap or args.all or args.only is not None):
+        ap.error("--audit is a fixed profile; do not combine it with --roadmap, --all or --only")
     if args.roadmap and (args.all or args.only is not None):
         ap.error("--roadmap is a fixed profile; do not combine it with --all or --only")
 
@@ -67,16 +72,22 @@ def main():
             return 2
     else:
         sel = [p for p in patches.REGISTRY if p.default or args.all or
-               (args.roadmap and p.pid in patches.ROADMAP_PATCHES)]
+               ((args.roadmap or args.audit) and p.pid in patches.ROADMAP_PATCHES) or
+               (args.audit and p.pid in AUDIT_PATCHES)]
 
+    if not args.audit and any(p.pid in AUDIT_PATCHES for p in sel) and not args.out:
+        ap.error("custom audit patch selections require --out; use --audit for PN 1.5")
     reliability = any(p.pid == "activity-before-autooff" for p in sel)
     experimental = reliability or any(p.pid == "digital-correlation" for p in sel)
     # A nonstandard subset must have an explicit name, not impersonate PN 1.2.
-    if reliability and not args.roadmap and {p.pid for p in sel} != {"batt-critical-recover", "activity-before-autooff", "digital-correlation"} and not args.out:
+    if reliability and not args.roadmap and not args.audit and {p.pid for p in sel} != {"batt-critical-recover", "activity-before-autooff", "digital-correlation"} and not args.out:
         ap.error("the PN 1.2 candidate needs all three patches; give --out for a custom subset")
     name = patches.RELIABILITY_EXPERIMENT if reliability else patches.DIGITAL_EXPERIMENT
     if args.roadmap:
         name = patches.ROADMAP_EXPERIMENT
+    if args.audit:
+        from audit_fixes import OUTPUT
+        name = OUTPUT
     out = args.out or (os.path.join(FW_DIR, name) if experimental else OUT)
     if experimental:
         print("EXPERIMENTAL V3.0.0-BASED RX IMAGE: bench validation and matching-device recovery required.")

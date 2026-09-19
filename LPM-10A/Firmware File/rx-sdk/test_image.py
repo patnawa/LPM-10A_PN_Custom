@@ -1,7 +1,10 @@
 """RX build-boundary regressions; synthetic inputs, no vendor image required."""
 from pathlib import Path
+import contextlib
+import io
 import tempfile
 import unittest
+from unittest.mock import patch as mock_patch
 
 from lpm10rx.image import Image, PatchError
 from lpm10rx import symbols as S
@@ -49,6 +52,22 @@ class ImageTests(unittest.TestCase):
         with self.assertRaises(PatchError):
             self.img.save(self.path)
         self.assertEqual(self.path.read_bytes(), self.img.original)
+
+
+class ProfileTests(unittest.TestCase):
+    def test_audit_selection_rejected_before_loading_or_overwriting_image(self):
+        import build
+        for args in (("--audit", "--roadmap"), ("--audit", "--all"),
+                     ("--audit", "--only", "batt-critical-recover"),
+                     ("--only", "dft-square-overflow", "--write"),
+                     ("--only", "mains-sampler-publish-last", "--write")):
+            with self.subTest(args=args), mock_patch("sys.argv", ["build.py", *args]), \
+                    mock_patch.object(build, "Image") as loader, \
+                    contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as caught:
+                    build.main()
+                self.assertEqual(caught.exception.code, 2)
+                loader.assert_not_called()
 
 
 if __name__ == "__main__":

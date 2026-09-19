@@ -105,7 +105,7 @@ def digital_expected(tick):
     return (0xB6B6 >> (15 - (tick % 800) // 50)) & 1
 
 
-def run_checks(stock, mod, check):
+def run_checks(stock, mod, check, *, irq_reference=None):
     old, new = ScanMachine(stock, mode=0), ScanMachine(mod, mode=0)
     old.ticks(8001)
     new.ticks(8001)
@@ -196,9 +196,13 @@ def run_checks(stock, mod, check):
         off = struct.unpack_from('<I', data, 0x20)[0]
         return data[start - APP + off:end - APP + off]
 
-    check(all(region(stock, a, b) == region(mod, a, b) for a, b in
-              ((0x0801A60C, 0x0801A730), (0x08018370, 0x080183CC))),
-          'carrier hardware routines and TIM2 interrupt body are byte-identical to stock')
+    # Roadmap deliberately redirects the watchdog call in TIM2. Compare that
+    # body to the released roadmap when testing a derivative profile; its
+    # heartbeat semantics are exercised separately by test_roadmap.
+    irq_ref = stock if irq_reference is None else irq_reference
+    check(region(stock, 0x0801A60C, 0x0801A730) == region(mod, 0x0801A60C, 0x0801A730)
+          and region(irq_ref, 0x08018370, 0x080183CC) == region(mod, 0x08018370, 0x080183CC),
+          'carrier routines unchanged; TIM2 matches ' + ('stock' if irq_reference is None else 'reference profile'))
 
 
 def main():

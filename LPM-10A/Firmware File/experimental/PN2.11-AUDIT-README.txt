@@ -1,0 +1,32 @@
+TX PN 2.11 audit candidate — 2026-09-19
+
+File: LPM-10A-TX_PN2.11-audit.bin
+Size: 393216 bytes
+SHA-256: de27a1448cc1977d00a2104abb9f48dda227e8d71c9040d986769f8e5ffe43f9
+Status: CPU-tested candidate; device validation pending. TX tester only.
+
+Includes all PN 2.9 roadmap features, the three PN 2.10 Port FLASH corrections,
+and two additional fixes:
+- Correct shared FLASH/SPEED auto-negotiation register selection.
+- Restart the full link hold after observed link loss/recovery.
+- Measure dark/relink intervals after the PHY power operation completes.
+- Keep battery monitoring and low-voltage detection active during FLASH.
+- Use the checked static settings writer for explicit save, default setup and
+  power-off; remove their unchecked heap allocation.
+
+The reported blink-then-stop symptom still needs testing on the affected
+switch. FLASH retains 10 Mb/s advertisement, 500 ms polling and a maximum
+16-second acquisition window. Settings storage is not power-fail atomic.
+
+Use the existing TX installation procedure in the root README: with the
+tester off, hold M + Power to enter update mode, connect USB-C, copy the TX
+file, wait for completion, then power-cycle. Confirm About says PN 2.11.
+The README documents the vendor-filename fallback if the bootloader rejects
+the candidate filename. Retain the prior working TX firmware for comparison.
+
+Check FLASH for ten minutes on the affected switch, unplug/replug and re-enter
+the function; check SPEED, battery indication and settings retention too.
+
+Build from sdk: python build.py --audit --write
+Candidate tests: python -m unittest test_firmware_audit -v
+Full report: docs/FULL-FIRMWARE-AUDIT-2026-09-19.md

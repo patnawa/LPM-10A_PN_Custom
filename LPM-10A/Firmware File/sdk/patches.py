@@ -1987,3 +1987,12 @@ def p_batt_grace(img):
 
 from roadmap import register as _register_roadmap
 _register_roadmap(patch)
+
+from portflash import register as _register_portflash
+_register_portflash(patch)
+
+from audit_fixes import register as _register_audit
+_register_audit(patch)
+
+from portflash_status import register as _register_portflash_status
+_register_portflash_status(patch)
