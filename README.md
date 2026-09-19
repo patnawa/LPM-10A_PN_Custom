@@ -17,13 +17,12 @@ outstanding. See the [SCAN report](docs/SCAN-IMPROVEMENTS-2026-09-19.md)
 and [RX prerelease](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.1).
 
 Unofficial firmware for the FNIRSI LPM-10A network cable tester and probe,
-built by patching the official images and verifying the changes under CPU emulation.
+with changes verified under CPU emulation.
 The owner reports that the new TX and RX firmware work perfectly on their units.
 This is not certification of every hardware revision or measurement condition.
 
 ![version](https://img.shields.io/badge/TX-PN%202.6-orange)
 ![receiver](https://img.shields.io/badge/RX-PN%201.1%20experimental-yellow)
-![base](https://img.shields.io/badge/base-FNIRSI%20V2.0.7-lightgrey)
 ![patches](https://img.shields.io/badge/TX%20patches-20-blue)
 ![languages](https://img.shields.io/badge/UI-English%20%2F%20%E0%B9%84%E0%B8%97%E0%B8%A2-blue)
 ![verified](https://img.shields.io/badge/CPU%20verification-passed-brightgreen)
@@ -46,7 +45,7 @@ This is not certification of every hardware revision or measurement condition.
 
 **Use the file for the correct device; TX and RX firmware are not interchangeable.**
 Each release includes device-specific notes and a SHA-256 checksum file.
-RX is based on the V3.0.0 file inside the official TX V2.0.7 package; the owner's
+The RX build requires the verified V3.0.0 input file; the owner's
 previous RX version is unconfirmed. Success on that probe does not establish
 compatibility with all revisions or a stock rollback procedure.
 
@@ -84,7 +83,7 @@ it, adds code in an unused flash tail, re-assembles, and verifies the result in 
 
 ## What changes
 
-| Area | Stock V2.0.7 | PN Custom |
+| Area | Stock firmware | PN Custom |
 |---|---|---|
 | Length display | whole metres ("55"), inches, cm forced on every screen entry | **m / cm / ft with one decimal** ("55.4"), unit remembered across power cycles |
 | Cable calibration | none; the PHY's fixed constant | **Zero 0.0–2.0 m and NVP 50–99 %** on the Length screen, live redraw, saved; 0.0 m / 69 % = factory |
@@ -159,7 +158,7 @@ the tested unit on 2026-09-18 (PN 2.3 flashed and ran). The way back is the same
 procedure with any earlier PN file or FNIRSI's.
 This update does not touch the receiver (probe); the
 receiver build below is a separate file with its own update mode and recovery caveats. Requires
-V2.x.x hardware, like stock V2.0.7.
+compatible V2.x.x hardware.
 
 ### First power-on checklist
 
@@ -218,8 +217,8 @@ that needs no equipment:
 
 ### Going back to stock
 
-Same procedure with the original `LPM-10A-TX_V2.0.7_260610.bin` from FNIRSI's official
-V2.0.7 package ([fnirsi.com](https://www.fnirsi.com), support / downloads). FNIRSI's files
+Same procedure with the original `LPM-10A-TX_V2.0.7_260610.bin` obtained from
+FNIRSI ([fnirsi.com](https://www.fnirsi.com), support / downloads). FNIRSI's files
 are not distributed here. The bootloader lives in a separate flash region that is never
 touched, so the update screen stays reachable. The three settings bytes the mod uses (NVP,
 unit, Zero) are bytes the stock firmware ignores.
@@ -425,7 +424,7 @@ below 3280 mV; the receiver build makes that critical state recoverable at ≥ 3
 </div>
 
 The build input is FNIRSI's own image, which is **not in this repository**: download the
-official V2.0.7 package, unzip it, and put `LPM-10A-TX_V2.0.7_260610.bin` either in
+matching firmware package, unzip it, and put `LPM-10A-TX_V2.0.7_260610.bin` either in
 `LPM-10A/Firmware File/`, in a folder named `LPM-10A_FNIRSI_originals` next to the
 repository, or anywhere with `LPM10A_STOCK` pointing at it. Every tool checks its SHA-256
 (`29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b`) and refuses anything else.
@@ -508,7 +507,7 @@ Update-mode entry was reported on 2026-09-18: with the probe off, hold SCAN and
 connect USB to expose the "UDISK" drive. The owner subsequently reported testing
 the new RX firmware successfully. Earlier notes asserted the probe ran V3.0.1;
 the owner later clarified that its previous installed version was uncertain.
-This build uses the verified V3.0.0 image from the official TX V2.0.7 package.
+The build requires the verified V3.0.0 receiver input image.
 Confirm applicability and a stock recovery path for your unit before flashing;
 do not apply the TX procedure or TX binary to the probe. See
 [RX release notes](LPM-10A/Firmware%20File/RX-PN1.1-DIGITAL-README.txt).
@@ -575,8 +574,8 @@ Remaining firmware edge cases and hardware limits:
 ## Licences and credits
 
 - Tooling, patches and documentation: MIT (see [LICENSE](LICENSE)).
-- FNIRSI's firmware files are not redistributed here; the build takes the official V2.0.7
-  image as its input and the flashing instructions send you to FNIRSI for it.
+- FNIRSI's original firmware files are not redistributed here; obtain the
+  required build and recovery images directly from FNIRSI.
 - Fonts: Ubuntu Sans Mono under the Ubuntu Font Licence 1.0; Sarabun (the Thai interface)
   under the SIL Open Font License 1.1; Droid Sans Fallback (the PN 1.x Chinese table) under
   the Apache License 2.0. All three permit redistribution of the rasterized glyphs.

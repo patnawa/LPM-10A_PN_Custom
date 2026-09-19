@@ -28,7 +28,7 @@ FNIRSI's own files are not distributed with this build.
 !!    write itself works and whether the file name matters are still
 !!    unconfirmed: nothing has been copied onto it.
 !! 2. That probe runs V3.0.1 (the drive carries a "3.0.1" text
-!!    file), newer than the V3.0.0 image in FNIRSI's LPM-10A V2.0.7
+!!    file), newer than the V3.0.0 image in FNIRSI's LPM-10A firmware
 !!    package that this build was patched from.  Flashing this build
 !!    would DOWNGRADE the probe with no 3.0.1 file to return to, and
 !!    the patch offsets were taken from 3.0.0.

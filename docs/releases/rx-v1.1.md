@@ -17,7 +17,7 @@ SHA-256:
 70c72436c30d91df52b6bc2935cde1f2077989b7b16c7223ddff829eb774d56f
 ```
 
-Base: `APP_LPM-10RX_V3.0.0_260416.bin` from the official **TX V2.0.7 package**.
+Required build input: `APP_LPM-10RX_V3.0.0_260416.bin`.
 The owner's previous installed RX version is unconfirmed; earlier references
 to V3.0.1 were clarified as uncertain. This is not a validated V3.0.1 patch.
 The internal vendor version string remains `3.0.0`; identify this build by hash.

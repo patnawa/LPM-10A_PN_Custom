@@ -4,7 +4,7 @@ Date: 2026-09-19
 File: APP_LPM-10RX_PN1.1-digital-experimental.bin
 Size: 26152 bytes (identical to stock)
 SHA-256: 70c72436c30d91df52b6bc2935cde1f2077989b7b16c7223ddff829eb774d56f
-Base: APP_LPM-10RX_V3.0.0_260416.bin from the official V2.0.7 package.
+Required build input: APP_LPM-10RX_V3.0.0_260416.bin.
 Stock SHA-256: 083f3825e8f8a38627417e26732e88fd13ee0dbe3c13ca1cd1cd9c4875c7c8c5
 
 Prerelease: https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.1

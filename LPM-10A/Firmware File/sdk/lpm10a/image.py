@@ -38,7 +38,7 @@ STOCK_HELP = """stock image not found:
     {path}
 
 FNIRSI's firmware is not part of this repository.  Download the official
-LPM-10A V2.0.7 package from https://www.fnirsi.com (support / downloads),
+matching LPM-10A firmware package from https://www.fnirsi.com (support / downloads),
 unzip it, and either copy LPM-10A-TX_V2.0.7_260610.bin to the path above,
 put it in a folder named LPM-10A_FNIRSI_originals next to the repository,
 or point the LPM10A_STOCK environment variable at it.

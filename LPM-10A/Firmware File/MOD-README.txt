@@ -4,8 +4,7 @@
 
 File      : LPM-10A-TX_PN2.4.bin
 Version   : PN 2.4  (Settings > About shows "Software:PN 2.4")
-Built from: LPM-10A-TX_V2.0.7_260610.bin  (official FNIRSI V2.0.7)
-            sha256 29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b
+Input hash: sha256 29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b
 Result    : sha256 07428e667d765e25d404699ddd45021eb24dc83f45fe6144c2026a5f868f9176
 Size      : 393216 bytes = stock + one 4 KB flash page (see below)
 Changed   : 8514 bytes differ from stock: the three font tables

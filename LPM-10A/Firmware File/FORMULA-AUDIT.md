@@ -1,4 +1,4 @@
-# LPM-10A TX firmware V2.0.7 — measurement formula audit
+# LPM-10A TX firmware — measurement formula audit
 
 Every value the tester computes and shows was traced in the stock binary
 (`LPM-10A-TX_V2.0.7_260610.bin`, sha256 `29081ccb…`) by disassembly, and the

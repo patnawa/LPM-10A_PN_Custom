@@ -1,7 +1,7 @@
 # LPM-10A firmware SDK
 
 A reverse-engineering and patching toolkit for the FNIRSI LPM-10A cable tester
-(TX / main unit), built against the official **V2.0.7** release.
+(TX / main unit), with hash-verified build inputs.
 
 There is no vendor source. Everything here works on the shipped binary:
 it is disassembled, patched, re-assembled and verified in place.
@@ -69,7 +69,7 @@ before edits, including when patches are called directly from Python. For exampl
 `python build.py --only length-decimal,length-average` is a valid dry run.
 
 The stock image `../LPM-10A-TX_V2.0.7_260610.bin` is **not part of the
-repository**: download FNIRSI's official V2.0.7 package and copy the file
+repository**: obtain the matching firmware package from FNIRSI and copy the file
 there, or keep it in a folder named `LPM-10A_FNIRSI_originals` next to the
 repository, or set `LPM10A_STOCK` to its path (the tools try all three). `build.py` refuses to run unless it hashes to the expected SHA-256, so
 it can never be silently applied to a different release. `assets_out/` (the UI

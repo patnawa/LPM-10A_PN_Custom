@@ -35,8 +35,8 @@ This proves intended logic/bytes, not physical waveform quality or ISR latency.
 
 ## Probe: conservative, opt-in detector improvement
 
-The verified source is `APP_LPM-10RX_V3.0.0_260416.bin`, shipped inside the
-official TX V2.0.7 package. The owner is unsure of the installed RX version.
+The verified build input is `APP_LPM-10RX_V3.0.0_260416.bin`.
+The owner is unsure of the previous installed RX version.
 This candidate is specifically **V3.0.0-based**, not a validated V3.0.1 patch.
 
 `rx-sdk/rx_patches.py`, patch `digital-correlation`, replaces only the existing

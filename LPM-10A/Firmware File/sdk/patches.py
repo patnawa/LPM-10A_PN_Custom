@@ -1,5 +1,5 @@
 """
-Patch set for LPM-10A TX firmware V2.0.7.
+Patch set for LPM-10A TX firmware; build inputs are SHA-256 pinned.
 
 Each patch is a function taking the Image and doing its edits.  Patches are
 grouped so a build can select exactly what it wants.  Anything that cannot be

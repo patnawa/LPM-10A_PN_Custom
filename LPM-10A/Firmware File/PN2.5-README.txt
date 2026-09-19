@@ -4,7 +4,7 @@ Audit date: 2026-09-19
 File: LPM-10A-TX_PN2.5.bin
 Size: 393216 bytes (same file size as PN 2.4)
 SHA-256: ae3bb28dbdbefa03878bbe12f508b0b147ef10f1fee98870f72c41327fb2c1cf
-Stock base: official TX V2.0.7, pinned by the build tool.
+Build input is verified by the build tool's pinned SHA-256.
 
 Fix: cancelling a low-battery shutdown on voltage recovery or charger
 connection now clears the debounce counter. A subsequent low-voltage
