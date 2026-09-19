@@ -14,6 +14,7 @@ Post-build verification for a patched LPM-10A receiver image.
   4  the register and byte facts the in-place patch relies on
 """
 import hashlib
+import argparse
 import os
 import struct
 import sys
@@ -27,7 +28,11 @@ from lpm10rx.image import Image, STOCK_NAME, require_stock    # noqa: E402
 import rx_patches as patches                                  # noqa: E402
 
 STOCK = require_stock(os.path.join(FW, STOCK_NAME))
-MOD = sys.argv[1] if len(sys.argv) > 1 else os.path.join(FW, "APP_LPM-10RX_PN1.0.bin")
+ap = argparse.ArgumentParser(description=__doc__)
+ap.add_argument("image", nargs="?")
+ap.add_argument("--digital", action="store_true", help="verify the opt-in digital-correlation candidate")
+args = ap.parse_args()
+MOD = args.image or os.path.join(FW, patches.DIGITAL_EXPERIMENT if args.digital else "APP_LPM-10RX_PN1.0.bin")
 
 fails = 0
 count = 0
@@ -42,7 +47,7 @@ def check(ok, label, detail=""):
 
 _probe = Image(STOCK)
 for _p in patches.REGISTRY:
-    if _p.default:
+    if _p.default or (args.digital and _p.pid == "digital-correlation"):
         _p(_probe)
 EXPECTED = list(_probe.log)
 
@@ -231,6 +236,14 @@ try:
           "ADC grid: 3400 mV is not representable; first recovering count is 2111 (3401 mV)")
 except ImportError:
     check(False, "unicorn not available")
+
+if args.digital:
+    print("\n5. experimental digital detection")
+    try:
+        from verify_digital import run_checks
+        run_checks(stock, mod, check)
+    except Exception as ex:
+        check(False, f"digital checks aborted: {type(ex).__name__}: {ex}")
 
 print(f"\n{count} checks: " + ("ALL CHECKS PASSED" if not fails else f"{fails} CHECK(S) FAILED"))
 sys.exit(1 if fails else 0)

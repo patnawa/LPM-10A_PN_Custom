@@ -1,5 +1,14 @@
 # LPM-10A receiver (probe) firmware audit
 
+**Update 2026-09-19:** an opt-in, V3.0.0-based digital-detection candidate is
+implemented and CPU-tested. It adds bounded bit-error tolerance and a contrast
+floor while retaining the stock exact matcher and sampler. It does **not**
+implement the oversampling proposal below, nor demonstrate hardware range gains.
+See [SCAN implementation and validation](SCAN-IMPROVEMENTS-2026-09-19.md).
+Hardware follow-up, 2026-09-19: the owner reports testing the new TX and RX
+firmware successfully. The previous installed probe version remains unconfirmed;
+quantitative range/noise measurements were not supplied.
+
 Image: `APP_LPM-10RX_V3.0.0_260416.bin` (FNIRSI, 26 152 bytes, not in this repository).
 Method: disassembly, a full function survey (156 routines named, see
 `rx-sdk/lpm10rx/symbols.py`), and CPU emulation: the image is booted from its reset

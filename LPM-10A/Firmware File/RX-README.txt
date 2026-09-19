@@ -1,3 +1,9 @@
+HISTORICAL PN 1.0 NOTES. For the current PN 1.1 Digital prerelease, see
+RX-PN1.1-DIGITAL-README.txt. On 2026-09-19 the owner reported successful
+testing of the new TX/RX firmware; the previous installed RX version was
+clarified as uncertain. The older version-specific warnings below record
+what was believed during PN 1.0 development, not the current release status.
+
 ================================================================
  LPM-10A receiver (probe) firmware  PN 1.0   (UNOFFICIAL build)
 ================================================================

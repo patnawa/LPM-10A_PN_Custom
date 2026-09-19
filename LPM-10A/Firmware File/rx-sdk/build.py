@@ -43,7 +43,7 @@ def main():
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--all", action="store_true", help="include risk=untested")
     ap.add_argument("--only", help="comma-separated patch ids")
-    ap.add_argument("--out", default=OUT)
+    ap.add_argument("--out", help="output path (experimental builds use a distinct filename)")
     args = ap.parse_args()
 
     if args.list:
@@ -53,7 +53,9 @@ def main():
             print(f"{p.pid:24} {p.risk:9} {p.group:8} {'yes' if p.default else 'no':8} {p.title}")
         return 0
 
-    if args.only:
+    if args.only is not None and args.all:
+        ap.error("--only cannot be combined with --all")
+    if args.only is not None:
         want = [x.strip() for x in args.only.split(",")]
         sel = [p for p in patches.REGISTRY if p.pid in want]
         missing = set(want) - {p.pid for p in sel}
@@ -62,6 +64,11 @@ def main():
             return 2
     else:
         sel = [p for p in patches.REGISTRY if p.default or args.all]
+
+    experimental = any(p.pid == "digital-correlation" for p in sel)
+    out = args.out or (os.path.join(FW_DIR, patches.DIGITAL_EXPERIMENT) if experimental else OUT)
+    if experimental:
+        print("EXPERIMENTAL V3.0.0-BASED RX IMAGE: bench validation and matching-device recovery required.")
 
     img = Image(STOCK)
     sha = hashlib.sha256(img.original).hexdigest()
@@ -105,8 +112,8 @@ def main():
     print(f"file size     : {len(img.data)} (unchanged; raw image, no container)")
 
     if args.write:
-        out_sha = img.save(args.out)
-        print(f"\nwrote {args.out}")
+        out_sha = img.save(out)
+        print(f"\nwrote {out}")
         print(f"sha256 {out_sha}")
     else:
         print("\n(dry run -- pass --write to emit the file)")

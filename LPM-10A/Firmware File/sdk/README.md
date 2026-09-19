@@ -15,6 +15,7 @@ sdk/
   patches.py      the patch set
   build.py        build a modified firmware
   verify.py       post-build verification (disassembly + CPU emulation)
+  verify_scan.py  SCAN waveforms, interrupt paths, pause/resume and mode changes
   assets.py       export / replace the UI graphics
   fonts.py        export / rebuild the three on-screen fonts
   cjk_chars.py    the 171 Chinese characters, in glyph-table order
@@ -43,9 +44,29 @@ needs `uharfbuzz`.
 python test_thumb.py            # assembler self-test
 python build.py --list          # what patches exist
 python build.py                 # dry run: prints every byte it would change
-python build.py --write         # emit LPM-10A-TX_PN2.4.bin
+python build.py --write         # emit LPM-10A-TX_PN2.6.bin (owner-reported hardware pass)
 python verify.py                # prove the result is what was intended
+python verify_scan.py           # fast SCAN-only regressions (also in verify.py)
+python -m unittest test_audit -v # allocator, dependency and battery-cancellation regressions
 ```
+
+PN 2.6 fixes the digital SCAN wrap, bypasses logging in its timer path, and
+invalidates the cached carrier state before enabling so resume drives the right
+level immediately. Carrier configuration and the 825 Hz waveform are unchanged.
+See [SCAN improvements](../../../docs/SCAN-IMPROVEMENTS-2026-09-19.md).
+The owner reports successful TX and RX hardware testing on 2026-09-19.
+The [PN 2.6 release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.6)
+includes the binary, device-specific notes and its SHA-256 checksum.
+
+PN 2.5 clears the low-battery debounce counter when recovery or a charger cancels
+an active shutdown, so the next low-voltage episode requires three fresh samples.
+See [the audit](../../../docs/AUDIT-2026-09-19.md) for reproductions and remaining risks.
+
+Subset builds must include their prerequisites, listed by `--list`:
+`nvp-calibration`, `length-average` and `length-blind-text` require `length-decimal`;
+`thai-ui` requires both `font-pro` and `length-decimal`. Missing dependencies fail
+before edits, including when patches are called directly from Python. For example,
+`python build.py --only length-decimal,length-average` is a valid dry run.
 
 The stock image `../LPM-10A-TX_V2.0.7_260610.bin` is **not part of the
 repository**: download FNIRSI's official V2.0.7 package and copy the file
@@ -157,11 +178,12 @@ The assembler rejects anything it does not recognise rather than guessing, and
 | `batt-gauge` | low | ux | 10-step Li-ion battery gauge instead of 4 steps |
 | `settings-leak` | low | bugfix | Frees the 204-byte buffer leaked by every settings save |
 | `font-pro` | low | ux | Replaces all three fonts: 8x16 and 6x12 ASCII (Ubuntu Sans Mono) and the 171 Chinese glyphs (Droid Sans Fallback; superseded by the Thai cells when `thai-ui` is on) |
-| `version-string` | safe | identity | About screen and boot log report `PN 2.4` (edit `VERSION` in patches.py, 7 characters max) |
+| `version-string` | safe | identity | About screen and boot log report `PN 2.6` (edit `VERSION` in patches.py, 7 characters max) |
 | `length-blind-text` | low | measure | A pair the PHY could not time prints `< 2` / `< 200` / `< 7` (m / cm / ft) instead of `0.0`; the formatter is a copy of length-decimal's with the zero case, in the Thai region |
 | `cable-back` | low | ux | Cable Test: Back returns to the Switch / Far end selector from the armed and result screens (stock left the screen); code lives in the Thai region |
 | `cable-error-visible` | low | ux | Cable Test: the red "Result error!!" line moves above the Test Retry button (stock drew the button over it); the button moves 9 px down |
 | `scan-labels` | safe | identity | SCAN screen modes labelled `Digital` (0xB6B6 coded pattern) and `825 Hz` (keyed tone) instead of `Noiseless` / `Normal` |
+| `scan-timing` | low | scan | Exact 50-tick digital slots at wrap, no SCAN interrupt-context logging, immediate carrier restore on resume; no carrier or timer changes |
 | `about-url` | safe | identity | About screen shows `github.com/patnawa/LPM-10A_PN_Custom` (string in the cave, 6x12 font, 216 px) where the vendor site was; edit `REPO_URL` in patches.py, 36 characters max |
 | `thai-ui` | low | thai | **The second language is Thai**: 118 Sarabun cells in the glyph table, proportional drawers with the stock signatures, every Chinese string slot a redirect stub to its Thai text, a `gui_blit` hook for the six English-only messages (`wording.py` ASCII_TH), the About labels 14 px left, YES / NO as whole-word cells. English untouched. See `thai/` and `docs/THAI-UI.md` |
 | `flash-blink` | low | flash | FLASH: the port LED blinks with a **fixed 1.5–2 s on time, timed from the link** (PB5), off for the switch's own re-link (about 2–3 s), a regular 4–5 s cycle, instead of stock's 4 s up / 1 s down counter that ignored the link and lost the switch's 2–3 s re-link out of every "up" window; message 8 every 500 ms, phases end at the first tick past their length less half a tick; while waiting for the link the power-up is re-asserted every tick and the PHY power-cycled again after `FLASH_RELINK_MS` = 4 s without one (PN 2.4: PN 2.3 waited without limit and stalled after a few cycles on the unit); the screen indicator clears after 300 ms, the note reads "Watch the port / LED on the switch: / it blinks when linked". `FLASH_ON_MS` / `FLASH_OFF_MS` / `FLASH_RELINK_MS` in patches.py |

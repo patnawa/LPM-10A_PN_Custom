@@ -1,0 +1,58 @@
+LPM-10RX PN 1.1 digital - EXPERIMENTAL, OWNER-REPORTED HARDWARE PASS
+Date: 2026-09-19
+
+File: APP_LPM-10RX_PN1.1-digital-experimental.bin
+Size: 26152 bytes (identical to stock)
+SHA-256: 70c72436c30d91df52b6bc2935cde1f2077989b7b16c7223ddff829eb774d56f
+Base: APP_LPM-10RX_V3.0.0_260416.bin from the official V2.0.7 package.
+Stock SHA-256: 083f3825e8f8a38627417e26732e88fd13ee0dbe3c13ca1cd1cd9c4875c7c8c5
+
+Prerelease: https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.1
+This file is for the RX probe ONLY, not the TX tester. Check the SHA-256
+before copying. Update-mode entry was owner-confirmed on 2026-09-18:
+probe off, hold SCAN, connect USB; a UDISK drive appears. The later functional
+pass does not document every update/rollback step or other device revisions.
+Confirm a stock recovery path for your unit. Do not use the TX update steps.
+
+Hardware follow-up, 2026-09-19: the owner reports testing the new TX and RX
+firmware and that everything works perfectly. This confirms reported operation
+on the owner's units, not measured range, noise rejection or all revisions.
+The experimental filename, opt-in build policy and binary remain unchanged.
+
+This is not a V3.0.1 patch. The previous installed probe version is unconfirmed.
+Do not assume a package's TX version identifies its RX firmware. Confirm
+the image applies to your hardware and a tested stock recovery path before
+flashing another unit. The owner performed the reported hardware testing.
+
+Includes the existing PN 1.0 battery-recovery fix and a replacement digital
+detector in the original function's 336-byte footprint:
+- Retain the stock path accepting two exact sliding B6B6 matches.
+- Add correlation across eight bit rotations of all 48 samples, allowing
+  at most four bad bits overall and two per 16-sample block.
+- Require contrast: absolute deviations from the trimmed mean must total
+  at least 192 ADC counts. Retain the existing high-sample sum and PA2 gates.
+  The contrast floor needs bench calibration; very weak signals can fail it.
+
+This does NOT implement oversampling, sub-slot phase tracking, gain changes
+or a strength display. ADC pipeline, timers, analogue and mains modes, beep
+cadence and 800-ms signal hold remain unchanged. No persistent RAM or image
+growth. UID binding and vendor version-page handling are untouched, so the
+internal vendor version string remains 3.0.0; identify this build by its hash.
+
+Build from rx-sdk:
+  python build.py --only batt-critical-recover,digital-correlation --write
+  python verify.py --digital
+The default build stays PN 1.0; experimental builds use a separate filename.
+
+CPU validation: 41 checks passed, including the original battery tests.
+Three distributed bad bits: stock 0/8, candidate 8/8 phases detected.
+Synthetic phase/clock/noise sweep: stock 589/640, candidate 591/640;
+every stock detection in this sweep was preserved.
+2048 seeded noise-only windows and 112 single-tone windows: no detections.
+These finite synthetic tests do NOT establish real false-alarm rates, range,
+electrical compatibility, immunity to adjacent cables or interrupt timing.
+
+Bench work: compare stock/candidate on the same target and adjacent cables,
+both TX modes, stationary and moving probe, weak/strong signals and several
+battery levels. Check lamp, buttons, analogue mode, mains mode and power-off.
+See docs/SCAN-IMPROVEMENTS-2026-09-19.md for the complete scope and limitations.

@@ -1,5 +1,14 @@
 # LPM-10A receiver (probe) firmware SDK
 
+**2026-09-19: experimental digital detector available, off by default.**
+The V3.0.0-based PN 1.1 digital candidate adds bounded bit-error tolerance
+alongside the stock exact matcher, plus a provisional contrast floor. The
+sampler, ADC and image size are unchanged. On 2026-09-19 the owner reported
+successful testing of both new TX and RX firmware. Range/noise measurements
+and compatibility with other revisions remain unverified. See
+[candidate notes](../RX-PN1.1-DIGITAL-README.txt) and the
+[implementation and test report](../../../docs/SCAN-IMPROVEMENTS-2026-09-19.md).
+
 A patching toolkit for the tone-probe half of the FNIRSI LPM-10A, built against
 the official receiver image **APP_LPM-10RX_V3.0.0_260416.bin**. Same philosophy
 as the transmitter SDK in [`../sdk`](../sdk/README.md): no vendor source, every
@@ -14,6 +23,7 @@ rx-sdk/
   rx_patches.py   the patch set
   build.py        build APP_LPM-10RX_PN1.0.bin
   verify.py       post-build verification (bytes + disassembly + emulation)
+  verify_digital.py  opt-in detector: independent model, faults, noise and phase sweeps
   boot_emu.py     boots the image under emulation and prints the clock tree
                   and timer registers the firmware really programs
   disasm.py       movw/movt-aware disassembler, function survey, xref
@@ -33,6 +43,19 @@ python boot_emu.py              # clock tree and timer rates, from the running c
 python disasm.py funcs          # survey every function
 python disasm.py fn 08007770    # one function (add an image.bin anywhere to pick a file)
 ```
+
+To build and verify the **experimental** digital candidate separately:
+
+```bash
+python build.py --only batt-critical-recover,digital-correlation --write
+python verify.py --digital     # 41 checks, including original battery regressions
+```
+
+This writes `../APP_LPM-10RX_PN1.1-digital-experimental.bin`, not PN 1.0.
+The default build/verification still use PN 1.0. The internal vendor version
+string is deliberately unchanged (`3.0.0`); use the candidate hash to identify it.
+Stock's five-read trimmed sampler is retained: this is not oversampling or
+sub-slot clock recovery. The added contrast threshold needs bench calibration.
 
 The stock receiver image is FNIRSI's and is **not in the repository**. Put it in
 `LPM-10A/Firmware File/`, or in a folder named `LPM-10A_FNIRSI_originals` next
@@ -63,6 +86,7 @@ device binding, what the bootloader question still blocks) is in [`../../../docs
 | id | risk | what |
 |---|---|---|
 | `batt-critical-recover` | low | The critical-battery shutdown can be cancelled: one reading below 3280 mV still enters the critical state, but each reading (every 500 ms) at or above 3400 mV returns to the low state and resets the counter, so only five **consecutive** low readings (2.5 s) power the unit off. Stock had no way back. 28 bytes changed, in place. |
+| `digital-correlation` | untested, opt-in | Retain two exact sliding matches, or accept a full 48-bit window at one of eight rotations with at most four errors total / two per 16 samples; add a DC-independent contrast floor. Entire replacement fits the existing 336-byte routine, no persistent RAM or image growth. |
 
 ### What `verify.py` proves
 
@@ -72,6 +96,7 @@ device binding, what the bootloader question still blocks) is in [`../../../docs
 | 2 | code | disassembly inventory compared by address; nothing after the edit differs; the patched block decodes to the intended instruction sequence |
 | 3 | battery | the real battery routine run once per reading on stock and mod with a fake ADC and `power_off` trapped, nine voltage sequences with their **expected state/count traces** (dip then recovery, dip into the hysteresis band, flat pack, alternating load, healthy pack, slow decline, both sides of the recovery boundary, a restarted count), the shutdown timing, and the LED hysteresis after recovery |
 | 4 | facts | r4 holds the sample-buffer base throughout the patched block; the byte counter wraps like stock; the ADC grid (3400 mV is not a representable reading, 3401 is) |
+| 5, `--digital` | digital detector | Real detector/trimmed mean against an independent model: clean and corrupted patterns, contrast boundaries, all 256 periodic bytes, seeded noise, tones, synthetic drift, ISR buffer handoff, register preservation and owned memory writes |
 
 A wrong build (different threshold, different branch target, different count)
 fails the byte check, the instruction-sequence check and at least one trace.
@@ -92,12 +117,16 @@ def p_my_fix(img):
 `poke` asserts the stock bytes and refuses a different length. Symbols from
 `symbols.py` are available to the assembler by name (`bl power_off`).
 
-## Flashing (unverified)
+## Flashing and recovery status
 
-FNIRSI's package contains the receiver image but its readme only describes the
-transmitter's update mode. The receiver bootloader is large enough for the same
-USB-drive method with its own key combination, but this has not been confirmed.
-Do not flash the receiver until the procedure is known and a way back to the
-stock image is confirmed; the stock file is the only recovery. The UID-binding
-record sits outside the application image, so an application update does not
-re-provision the unit.
+The owner confirmed update-mode entry on 2026-09-18: probe off, hold SCAN,
+connect USB; the "UDISK" drive appears. On 2026-09-19 the owner reported that
+both new TX and RX firmware work perfectly. The report does not establish
+stock rollback or compatibility with every revision. The previous installed
+RX version is uncertain; this patch requires the exact official V3.0.0 base.
+
+The [RX prerelease](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.1)
+contains the binary, notes and checksum. Verify the hash and confirm a stock
+recovery path for your device before flashing. TX and RX images and update
+procedures are separate. The application patch does not alter the UID-binding
+code or record outside the image. The bootloader itself has not been audited.

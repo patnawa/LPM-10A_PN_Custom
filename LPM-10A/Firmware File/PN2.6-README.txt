@@ -1,0 +1,47 @@
+LPM-10A TX PN 2.6 - release, owner-reported hardware pass
+Date: 2026-09-19
+
+File: LPM-10A-TX_PN2.6.bin
+Size: 393216 bytes
+SHA-256: 92304aa3ad6452bd60d81b96018c5db563014805d013668ff577b306c37a0f57
+Base: official TX V2.0.7; includes PN 2.5 battery and SDK fixes.
+
+Release: https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.6
+This file is for the TX tester ONLY, not the RX probe.
+
+TX update (confirm the checksum before copying):
+1. Power off; hold M + Power to enter the update screen.
+2. Connect USB-C and copy LPM-10A-TX_PN2.6.bin to the removable drive.
+3. Do not unplug during the update. Long-press Power off, then power on.
+4. About should show Software:PN 2.6.
+If the file is refused, the documented stock filename is
+LPM-10A-TX_V2.0.7_260610.bin. Keep the official stock image for recovery.
+Rollback uses the TX update procedure with the official V2.0.7 image.
+These steps are NOT the RX update procedure. Flash at your own risk.
+
+SCAN changes:
+- Reset both digital counter and bit index at wrap. Every digital slot now
+  receives exactly 50 timer ticks, including the first slot of each frame.
+- Bypass the two debug-logging blocks reached from the SCAN timer interrupt.
+  No SCAN string formatting, log critical section or task queue send there.
+- Invalidate the cached gate before enabling. After pause, the first resumed
+  tick drives the correct carrier level instead of trusting stale state.
+
+Unchanged: carrier hardware setup, digital B6B6 code, timer programming,
+825 Hz six-tick half-cycles, watchdog/backlight cadence and key semantics.
+The patch needs 16 extra code bytes, no new persistent RAM or larger file.
+
+Validation: 39 SCAN checks, full TX verifier including 61 screen states in
+both languages, 12 audit regression tests and assembler self-tests passed.
+GPIO waveforms and real interrupt latency have not been measured.
+
+Receiver changes are a SEPARATE opt-in experimental image:
+APP_LPM-10RX_PN1.1-digital-experimental.bin (official RX V3.0.0 base).
+See its candidate notes and docs/SCAN-IMPROVEMENTS-2026-09-19.md.
+
+Hardware follow-up, 2026-09-19: the owner reports testing the new TX and RX
+firmware and that everything works perfectly. No detailed test matrix or
+range/noise measurements were supplied. Firmware binaries are unchanged.
+Previous binaries and historical release notes remain untouched. Confirm
+stock rollback before further flashing. FLASH/length findings in the
+separate audit remain open; this report does not specifically retest them.

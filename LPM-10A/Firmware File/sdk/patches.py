@@ -13,6 +13,7 @@ risk levels
 """
 
 import os
+from functools import wraps
 
 from lpm10a.image import PatchError
 
@@ -20,11 +21,23 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REGISTRY = []
 
 
-def patch(pid, title, risk, default=True, group="misc"):
+def patch(pid, title, risk, default=True, group="misc", requires=()):
     def deco(fn):
-        fn.pid, fn.title, fn.risk, fn.default, fn.group = pid, title, risk, default, group
-        REGISTRY.append(fn)
-        return fn
+        @wraps(fn)
+        def apply(img):
+            applied = getattr(img, "applied_patches", set())
+            missing = set(requires) - applied
+            if missing:
+                raise PatchError(f"{pid} requires: {', '.join(sorted(missing))}")
+            if pid in applied:
+                raise PatchError(f"{pid} is already applied")
+            result = fn(img)
+            img.applied_patches = applied | {pid}
+            return result
+        apply.pid, apply.title, apply.risk = pid, title, risk
+        apply.default, apply.group, apply.requires = default, group, tuple(requires)
+        REGISTRY.append(apply)
+        return apply
     return deco
 
 
@@ -345,6 +358,8 @@ def p_length_decimal(img):
     site = 0x08019B12
     code = assemble(site, f"bl 0x{fmt:08X}")
     img.poke(site, "f0f73bfc", code, "sprintf -> decimal-aware wrapper")
+    img.length_conversion = conv
+    img.length_formatter = fmt
 
     # unit labels, slot order 0/1/2
     img.set_string(0x08067ACC, "m")       # was "Inch"  (slot 0: now metres, the default)
@@ -353,7 +368,7 @@ def p_length_decimal(img):
 
 
 @patch("nvp-calibration", "NVP and Zero calibration: UP/DOWN on the Length screen, long-press OK switches, both saved",
-       risk="low", group="measure")
+       risk="low", group="measure", requires=("length-decimal",))
 def p_nvp(img):
     """
     Nominal Velocity of Propagation calibration, as on professional testers.
@@ -622,7 +637,7 @@ DEAD_BODY_END = 0x080197EC      # its literal pool ends here; 114 bytes
 
 
 @patch("length-average", f"Length test averages {AVG_RUNS} CSD runs per pair before it is shown",
-       risk="low", group="measure")
+       risk="low", group="measure", requires=("length-decimal",))
 def p_length_average(img):
     """
     The PHY's cable diagnostic scatters by about +/-0.2..0.3 m from run to
@@ -669,7 +684,7 @@ def p_length_average(img):
     from lpm10a.thumb import assemble
     if not 1 <= AVG_RUNS <= 8:
         raise PatchError("AVG_RUNS must be 1..8")
-    if img.read(0x08019774, 4) != bytes.fromhex("4ef0aeba"):
+    if img.read(0x08019774, 4) != assemble(0x08019774, f"b.w 0x{img.length_conversion:08X}"):
         raise PatchError("length-average needs length-decimal (the stock length_convert body must be dead)")
     acc = img.alloc_ram(20)     # u32 acc[4] + u8 n[4]
     code = assemble(DEAD_BODY, f"""
@@ -763,7 +778,10 @@ def p_batt_debounce(img):
       2. battery_tick 0x0800DD5C: the `bl charger_state` that decides whether
          to cancel the countdown is redirected to a routine that returns
          true if the charger is connected OR the battery reads >= 3250 mV
-         (100 mV hysteresis above the arming threshold).
+         (100 mV hysteresis above the arming threshold). PN 2.5 also clears
+         the low-sample counter on cancellation: the UI skips the arming
+         hook during shutdown/charging, so previously the next low sample
+         could re-arm immediately using the previous episode's count.
 
     Both routines read the ADC through the stock battery_millivolts helper.
     """
@@ -803,11 +821,18 @@ def p_batt_debounce(img):
             bl   battery_millivolts
             movw r1, #3250
             cmp  r0, r1
-            blt  out
+            blt  reset_if_cancelled
             movs r4, #1
+    reset_if_cancelled:
+            cmp  r4, #0
+            beq  out
+            ldr  r1, =LOW_CNT
+            movs r0, #0
+            strb r0, [r1]           ; the next low episode needs three fresh samples
     out:    mov  r0, r4
             pop  {r4, pc}
-    """, why="cancel low-battery countdown on charger OR recovery >= 3250 mV")
+    """, extra_syms={"LOW_CNT": low_cnt},
+        why="cancel low-battery countdown on charger OR recovery >= 3250 mV; reset debounce")
 
     site = 0x0800E6E2
     code = assemble(site, f"""
@@ -974,7 +999,7 @@ STOCK_FONT_SHA = {
 # Group: identity
 # =====================================================================
 
-VERSION = "PN 2.4"          # shown as "Software:PN 2.2" in About; max 7 characters
+VERSION = "PN 2.6"          # shown in About; max 7 characters; owner-reported hardware pass
 
 
 @patch("version-string", f"Report the firmware version as {VERSION}",
@@ -1062,11 +1087,56 @@ def p_scan_labels(img):
 
 
 # =====================================================================
+# Group: SCAN timing
+# =====================================================================
+
+@patch("scan-timing", "SCAN: exact digital wrap, no timer-path logging, reliable resume",
+       risk="low", group="scan")
+def p_scan_timing(img):
+    """Keep the stock wire protocol and hardware configuration.
+
+    Digital divides its tick counter by 50 to choose a bit of 0xB6B6.
+    At bit 16 stock clears the counter but uses the stale bit index, so
+    the first high bit loses one tick on every wrap. Clear both together.
+
+    Two debug-log blocks run inside TIM2: default-mode initialization and
+    the 825 Hz generator's 1000-tick phase rollover. Skip their critical
+    sections, formatting and task-context queue send, preserving the state
+    updates before/after them. Task-context key-handler logs are retained.
+
+    Back forces the carrier off without updating the gate's cached output.
+    Invalidate that cache BEFORE enabling, so the first resumed timer tick
+    always drives the requested level, even if the saved bit was high.
+    Timer preemption between these stores is safe: on resume the old enabled
+    byte is zero; on pause any extra tick precedes the existing forced off.
+    No new RAM, timer changes, receiver protocol or carrier changes.
+    """
+    from lpm10a.thumb import assemble
+    img.poke(0x08014310, "0020", assemble(0x08014310, "movs r4, #0"),
+             "SCAN digital wrap: clear the bit index")
+    img.poke(0x08014314, "0860", assemble(0x08014314, "str r4, [r1]"),
+             "SCAN digital wrap: clear the counter with the index")
+    for site, expected, target in ((0x0801436C, "08f0a2f9", 0x080143D4),
+                                    (0x0801469E, "08f009f8", 0x0801470E)):
+        img.poke(site, expected, assemble(site, f"b 0x{target:08X}\nnop"),
+                 "SCAN timer path: bypass debug logging, retain state updates")
+    hook = img.emit_code("""
+        ldr  r0, =0x200000D0
+        movs r1, #255
+        strb r1, [r0, #12]
+        strb r4, [r0]
+        bx   lr
+    """, why="SCAN enable: invalidate the cached carrier gate before enabling")
+    img.poke(0x0801449C, "28480470", assemble(0x0801449C, f"bl 0x{hook:08X}"),
+             "SCAN enable setter: force the first resumed tick to drive the carrier")
+
+
+# =====================================================================
 # Group: thai
 # =====================================================================
 
 @patch("thai-ui", "Thai user interface: the second language becomes Thai (Sarabun cells, proportional drawers)",
-       risk="low", group="thai")
+       risk="low", group="thai", requires=("font-pro", "length-decimal"))
 def p_thai(img):
     """
     Language 2 of the tester becomes Thai.  English (language 1) is untouched:
@@ -1318,7 +1388,7 @@ def p_cable_error(img):
 
 
 @patch("length-blind-text", "Length: a pair the PHY could not time shows '< 2 m' instead of '0.0 m'",
-       risk="low", group="measure")
+       risk="low", group="measure", requires=("length-decimal",))
 def p_length_blind(img):
     """
     The PHY's cable diagnostic cannot time an echo from inside its blind zone
@@ -1376,7 +1446,7 @@ def p_length_blind(img):
     """, extra_syms=syms, why="length_result_draw: decimal formatter with the blind-zone text")
     site = 0x08019B12
     old = img.read(site, 4)
-    if (old[1] & 0xF8) != 0xF0 or (old[3] & 0xD0) != 0xD0:
+    if old != assemble(site, f"bl 0x{img.length_formatter:08X}"):
         raise PatchError("length-blind-text needs length-decimal's bl at 0x08019B12")
     img.poke(site, old.hex(), assemble(site, f"bl 0x{fmt:08X}"), "sprintf site -> formatter with '< 2 m'")
 

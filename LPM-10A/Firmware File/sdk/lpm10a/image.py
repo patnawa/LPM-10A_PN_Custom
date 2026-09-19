@@ -70,12 +70,22 @@ def require_stock(path):
 class Image:
     def __init__(self, path):
         self.path = require_stock(path)
-        self.data = bytearray(open(self.path, "rb").read())
+        with open(self.path, "rb") as source:
+            self.data = bytearray(source.read())
         self.original = bytes(self.data)
-        name = self.data[:0x20].split(b"\0")[0].decode()
+        if len(self.data) < 0x2C:
+            raise PatchError("truncated container header")
+        try:
+            name = self.data[:0x20].split(b"\0")[0].decode("ascii")
+        except UnicodeDecodeError as ex:
+            raise PatchError("container name is not ASCII") from ex
         off, length, end = struct.unpack_from("<III", self.data, 0x20)
         if off != S.FILE_PAYLOAD_OFF or off + length - 1 != end:
             raise PatchError("unexpected container layout")
+        if length == 0 or off + length > len(self.data):
+            raise PatchError("payload is empty or extends beyond the file")
+        if S.APP_BASE + length > S.CONSTS["BOOTFLAG_PAGE"]:
+            raise PatchError("payload overlaps the bootloader's flag / settings pages")
         self.name = name
         self.payload_off = off
         self.payload_len = length
@@ -104,13 +114,26 @@ class Image:
         return addr - S.APP_BASE + self.payload_off
 
     def read(self, addr, n):
-        return bytes(self.data[self.f(addr):self.f(addr) + n])
+        o = self._range(addr, n)
+        return bytes(self.data[o:o + n])
+
+    def _range(self, addr, size):
+        """Validate the whole flash interval before any slicing or mutation."""
+        o = self.f(addr)
+        if size < 0 or o < self.payload_off or o + size > len(self.data):
+            raise PatchError(f"@0x{addr:08X}: {size} bytes outside the image")
+        return o
+
+    @staticmethod
+    def _allocation(size, align):
+        if size < 0 or align <= 0 or align & (align - 1):
+            raise PatchError("allocation needs a nonnegative size and power-of-two alignment")
 
     # ---------------------------------------------------------- primitives
     def poke(self, addr, expect_hex, new_bytes, why=""):
         """Overwrite bytes, asserting what was there first."""
         expect = bytes.fromhex(expect_hex.replace(" ", ""))
-        o = self.f(addr)
+        o = self._range(addr, len(expect))
         found = bytes(self.data[o:o + len(expect)])
         if found != expect:
             raise PatchError(
@@ -127,7 +150,7 @@ class Image:
         bytes are identified by hash rather than listed, and the log records
         kind "blob" so the build report prints a summary instead of kilobytes
         of hex."""
-        o = self.f(addr)
+        o = self._range(addr, len(new_bytes))
         found = bytes(self.data[o:o + len(new_bytes)])
         if hashlib.sha256(found).hexdigest() != expect_sha256:
             raise PatchError(f"@0x{addr:08X}: stock table hash mismatch")
@@ -137,10 +160,12 @@ class Image:
 
     def set_string(self, addr, text, why=""):
         """Replace a NUL-terminated string in place; must fit its existing slot."""
-        o = self.f(addr)
+        o = self._range(addr, 1)
         j = o
-        while self.data[j] != 0:
+        while j < len(self.data) and self.data[j] != 0:
             j += 1
+        if j == len(self.data):
+            raise PatchError(f"@0x{addr:08X}: unterminated string")
         k = j
         while k < len(self.data) and self.data[k] == 0:
             k += 1
@@ -182,24 +207,24 @@ class Image:
         return self.cave_end - self.cave_ptr
 
     def alloc_code(self, size, align=4):
-        self.cave_ptr = (self.cave_ptr + align - 1) & ~(align - 1)
-        while self.cave_ptr + size > self.cave_end:
+        self._allocation(size, align)
+        addr = (self.cave_ptr + align - 1) & ~(align - 1)
+        while addr + size > self.cave_end:
             if not self.extendable:
                 raise PatchError(
                     f"code cave exhausted: need {size} bytes, "
                     f"{self.cave_end - self.cave_ptr} left"
                 )
             self.extend()
-        addr = self.cave_ptr
-        self.cave_ptr += size
+        self.cave_ptr = addr + size
         return addr
 
     def alloc_ram(self, size, align=4):
-        self._ram_ptr = (self._ram_ptr + align - 1) & ~(align - 1)
-        if self._ram_ptr + size > S.RAM_SAFE_ARENA_END:
+        self._allocation(size, align)
+        addr = (self._ram_ptr + align - 1) & ~(align - 1)
+        if addr + size > S.RAM_SAFE_ARENA_END:
             raise PatchError("RAM arena exhausted")
-        addr = self._ram_ptr
-        self._ram_ptr += size
+        self._ram_ptr = addr + size
         self.ram_allocs.append((addr, size))
         return addr
 
@@ -209,9 +234,15 @@ class Image:
         allocatable.  The caller is responsible for the range really being free."""
         if start % 4 or end <= start:
             raise PatchError(f"bad region {name}: {start:#x}..{end:#x}")
+        self._range(start, end - start)
+        if name in self.regions or any(start < r[1] and end > r[0] for r in self.regions.values()):
+            raise PatchError(f"duplicate or overlapping region {name}")
+        if end > self.cave_start:
+            raise PatchError(f"region {name} overlaps the code cave")
         self.regions[name] = [start, end, start]
 
     def alloc_in(self, name, size, align=4):
+        self._allocation(size, align)
         r = self.regions[name]
         ptr = (r[2] + align - 1) & ~(align - 1)
         if ptr + size > r[1]:
@@ -261,12 +292,11 @@ class Image:
         """Assemble `source` into the cave and return its address."""
         syms = dict(self.syms)
         syms.update(extra_syms or {})
-        # assemble twice: first to learn the size, then at the real address
-        probe = assemble(self.cave_start, source, syms)
-        addr = self.alloc_code(len(probe))
+        # Alignment directives depend on the actual address. Reserve exactly
+        # the bytes assembled there, never a size probed at cave_start.
+        addr = (self.cave_ptr + 3) & ~3
         code = assemble(addr, source, syms)
-        if len(code) != len(probe):
-            code = assemble(addr, source, syms)
+        self.alloc_code(len(code))
         self.data[self.f(addr):self.f(addr) + len(code)] = code
         self.log.append((addr, b"", bytes(code), why or "new code", "code"))
         return addr
@@ -284,7 +314,8 @@ class Image:
 
     def save(self, path):
         self.finalize()
-        open(path, "wb").write(bytes(self.data))
+        with open(path, "wb") as output:
+            output.write(bytes(self.data))
         return hashlib.sha256(bytes(self.data)).hexdigest()
 
     # ---------------------------------------------------------- reporting

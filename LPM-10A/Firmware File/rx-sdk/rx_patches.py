@@ -11,8 +11,11 @@ risk levels
     untested  needs a real device to confirm; not in the default build
 """
 from lpm10rx.image import PatchError   # noqa: F401
+import hashlib
 
 REGISTRY = []
+
+DIGITAL_EXPERIMENT = "APP_LPM-10RX_PN1.1-digital-experimental.bin"
 
 
 def patch(pid, title, risk, default=True, group="misc"):
@@ -83,3 +86,157 @@ def p_batt_recover(img):
     img.poke(site,
              "40f25700 c2f20000 0178 0131 0170 0078 0528 03db ffe7 fff76bfe ffe7 06e0",
              code, "critical battery: recover above 3400 mV, else count to 5 as stock")
+
+
+@patch("digital-correlation", "Experimental digital detector: phase search and bounded bit-error tolerance",
+       risk="untested", default=False, group="scan")
+def p_digital_correlation(img):
+    """Replace only analyse_mode0, in its existing 336-byte footprint.
+
+    Keep the ADC sampler, 48-sample snapshot, trimmed threshold, PA2 gate,
+    50-ms beep and 800-ms hold. Search the eight rotations of repeated B6
+    over ALL 48 bits; accept <=4 errors total, <=2 in each 16-bit block.
+    Also retain stock's two exact sliding 16-bit matches: requiring only
+    whole-window correlation would regress reception during clock drift.
+    This is sample/bit phase search, NOT sub-slot oversampling or clock lock.
+    Require sum(abs(sample-threshold)) >=192 ADC counts (4/sample) and
+    retain the stock high-sample sum floor. Contrast is independent of DC
+    level; its threshold needs bench calibration and is deliberately opt-in.
+
+    The ISR remains paused until the snapshot is complete, then may overwrite
+    the shared buffer while analysis uses its stack copy, just as in stock.
+    No persistent RAM, image growth, vector, binding, version-page or ADC edits.
+    """
+    site, size = 0x08009E08, 0x150
+    old = img.read(site, size)
+    if hashlib.sha256(old).hexdigest() != "ccb897bffd0017ae556df66c6bcb5cfd709959e869a1ee7caf2eb9c2b5452f7a":
+        raise PatchError("digital detector is not the audited V3.0.0 routine")
+    code = img.assemble_at(site, """
+        push {r3, r4, r5, r6, r7, lr}
+        sub  sp, #96
+        ldr  r0, =0x20000008
+        ldrb r1, [r0]
+        cmp  r1, #0
+        bne  early_out
+        ldr  r1, =0x20000068
+        ldrh r1, [r1]
+        cmp  r1, #2
+        bhs  snapshot
+    early_out:
+        add  sp, #96
+        pop  {r3, r4, r5, r6, r7, pc}
+    snapshot:
+        ldr  r0, =0x2000006E
+        mov  r1, sp
+        movs r2, #48
+    copy:
+        ldrh r3, [r0]
+        strh r3, [r1]
+        adds r0, #2
+        adds r1, #2
+        subs r2, #1
+        bne  copy
+        ldr  r0, =0x20000008
+        movs r1, #1
+        strb r1, [r0]
+        mov  r0, sp
+        movs r1, #48
+        bl   trimmed_mean
+        mov  r5, r0
+        mov  r0, sp
+        movs r1, #48
+        movs r6, #5
+        movs r7, #0
+        movs r4, #0
+        str  r4, [sp, #96]       ; pushed caller-saved r3 slot is scratch
+    threshold:
+        ldrh r2, [r0]
+        cmp  r2, r5
+        bls  low
+        add  r6, r2
+        subs r2, r2, r5
+        movs r3, #1
+        b    save_bit
+    low:
+        subs r2, r5, r2
+        movs r3, #0
+    save_bit:
+        add  r7, r2
+        lsls r4, r4, #1
+        orrs r4, r3
+        uxth r4, r4
+        movw r2, #0xB6B6
+        cmp  r4, r2
+        bne  no_exact
+        ldr  r2, [sp, #96]
+        adds r2, #1
+        str  r2, [sp, #96]
+    no_exact:
+        strh r3, [r0]
+        adds r0, #2
+        subs r1, #1
+        bne  threshold
+        cmp  r7, #192
+        blo  done
+        movw r0, #1000
+        cmp  r6, r0
+        blo  done
+        ldr  r0, [sp, #96]
+        cmp  r0, #2
+        bhs  detected
+        movw r4, #0xB6B6
+        movt r4, #0xB6B6
+        movs r5, #8
+    phase:
+        mov  r6, r4
+        mov  r0, sp
+        movs r1, #48
+        movs r2, #0
+        movs r3, #0
+    bit:
+        lsrs r7, r6, #31
+        lsls r6, r6, #1
+        orrs r6, r7
+        ldrh r7, [r0]
+        eors r7, r6
+        lsls r7, r7, #31
+        beq  matched
+        adds r2, #1
+        adds r3, #1
+        cmp  r2, #4
+        bhi  next_phase
+        cmp  r3, #2
+        bhi  next_phase
+    matched:
+        adds r0, #2
+        subs r1, #1
+        beq  detected
+        movs r7, #15
+        ands r7, r1
+        bne  bit
+        movs r3, #0
+        b    bit
+    next_phase:
+        lsrs r7, r4, #31
+        lsls r4, r4, #1
+        orrs r4, r7
+        subs r5, #1
+        bne  phase
+        b    done
+    detected:
+        ldr  r0, =0x2000010C
+        movs r1, #50
+        strb r1, [r0]
+        ldr  r0, =0x2000005A
+        strb r1, [r0]
+        ldr  r0, =0x2000006C
+        movw r1, #800
+        strh r1, [r0]
+    done:
+        add  sp, #96
+        pop  {r3, r4, r5, r6, r7, pc}
+    """)
+    if len(code) > size:
+        raise PatchError(f"digital detector exceeds in-place footprint: {len(code)} > {size}")
+    code += bytes.fromhex("00bf") * ((size - len(code)) // 2)
+    img.poke(site, old.hex(), code, "experimental digital detection: 48-bit correlation over eight phases")

@@ -1,0 +1,27 @@
+LPM-10A PN 2.5 — local candidate, hardware validation pending
+Audit date: 2026-09-19
+
+File: LPM-10A-TX_PN2.5.bin
+Size: 393216 bytes (same file size as PN 2.4)
+SHA-256: ae3bb28dbdbefa03878bbe12f508b0b147ef10f1fee98870f72c41327fb2c1cf
+Stock base: official TX V2.0.7, pinned by the build tool.
+
+Fix: cancelling a low-battery shutdown on voltage recovery or charger
+connection now clears the debounce counter. A subsequent low-voltage
+episode needs three fresh low samples before re-arming shutdown.
+
+Build tooling also checks patch prerequisites, supports averaging in
+relocated subset builds, reserves the actual assembled code size, and
+rejects malformed container ranges and allocation parameters.
+
+See docs/AUDIT-2026-09-19.md and sdk/test_audit.py for the findings,
+reproductions, remaining risks and verification commands.
+
+Validation: all 12 audit regression tests, the assembler self-test,
+and the full firmware verifier passed, including 61 screen states
+in both languages and PoE/FLASH emulation.
+
+This candidate has not been flashed or tested on hardware. PN 2.4 and
+MOD-README.txt are retained as the preceding release and its notes.
+Flashing and recovery procedures remain those in the main README.
+The receiver firmware is unchanged.

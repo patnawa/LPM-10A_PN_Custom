@@ -24,6 +24,7 @@ Checks, in order:
  16  both texts drawn by the Length screen's header epilogue; Factory Reset clears Zero
  17  all three font tables rendered by the firmware's own glyph drawers
  18  version strings (About screen, boot log), the untouched container name, the SCAN labels, the About URL line
+ 23  SCAN waveform, interrupt-path logging, mode changes, pause/resume and TIM2 clients
 
 Every behavioural check runs the stock image too, so the report shows the
 before/after pair rather than a bare pass.
@@ -1381,6 +1382,13 @@ if any(_p.pid == "flash-blink" and _p.default for _p in patches.REGISTRY):
         check(sum(len(r) for r in seq) == 5, "stock: the counter also runs while the session is not active (flags[1] = 1)")
     except Exception as ex:                                   # noqa: BLE001
         check(False, f"flash-blink section aborted: {type(ex).__name__}: {ex}")
+
+print("\n23. SCAN waveform, timer safety and mode transitions")
+try:
+    from verify_scan import run_checks as run_scan_checks
+    run_scan_checks(stock, mod, check)
+except Exception as ex:
+    check(False, f"SCAN section aborted: {type(ex).__name__}: {ex}")
 
 print("\n" + ("ALL CHECKS PASSED" if not fails else f"{fails} CHECK(S) FAILED"))
 sys.exit(1 if fails else 0)

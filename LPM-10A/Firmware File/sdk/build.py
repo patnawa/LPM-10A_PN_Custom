@@ -4,7 +4,7 @@ LPM-10A firmware build tool.
 
     python build.py --list                 show available patches
     python build.py                        dry run with the default patch set
-    python build.py --write                emit LPM-10A-TX_PN2.0.bin
+    python build.py --write                emit the current PN version
     python build.py --with blind-zone-50cm --out ../experimental/x.bin --write
     python build.py --only a,b --write     build a specific set
     python build.py --all --write          include patches marked untested
@@ -49,17 +49,20 @@ def main():
     ap.add_argument("--with", dest="extra", help="comma-separated non-default patch ids to add to the default set")
     ap.add_argument("--out", default=OUT)
     args = ap.parse_args()
+    if args.only is not None and (args.all or args.extra is not None):
+        ap.error("--only cannot be combined with --all or --with")
 
     if args.list:
-        print(f"{'id':22} {'risk':9} {'group':8} {'default':8} title")
+        print(f"{'id':22} {'risk':9} {'group':8} {'default':8} title (required patches)")
         print("-" * 96)
         for p in patches.REGISTRY:
             print(f"{p.pid:22} {p.risk:9} {p.group:8} "
-                  f"{'yes' if p.default else 'no':8} {p.title}")
+                  f"{'yes' if p.default else 'no':8} {p.title}"
+                  + (f" (requires: {', '.join(p.requires)})" if p.requires else ""))
         return 0
 
     # ---- select patches
-    if args.only:
+    if args.only is not None:
         want = [x.strip() for x in args.only.split(",")]
         sel = [p for p in patches.REGISTRY if p.pid in want]
         missing = set(want) - {p.pid for p in sel}
@@ -74,8 +77,19 @@ def main():
             return 2
         sel = [p for p in patches.REGISTRY if p.default or args.all or p.pid in extra]
 
+    selected = {p.pid for p in sel}
+    for p in sel:
+        missing = set(p.requires) - selected
+        if missing:
+            print(f"{p.pid} requires: {', '.join(sorted(missing))}; include them in --only")
+            return 2
+
     # ---- load and check provenance
-    img = Image(STOCK)
+    try:
+        img = Image(STOCK)
+    except PatchError as e:
+        print(f"REFUSING TO BUILD: {e}")
+        return 2
     sha = hashlib.sha256(img.original).hexdigest()
     print(f"stock name  : {img.name}")
     print(f"sha256      : {sha}")
