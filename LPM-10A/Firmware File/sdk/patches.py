@@ -213,6 +213,10 @@ def p_length_decimal(img):
       unit 1 "cm"  -> cm'                     shown as "%d"      (5540)
       unit 2 "ft"  -> round(cm' / 3.048)      shown as "%d.%d"   (181.8)
 
+    A display value >= 65535 returns the reserved value 0xFFFF and prints
+    OVR. This prevents centimetre overflow from wrapping to a tiny reading;
+    it is a representation limit, not a claimed PHY measurement range.
+
     The unit index is loaded from settings byte 0xA7 on entry (0 = metres,
     out of range = metres) and written back whenever it is changed, so it
     persists like every other setting (the whole struct is flashed at
@@ -290,7 +294,11 @@ def p_length_decimal(img):
             add  r0, r1
             movw r1, #3048
             udiv r0, r0, r1
-    done:   uxth r0, r0
+    done:   movw r1, #65535         ; reserve 0xFFFF for display overflow; never wrap
+            cmp  r0, r1
+            bls  fits
+            mov  r0, r1
+    fits:   uxth r0, r0
             pop  {r4, pc}
     """, extra_syms=syms, why="length_convert: NVP scale + fixed-point m/cm/ft")
 
@@ -331,6 +339,9 @@ def p_length_decimal(img):
     length_sprintf:             ; r0=buf r1="%s = %d" r2=name r3=value
             push {r4, r5, lr}
             sub  sp, #4
+            movw r4, #65535
+            cmp  r3, r4
+            beq  overflow
             ldr  r4, =leng_unit_idx
             ldrb r4, [r4]
             cmp  r4, #1
@@ -344,6 +355,11 @@ def p_length_decimal(img):
     plain:  bl   sprintf
             add  sp, #4
             pop  {r4, r5, pc}
+    overflow:
+            ldr  r1, =fmt_overflow
+            b    plain
+    fmt_overflow:
+            .asciz "%s = OVR"
     fmt_dec:
             .asciz "%s = %d.%d"
     """, why="length_result_draw: decimal formatter")
@@ -573,8 +589,13 @@ def p_nvp(img):
             blo  back
             beq  mine
             b.w  GUI_EXIT
-    mine:   bl   nvp_draw
+    mine:   ldr  r0, =0x2000013C
+            ldrb r0, [r0]
+            cmp  r0, #7             ; a queued update may outlive the Length screen
+            bne  stale
+            bl   nvp_draw
             bl   length_result_draw
+    stale:
             b.w  GUI_EXIT
     back:   b.w  GUI_TBB
     """, extra_syms=dict(syms, nvp_draw=draw | 1), why="GUI message 0x3D: redraw NVP + results")
@@ -772,8 +793,8 @@ def p_batt_debounce(img):
          replaced by a call that counts consecutive low samples in the RAM
          arena and only arms on the third (>= 3 s continuously low).  Any
          sample at or above 3150 mV resets the count.  The counter lives in
-         non-initialised RAM; a garbage value at boot is cleared by the first
-         healthy sample and can at worst reproduce stock behaviour once.
+         non-initialised RAM, explicitly cleared at main entry before any
+         task or interrupt can sample it.
 
       2. battery_tick 0x0800DD5C: the `bl charger_state` that decides whether
          to cancel the countdown is redirected to a routine that returns
@@ -788,6 +809,18 @@ def p_batt_debounce(img):
     from lpm10a.thumb import assemble
 
     low_cnt = img.alloc_ram(4)
+
+    init = img.emit_code("""
+    batt_init:                 ; replay main's first two instructions, clear only our counter
+            ldr  r1, =LOW_CNT
+            movs r4, #0
+            str  r4, [r1]
+            ldr  r0, =0x0800A000
+            bx   lr
+    """, extra_syms={"LOW_CNT": low_cnt}, why="initialise battery debounce before tasks start")
+    img.poke(0x0801BBAC, "0024 2748", assemble(0x0801BBAC, f"bl 0x{init:08X}"),
+             "main entry: initialise debounce and replay r4=0, r0=vector base")
+    img.batt_init, img.batt_low_cnt = init, low_cnt
 
     check = img.emit_code(f"""
     batt_low_check:             ; in: r5 = mV   out: r0 = 1 -> arm countdown
@@ -999,7 +1032,7 @@ STOCK_FONT_SHA = {
 # Group: identity
 # =====================================================================
 
-VERSION = "PN 2.6"          # shown in About; max 7 characters; owner-reported hardware pass
+VERSION = "PN 2.7"          # owner-reported TX/RX hardware pass, 2026-09-19
 
 
 @patch("version-string", f"Report the firmware version as {VERSION}",
@@ -1400,22 +1433,58 @@ def p_length_blind(img):
     A zero now prints as "1-2 = < 2" (m), "< 200" (cm) or "< 7" (ft); the
     stock code still appends the unit label after the text, so the row reads
     "1-2 = < 2 m" / "1-2 = < 2 เมตร".  All four pairs zero still gives "Out of
-    range" as before (that test runs before any row is printed).  On a long
-    cable a "< 2 m" pair beside pairs that read the full length is a pair
-    open within the first two metres, which the old "0.0 m" hid.
+    range" as before (that test runs before any row is printed). A zero can
+    also mean no usable reading: the text must not be treated as proof of
+    an open pair or an independently validated fault distance.
 
     Implementation: length-decimal's cave formatter (called from the one
     sprintf site 0x08019B12) is replaced by a copy with the zero case; the new
     copy lives in the Thai patch's region (the cave is full), the old one is
     left unreferenced.  The wrapper still returns sprintf's length, which the
     stock code uses to place the unit label.
+
+    PN 2.7: OVR takes precedence over all other text. If length-average is
+    selected, counts 1..AVG_RUNS-1 replace '=' with '~' to mark partial
+    acquisition. Counts are read only for their pair index (r4 at the call
+    site); no extra persistent RAM or changes to measurement means.
     """
     from lpm10a.thumb import assemble
     syms = dict(sprintf=0x0800A38C | 1, leng_unit_idx=0x200002C0)
+    # r4 at the real call site is the pair index. A partial mean remains
+    # useful, but must not look like four successful diagnostic runs.
+    partial = ""
+    if hasattr(img, "avg_acc"):
+        syms["COUNTS"] = img.avg_acc + 16
+        partial = f"""
+            ldr  r5, =COUNTS
+            add  r5, r4
+            ldrb r5, [r5]
+            cmp  r5, #0
+            beq  complete
+            cmp  r5, #{AVG_RUNS}
+            bhs  complete
+            ldr  r1, =fmt_partial_cm
+            ldr  r5, =leng_unit_idx
+            ldrb r5, [r5]
+            cmp  r5, #1
+            beq  plain
+            movs r4, #10
+            udiv r5, r3, r4
+            mls  r4, r5, r4, r3
+            str  r4, [sp]
+            mov  r3, r5
+            ldr  r1, =fmt_partial_dec
+            b    plain
+        complete:
+        """
     fmt = img.emit_code_anywhere("""
     length_sprintf2:            ; r0=buf r1="%s = %d" r2=name r3=value (tenths for m/ft, cm for cm)
             push {r4, r5, lr}
             sub  sp, #4
+            movw r5, #65535
+            cmp  r3, r5
+            beq  overflow
+    """ + partial + """
             ldr  r4, =leng_unit_idx
             ldrb r4, [r4]
             cbz  r3, blind
@@ -1439,6 +1508,15 @@ def p_length_blind(img):
             movs r3, #7             ; ft
     bfmt:   ldr  r1, =fmt_blind
             b    plain
+    overflow:
+            ldr  r1, =fmt_overflow
+            b    plain
+    fmt_overflow:
+            .asciz "%s = OVR"
+    fmt_partial_cm:
+            .asciz "%s ~ %d"
+    fmt_partial_dec:
+            .asciz "%s ~ %d.%d"
     fmt_dec:
             .asciz "%s = %d.%d"
     fmt_blind:
@@ -1691,7 +1769,8 @@ def p_poe_screen(img):
 # =====================================================================
 
 FLASH_ON_MS, FLASH_OFF_MS = 1500, 1000     # link held once seen / PHY powered down (stock: 1 s), per blink cycle
-FLASH_RELINK_MS = 4000                     # no link this long after power-up: power-cycle the PHY again
+FLASH_RELINK_MS = 4000                     # initial negotiation window
+FLASH_RELINK_MAX_MS = 16000                # back off 4 -> 8 -> 16 s after failures, retain until session exit
 FLASH_TICK_MS = 500                        # the net task's msg 8 period on the FLASH screen (stock 1000)
 FLASH_NOTE = ("Watch the port", "LED on the switch:", "it blinks when linked")
 
@@ -1733,44 +1812,34 @@ def p_flash_blink(img):
          FLASH_OFF_MS (1 s, as stock) and waits for the link again.  While
          it waits it re-asserts the power-up every tick (stock wrote it every
          second too; a write the PHY ignored while entering power-down would
-         otherwise leave it down for good), and if the link is not back
-         FLASH_RELINK_MS after the power-up it power-cycles the PHY again, so
-         a missed link -- a slow switch, a port the switch suspended, a PHY
-         that needs another kick -- can never stop the blink for good.
-         PN 2.3, which waited for the link without a limit and wrote the
-         power-up once, stopped blinking after three or four cycles on the
-         tested unit; PN 2.4 is the fix.  What that gives on the
-         switch: the LED on for 1.5..2 s, fixed by the tester whatever the
-         switch, then off for the switch's own re-link time (break_link_timer
-         plus auto-negotiation, about 2..3 s; FLASH_OFF_MS only sets the
-         minimum), a regular cycle of roughly 4 s.  Not faster than stock's
-         5 s counter, but the same on every cycle and every switch, and a
-         slow switch no longer swallows the on time.  Elapsed time comes from
-         xTaskGetTickCount; a phase ends at the first tick at or beyond its
-         length minus half a tick, so scheduling jitter cannot add a whole
-         tick to a phase, and queued ticks cannot shorten one.  The phase byte
-         is stock's leng_led_phase (0x20000076: zero at boot, cleared when the
-         session stops), the timestamp lives in the RAM arena and is only
-         read after the phase byte says it was written.
+         otherwise leave it down for good). PN 2.7 starts with a 4-second
+         negotiation window, doubles it after failure to 8 then 16 seconds,
+         and retains that window until the session ends. This avoids the
+         PN 2.6 starvation reproduced with 4.5- and 6-second simulated ports.
+         Ports needing more than 16 seconds or rejecting the advertisement
+         can still fail; this is not universal switch compatibility.
+         Elapsed time comes from xTaskGetTickCount; on/off phases use the
+         full minimum duration, without the former half-tick subtraction.
+         Real dispatch delays can lengthen phases. The stock phase byte is
+         reset on session exit; both arena words are initialised on phase 0
+         before use. Backoff is bounded and does not disable recovery retries.
       3. The screen indicator clears 300 ms after the link drops instead of
          800, so it follows the port LED.
       4. The English note reads "Watch the port / LED on the switch: / it
          blinks when linked" (stock: "Please note LED / It will start blinking
          / when connection successful"); the Thai wording already says this.
 
-    The on / off figures above are what the code and the standard give, not
-    a measurement: PN 2.3 is the first build with this patch.  Verified in
-    verify.py section 22 (the state machine under emulation with a simulated
-    link and clock, the tick divisor, the hook, mod against stock).
+    Timing is CPU-model evidence, not bench measurements. verify.py sections
+    22 and 24 cover phase bounds, retry backoff, stopped sessions and rollover.
     """
     from lpm10a.thumb import assemble
-    start = img.alloc_ram(4)                       # u32: ms at which the current phase began
+    start = img.alloc_ram(8)                       # u32 phase start, u32 negotiation window
     syms = dict(
         GET_STATE=0x0800F764 | 1, TICKS=0x0801C5B0 | 1, GPIO_READ=0x08015AF2 | 1,
         PWR_DOWN=0x0801D178 | 1, FLAGS1=0x200002B5, PHASE=0x20000076, START=start,
         GPIOB=0x40010C00, PIN5=0x20,
-        T_ON=FLASH_ON_MS - FLASH_TICK_MS // 2, T_OFF=FLASH_OFF_MS - FLASH_TICK_MS // 2,   # half-tick margin
-        T_RELINK=FLASH_RELINK_MS - FLASH_TICK_MS // 2,
+        T_ON=FLASH_ON_MS, T_OFF=FLASH_OFF_MS,
+        T_RELINK=FLASH_RELINK_MS, T_MAX=FLASH_RELINK_MAX_MS,
     )
     tick = img.emit_code("""
     flash_tick:                 ; net task message 8, every FLASH_TICK_MS while sysState == 6
@@ -1795,6 +1864,8 @@ def p_flash_blink(img):
             cmp  r0, #3
             beq  ft_wait
             str  r6, [r5]           ; phase 0 (session start, phase byte cleared by stock): stamp, then wait
+            movw r0, #T_RELINK
+            str  r0, [r5, #4]       ; no uninitialised-arena dependency
             movs r0, #3
             strb r0, [r4]
             b    ft_done
@@ -1811,16 +1882,25 @@ def p_flash_blink(img):
     ft_nolink:
             ldr  r1, [r5]
             subs r0, r6, r1
-            movw r1, #T_RELINK      ; FLASH_RELINK_MS since the power-up and still no link:
+            ldr  r1, [r5, #4]       ; adaptive no-link window
             cmp  r0, r1
-            bhs  ft_drop            ; power-cycle the PHY again (a fresh negotiation)
+            bhs  ft_retry
             movs r0, #0
             bl   PWR_DOWN           ; otherwise re-assert the power-up and keep waiting
             b    ft_done
+    ft_retry:
+            lsls r1, r1, #1
+            movw r0, #T_MAX
+            cmp  r1, r0
+            bls  ft_limit
+            mov  r1, r0
+    ft_limit:
+            str  r1, [r5, #4]       ; retain backoff even after a successful blink
+            b    ft_drop
     ft_hold:
             ldr  r1, [r5]
             subs r0, r6, r1
-            movw r1, #T_ON          ; FLASH_ON_MS less half a tick: the third tick, jitter or not
+            movw r1, #T_ON          ; full minimum hold, even with bunched / jittered messages
             cmp  r0, r1
             blo  ft_done
     ft_drop:
@@ -1833,7 +1913,7 @@ def p_flash_blink(img):
     ft_dark:
             ldr  r1, [r5]
             subs r0, r6, r1
-            movw r1, #T_OFF         ; FLASH_OFF_MS less half a tick
+            movw r1, #T_OFF         ; full minimum powered-down interval
             cmp  r0, r1
             blo  ft_done
             movs r0, #0
@@ -1844,7 +1924,7 @@ def p_flash_blink(img):
     ft_done:
             pop  {r4, r5, r6, pc}
     """, extra_syms=syms, why="flash_tick: link-timed blink state machine")
-    img.flash = dict(tick=tick, start=start)
+    img.flash = dict(tick=tick, start=start, window=start + 4)
 
     site = 0x0801494C                   # msg 8 handler: movs r0,#0; bl get_sysState -> bl flash_tick; b 0x08014992
     img.poke(site, "0020 faf709ff", assemble(site, f"bl 0x{tick:08X}\n b 0x08014992"),

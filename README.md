@@ -2,27 +2,26 @@
 
 # LPM-10A PN Custom Firmware
 
-**TX release: PN 2.6 (2026-09-19).** Adds exact SCAN digital-pattern
-wrap, removes SCAN timer-interrupt logging, and fixes the carrier on resume.
-Includes PN 2.5's battery and SDK fixes. The owner reports successful TX and RX
-hardware testing on 2026-09-19 ("everything work perfect"); the PN 2.4 release
-and its hardware results below are retained. See the
-[audit and remaining risks](docs/AUDIT-2026-09-19.md) and
-[release notes](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.6).
+**TX release: PN 2.7 (2026-09-19).** Adds adaptive FLASH retries, full minimum
+on/off timing, partial-length warnings, overflow protection, guarded calibration
+redraws and battery-debounce startup initialisation. Includes the earlier SCAN
+fixes. The owner reports that the new TX and RX firmware passed hardware testing.
+See the [audit and remaining risks](docs/RELIABILITY-AUDIT-2026-09-19.md) and
+[release notes](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.7).
 
-**RX prerelease: PN 1.1 Digital.** An opt-in V3.0.0-based build adds error-tolerant
-digital detection, retaining the stock sampler. CPU tests pass, and the owner
-reports successful operation on the probe. Quantified range/noise tests remain
-outstanding. See the [SCAN report](docs/SCAN-IMPROVEMENTS-2026-09-19.md)
-and [RX prerelease](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.1).
+**RX prerelease: PN 1.2 Reliability.** Retains error-tolerant digital detection
+and fixes auto-off ignoring existing activity on its deadline tick. All 97 CPU
+checks pass, and the owner reports successful hardware testing. It remains
+opt-in/experimental; quantified range/noise tests remain outstanding. See the
+[RX prerelease](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.2).
 
 Unofficial firmware for the FNIRSI LPM-10A network cable tester and probe,
 with changes verified under CPU emulation.
 The owner reports that the new TX and RX firmware work perfectly on their units.
 This is not certification of every hardware revision or measurement condition.
 
-![version](https://img.shields.io/badge/TX-PN%202.6-orange)
-![receiver](https://img.shields.io/badge/RX-PN%201.1%20experimental-yellow)
+![version](https://img.shields.io/badge/TX-PN%202.7-orange)
+![receiver](https://img.shields.io/badge/RX-PN%201.2%20experimental-yellow)
 ![patches](https://img.shields.io/badge/TX%20patches-20-blue)
 ![languages](https://img.shields.io/badge/UI-English%20%2F%20%E0%B9%84%E0%B8%97%E0%B8%A2-blue)
 ![verified](https://img.shields.io/badge/CPU%20verification-passed-brightgreen)
@@ -38,10 +37,16 @@ This is not certification of every hardware revision or measurement condition.
 
 ## Downloads and current status
 
+The owner reported "Test pass on new firmware tx rx" on 2026-09-19 for
+**TX PN 2.7 / RX PN 1.2**. Release binaries are unchanged from those tested
+candidates. This is a general functional report, not a detailed edge-case,
+PoE-supply or range/noise test matrix. See the
+[function-by-function audit](docs/RELIABILITY-AUDIT-2026-09-19.md).
+
 | Device | Release | Firmware | Status |
 |---|---|---|---|
-| TX tester | [PN 2.6](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.6) | `LPM-10A-TX_PN2.6.bin` | CPU-verified; owner-reported hardware pass |
-| RX probe | [PN 1.1 Digital](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.1) | `APP_LPM-10RX_PN1.1-digital-experimental.bin` | Experimental prerelease; CPU-verified; owner-reported hardware pass |
+| TX tester | [PN 2.7](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.7) | `LPM-10A-TX_PN2.7.bin` | CPU-verified; owner-reported hardware pass |
+| RX probe | [PN 1.2 Reliability](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.2) | `APP_LPM-10RX_PN1.2-reliability-experimental.bin` | Experimental prerelease; CPU-verified; owner-reported hardware pass |
 
 **Use the file for the correct device; TX and RX firmware are not interchangeable.**
 Each release includes device-specific notes and a SHA-256 checksum file.
@@ -50,8 +55,8 @@ previous RX version is unconfirmed. Success on that probe does not establish
 compatibility with all revisions or a stock rollback procedure.
 
 The 2026-09-19 hardware report is a general functional pass, not a detailed
-range/noise or PoE-supply test matrix. The [FLASH/length audit](docs/FLASH-LENGTH-AUDIT-2026-09-19.md)
-also documents open edge cases not changed by these releases.
+range/noise or PoE-supply test matrix. The [reliability audit](docs/RELIABILITY-AUDIT-2026-09-19.md)
+documents the fixes and the remaining limitations. Earlier binaries remain available.
 
 ### Earlier hardware history
 
@@ -87,9 +92,9 @@ it, adds code in an unused flash tail, re-assembles, and verifies the result in 
 |---|---|---|
 | Length display | whole metres ("55"), inches, cm forced on every screen entry | **m / cm / ft with one decimal** ("55.4"), unit remembered across power cycles |
 | Cable calibration | none; the PHY's fixed constant | **Zero 0.0–2.0 m and NVP 50–99 %** on the Length screen, live redraw, saved; 0.0 m / 69 % = factory |
-| Length stability | one CSD run shown as is (±0.3 m scatter at 14 m) | **four runs averaged per pair**; a test takes four times longer |
-| Length result | a new reading inside the tolerance band was replaced by the previous cable's value; a pair the PHY could not time printed `0.0` | the measured value is always shown; a blind pair reads **`< 2 m`** (`< 200 cm`, `< 7 ft`), so a pair open within the first two metres of a long cable is named as such (PN 2.2) |
-| Low battery | one sample < 3150 mV starts an uncancellable 30 s shutdown | needs 3 consecutive samples; cancels on voltage recovery or charging, clearing debounce so re-arming needs fresh samples |
+| Length stability | one CSD run shown as is (±0.3 m scatter at 14 m) | **four runs averaged per pair**; `~` warns when only 1–3 runs yielded a reading; a test takes four times longer |
+| Length result | sticky previous readings, whole numbers and possible display overflow | fresh calibrated values; zero-result pairs show **`< 2 m`** (`< 200 cm`, `< 7 ft`), not proof of a fault location; `OVR` replaces an unrepresentable display value |
+| Low battery | one sample < 3150 mV starts an uncancellable 30 s shutdown | needs 3 consecutive samples; cancels on recovery/charging; debounce cleared on cancellation and explicitly at startup |
 | Battery gauge | 4 steps | 10-step Li-ion curve, red at ≤ 20 % |
 | Auto Off | keeps counting while the SCAN tone or FLASH blink is running, so a trace ends with the unit switching itself off | held (and restarted) while a tone or blink session is active; unchanged elsewhere. Correction: PN 1.0–2.2 held it during SCAN only — the FLASH branch compared the wrong state number (8, QC Test, instead of 6); fixed in PN 2.3 |
 | Settings save | 204 bytes leaked per save | freed on both exit paths |
@@ -98,9 +103,9 @@ it, adds code in an unused flash tail, re-assembles, and verifies the result in 
 | SCAN modes | labelled "Noiseless" and "Normal" | labelled **Digital** (the 0xB6B6 coded pattern the probe decodes) and **825 Hz** (a plain keyed tone for any analogue probe) |
 | SCAN timing | one high tick lost at digital wrap, debug logging in the timer path, stale carrier state after pause | exact 50-tick slots, SCAN timer-path logging bypassed, carrier correctly driven on resume (PN 2.6) |
 | Cable Test | Back leaves the screen from every step; "Result error!!" is painted under the Test Retry button | **Back returns to the Switch / Far end choice** from the armed and result screens (PN 2.1); the error line sits above the button, which moved 9 px down |
-| FLASH (port blink) | fixed phase counter, no link-aware hold | link-aware hold/drop/retry, with nominal 1500 ms hold, 1000 ms dark and 4000 ms recovery; power-up re-asserted while waiting. Phases are checked every 500 ms against thresholds 250 ms early. Slow links can still be starved by recovery; see the [audit](docs/FLASH-LENGTH-AUDIT-2026-09-19.md). Unchanged in PN 2.6 |
+| FLASH (port blink) | fixed phase counter, no link-aware hold | full minimum 1500 ms hold / 1000 ms PHY-off; failed negotiation backs off 4 → 8 → 16 s and retains the working window for the session. Links needing >16 s can still fail; see the [audit](docs/RELIABILITY-AUDIT-2026-09-19.md) |
 | PoE screen | the voltage is drawn once per detection, from the sample a tick or two after the first one above 40 V (the rising edge), and not refreshed while the screen is shown (the two wires of a pair can even disagree); with no supply the screen stays blank, because the 3.5 s "no supply" timeout fires once per power-on (usually before the screen is ever opened) and is never re-armed | **the voltage column is refreshed every 0.5 s** while a supply is present, every wire from one latched sample, and cleared the moment the supply goes; **"Detecting..."** on entry, **"No PoE"** 3.5 s later without a supply, every time (PN 2.3); "Standard : Yes / No" instead of "Standar / UnStandar" |
-| Identity | About screen reports `Software:V2.0.7` and `http://www.fnirsi.cn` | reports `Software:PN 2.6` and this repository's URL; the bootloader-facing image name is untouched |
+| Identity | About screen reports `Software:V2.0.7` and `http://www.fnirsi.cn` | reports `Software:PN 2.7` and this repository's URL; the bootloader-facing image name is untouched |
 
 <img src="docs/img/about_screen.png" alt="About screen: stock and PN Custom" width="760">
 
@@ -133,19 +138,19 @@ the Droid Sans Fallback Chinese table below is what PN 1.x shipped and is still 
 
 ## Install
 
-These instructions are for the **TX tester only**. Download PN 2.6 from the
-[TX release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.6), together with
-`PN2.6-README.txt` and `PN2.6-SHA256SUMS.txt`. The files also live under
+These instructions are for the **TX tester only**. Download PN 2.7 from the
+[TX release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.7), together with
+`PN2.7-README.txt` and `PN2.7-SHA256SUMS.txt`. The files also live under
 `LPM-10A/Firmware File/`. `MOD-README.txt` is retained as historical PN 2.4 documentation.
 
 1. Verify the download:
    ```
-   certutil -hashfile LPM-10A-TX_PN2.6.bin SHA256
-   92304aa3ad6452bd60d81b96018c5db563014805d013668ff577b306c37a0f57
+   certutil -hashfile LPM-10A-TX_PN2.7.bin SHA256
+   2c14ed7be027cb3476896883e13eefb08cf953eb98993c56c100517f7c421360
    ```
 2. Power the tester off. Hold **M + Power** until the firmware update screen appears.
 3. Connect USB-C; a removable drive appears.
-4. Copy [`LPM-10A-TX_PN2.6.bin`](LPM-10A/Firmware%20File/LPM-10A-TX_PN2.6.bin)
+4. Copy [`LPM-10A-TX_PN2.7.bin`](LPM-10A/Firmware%20File/LPM-10A-TX_PN2.7.bin)
    onto that drive. Do not unplug during the update.
 5. Long-press Power to shut down, then power on normally.
 
@@ -162,7 +167,7 @@ compatible V2.x.x hardware.
 
 ### First power-on checklist
 
-The PN 2.6 TX / PN 1.1 RX general hardware pass was reported on 2026-09-19;
+The PN 2.7 TX / PN 1.2 RX general hardware pass was reported on 2026-09-19;
 it did not enumerate each checklist item. Earlier testing was on PN 2.2,
 2026-09-18; PN 2.4's FLASH passed the
 same day (PN 2.3's had stopped after three or four cycles); the PoE items with a supply
@@ -203,7 +208,7 @@ that needs no equipment:
 - Length in Thai: "กำลังทดสอบ" with the dots to its right, then the four readings with
   เมตร / ซม. / ฟุต; unplug the cable for "เกินช่วงการวัด".
 - Switch back to English: every screen is exactly as PN 1.3.
-- Settings > About reads `Software:PN 2.6` and shows `github.com/patnawa/LPM-10A_PN_Custom`.
+- Settings > About reads `Software:PN 2.7` and shows `github.com/patnawa/LPM-10A_PN_Custom`.
 - Length screen shows `ZERO 0.0m` left of the Unit box and `NVP 69%` right of it; UP/DOWN
   change the white one, a long press of OK swaps which is white, and after a test the four
   readings follow.
@@ -435,7 +440,7 @@ pip install capstone unicorn        # pillow + pymupdf only to rebuild the fonts
 python test_thumb.py                # assembler self-test against Capstone
 python build.py --list              # the patch set
 python build.py                     # dry run: every byte it would change, disassembled
-python build.py --write             # emit LPM-10A-TX_PN2.6.bin
+python build.py --write             # emit LPM-10A-TX_PN2.7.bin (owner-reported hardware pass)
 python verify.py                    # 235 checks
 python -m unittest test_audit -v     # audit regressions, including battery recovery
 ```
@@ -470,18 +475,20 @@ documented in [`LPM-10A/Firmware File/sdk/README.md`](LPM-10A/Firmware%20File/sd
 ```
 LPM-10A/
   Firmware File/
-    LPM-10A-TX_PN2.6.bin              current TX release (the build output)
-    PN2.6-README.txt                  current TX notes and hardware-test status
-    PN2.6-SHA256SUMS.txt              current TX binary checksum
+    LPM-10A-TX_PN2.6.bin              earlier owner-tested TX release
+    LPM-10A-TX_PN2.7.bin              current TX release (current build output)
+    PN2.7-README.txt                  current TX changes and bench checklist
+    PN2.7-SHA256SUMS.txt              current TX binary checksum
     LPM-10A-TX_V2.0.7_260610.bin      stock image: NOT included, put FNIRSI's copy here to build
     MOD-README.txt                    historical PN 2.4 notes and checklist
     FORMULA-AUDIT.md                  every measurement formula, with verdicts
     sdk/                              the transmitter toolkit: patches, assembler, verifier, fonts
     sdk/thai/                         the Thai UI: cell font, drawers, wording, screen emulator, mock-ups
     APP_LPM-10RX_PN1.0.bin            earlier receiver image (battery fix)
-    APP_LPM-10RX_PN1.1-digital-experimental.bin   RX digital prerelease
-    RX-PN1.1-DIGITAL-README.txt        current RX notes, scope and warnings
-    RX-PN1.1-SHA256SUMS.txt            current RX binary checksum
+    APP_LPM-10RX_PN1.1-digital-experimental.bin   earlier RX digital prerelease
+    APP_LPM-10RX_PN1.2-reliability-experimental.bin   current RX prerelease
+    RX-PN1.2-README.txt               current RX notes, scope and warnings
+    RX-PN1.2-SHA256SUMS.txt            current RX binary checksum
     RX-README.txt                     historical PN 1.0 notes
     rx-sdk/                           the receiver toolkit: patches, verifier, disassembler
 docs/img/                             the images on this page (screens are rendered from the firmware's own layout tables and glyphs)
@@ -492,15 +499,15 @@ docs/img/                             the images on this page (screens are rende
 The probe has its own firmware, audit and toolkit:
 [`docs/RX-AUDIT.md`](docs/RX-AUDIT.md) and
 [`LPM-10A/Firmware File/rx-sdk`](LPM-10A/Firmware%20File/rx-sdk/README.md).
-[RX PN 1.1 Digital](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.1)
-includes PN 1.0's battery-recovery fix and adds error-tolerant digital detection.
-It passes 41 CPU checks and the owner reports successful operation on hardware.
+[RX PN 1.2 Reliability](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.2)
+includes battery recovery, error-tolerant digital detection and activity-aware
+auto-off. It passes 97 CPU checks and the owner reports successful hardware testing.
 It remains an opt-in experimental prerelease: range, noise performance and
 compatibility with other hardware revisions are not established.
 
 Match TX **Digital** to RX digital mode, or TX **825 Hz** to RX analog mode.
-Only the RX digital detector changes; the analog and separate mains modes are
-unchanged. The internal RX vendor version remains `3.0.0`; identify the custom
+For tracing, only the RX digital detector changes; the analog and separate mains
+detectors are unchanged. The internal RX vendor version remains `3.0.0`; identify the custom
 image by its filename and checksum.
 
 Update-mode entry was reported on 2026-09-18: with the probe off, hold SCAN and
@@ -510,7 +517,7 @@ the owner later clarified that its previous installed version was uncertain.
 The build requires the verified V3.0.0 receiver input image.
 Confirm applicability and a stock recovery path for your unit before flashing;
 do not apply the TX procedure or TX binary to the probe. See
-[RX release notes](LPM-10A/Firmware%20File/RX-PN1.1-DIGITAL-README.txt).
+[RX release notes](LPM-10A/Firmware%20File/RX-PN1.2-README.txt).
 
 ## Thai user interface (PN 2.0)
 
@@ -539,13 +546,11 @@ The prioritised list of what to test on hardware and what to build after that is
 
 Remaining firmware edge cases and hardware limits:
 
-- The [deep FLASH/length audit](docs/FLASH-LENGTH-AUDIT-2026-09-19.md) remains open:
-  a slow-link acquisition can be repeatedly interrupted by FLASH recovery;
-  nonzero-only averaging can report a length from a single valid run; vendor
-  pair voting can conceal pair differences; stale calibration redraws and
-  overflow with malformed high readings are reproduced in CPU experiments.
-  PN 2.6 does not change those paths, and the general hardware pass does not
-  specifically test these edge cases.
+- The [reliability audit](docs/RELIABILITY-AUDIT-2026-09-19.md) records remaining
+  limits after PN 2.7: links needing >16 s can still fail; partial averages are
+  marked but retained; vendor pair voting can conceal pair differences; raw PHY
+  status/range validation remains open. Overflow wrapping and stale calibration
+  redraws are fixed. A general hardware pass does not prove every edge case.
 - RX digital contrast thresholds need bench calibration. Synthetic noise tests
   do not establish false-alarm rate, cable range or adjacent-cable rejection.
 

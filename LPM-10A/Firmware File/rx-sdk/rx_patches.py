@@ -16,6 +16,7 @@ import hashlib
 REGISTRY = []
 
 DIGITAL_EXPERIMENT = "APP_LPM-10RX_PN1.1-digital-experimental.bin"
+RELIABILITY_EXPERIMENT = "APP_LPM-10RX_PN1.2-reliability-experimental.bin"
 
 
 def patch(pid, title, risk, default=True, group="misc"):
@@ -86,6 +87,43 @@ def p_batt_recover(img):
     img.poke(site,
              "40f25700 c2f20000 0178 0131 0170 0078 0528 03db ffe7 fff76bfe ffe7 06e0",
              code, "critical battery: recover above 3400 mV, else count to 5 as stock")
+
+
+@patch("activity-before-autooff", "Honor existing activity at the auto-off deadline",
+       risk="untested", default=False, group="power")
+def p_activity_autooff(img):
+    """TIM1 checked idle >=300001 before processing a nonzero beep/keepalive.
+
+    A signal or key arriving on that final tick could therefore power off an
+    active probe. Keep the original counter increment and shutdown threshold,
+    but skip auto-off when the existing keepalive byte is nonzero. The normal
+    downstream code still decrements that byte and resets idle to zero. No
+    ADC, battery protection, physical power-key or watchdog changes.
+
+    Replace exactly 36 bytes; both exits branch over the literal pool. r0-r2
+    are caller-saved scratch here; TIM1's next block overwrites r0/r1 and no
+    later code consumes the original r2. No additional stack or persistent RAM.
+    """
+    site = 0x0800A992
+    code = img.assemble_at(site, """
+            ldr  r0, =0x20000104
+            ldr  r1, [r0]
+            adds r1, #1
+            str  r1, [r0]
+            ldrb r2, [r0, #8]       ; beep / activity countdown at 0x2000010C
+            cmp  r2, #0
+            bne  done
+            ldr  r0, =300001
+            cmp  r1, r0
+            blo  done
+            bl   power_off
+    done:   b    0x0800A9B6
+    """)
+    assert len(code) <= 36 and len(code) % 2 == 0, len(code)
+    code += bytes.fromhex("00bf") * ((36 - len(code)) // 2)
+    img.poke(site,
+             "40f20410 c2f20000 0168 0131 0160 0068 49f2e131 c0f20401 8842 03d3 ffe7 fcf7defd ffe7",
+             code, "TIM1: pending activity wins over idle auto-off at the deadline")
 
 
 @patch("digital-correlation", "Experimental digital detector: phase search and bounded bit-error tolerance",

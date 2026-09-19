@@ -784,6 +784,7 @@ try:
         """Run GUI message 0x3D with gui_blit trapped; returns [(x, y, w, h, size, text, fg, bg)], e."""
         e = Emu(mod)
         e.w(NVP_B, bytes([nvp])); e.w(ZERO_B, bytes([zero])); e.w(ADJ, bytes([adj]))
+        e.w(0x2000013C, bytes([7]))       # calibration redraw is only valid on Length
         e.w(COLOUR, struct.pack("<HH", 0x07E0, 0x7304))     # sentinel: the picker leaves its box colours here
         seen = []
 
@@ -1339,18 +1340,22 @@ if any(_p.pid == "flash-blink" and _p.default for _p in patches.REGISTRY):
         check(not r and b.phase() == 1, "link seen at the 4th tick: phase 1 (hold), no PHY call")
         r = [b.tick(3 * TK + 7 + k * TK + (3 if k % 2 else -4)) for k in range(1, n_hold)]
         check(not sum(r, []) and b.phase() == 1, f"the next {n_hold - 1} ticks (jittered): still up")
-        t_drop = 3 * TK + 7 + n_hold * TK - 6
+        t_drop = 3 * TK + 7 + n_hold * TK
+        r = b.tick(t_drop - 6)
+        check(not r and b.phase() == 1, "6 ms before the full minimum hold: still up")
         r = b.tick(t_drop)
-        check(r == [(t_drop, 1)] and b.phase() == 2, f"tick {n_hold} after the link, 6 ms early: yt8531_set_pwr_down(1), phase 2 (dark)", f"{r}")
+        check(r == [(t_drop, 1)] and b.phase() == 2, "full minimum hold elapsed: PHY down, phase 2", f"{r}")
         r = [b.tick(t_drop + k * TK + 2, 0) for k in range(1, n_off)]
         check(not sum(r, []) and b.phase() == 2, f"dark for {n_off - 1} more tick(s): still down")
-        t_up = t_drop + n_off * TK - 5
+        t_up = t_drop + n_off * TK
+        r = b.tick(t_up - 5, 0)
+        check(not r and b.phase() == 2, "5 ms before the full minimum off time: still down")
         r = b.tick(t_up, 0)
-        check(r == [(t_up, 0)] and b.phase() == 3, f"tick {n_off} of the dark phase ({OFF} ms, 5 ms early): yt8531_set_pwr_down(0), waiting for the link, timed from now", f"{r}")
+        check(r == [(t_up, 0)] and b.phase() == 3, "full minimum off time elapsed: PHY up, waiting for link", f"{r}")
         r = [b.tick(t_up + k * TK, 0) for k in range(1, n_relink)]
         check(all(x == [(t_up + k * TK, 0)] for k, x in zip(range(1, n_relink), r)) and b.phase() == 3,
               f"a slow switch: {n_relink - 1} ticks without link, the power-up re-asserted each tick, still waiting")
-        t_cyc = t_up + n_relink * TK - 3
+        t_cyc = t_up + n_relink * TK
         r = b.tick(t_cyc, 0)
         check(r == [(t_cyc, 1)] and b.phase() == 2, f"no link {RELINK} ms after the power-up: the PHY is power-cycled again (a fresh negotiation)", f"{r}")
         r = [b.tick(t_cyc + k * TK, 0) for k in range(1, n_off + 1)]
@@ -1389,6 +1394,13 @@ try:
     run_scan_checks(stock, mod, check)
 except Exception as ex:
     check(False, f"SCAN section aborted: {type(ex).__name__}: {ex}")
+
+print("\n24. Reliability audit: FLASH, length, calibration and battery startup")
+try:
+    from verify_reliability import run_checks as run_reliability_checks
+    run_reliability_checks(mod, _probe, check)
+except Exception as ex:
+    check(False, f"reliability section aborted: {type(ex).__name__}: {ex}")
 
 print("\n" + ("ALL CHECKS PASSED" if not fails else f"{fails} CHECK(S) FAILED"))
 sys.exit(1 if fails else 0)

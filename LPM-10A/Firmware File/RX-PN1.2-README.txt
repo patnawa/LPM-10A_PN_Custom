@@ -1,0 +1,38 @@
+LPM-10RX PN 1.2 Reliability - EXPERIMENTAL PRERELEASE
+Date: 2026-09-19
+
+RX probe only. Do not copy this file to the TX tester.
+File: APP_LPM-10RX_PN1.2-reliability-experimental.bin
+Size: 26152 bytes (unchanged)
+SHA-256: 8176a40988eea3319c5c46dd65b0c97dce16c420b2e7fcbb3ddb05b28feef879
+Required build input: APP_LPM-10RX_V3.0.0_260416.bin
+
+Includes PN 1.1's battery recovery and error-tolerant digital detector.
+New: pending signal/key activity now wins over idle auto-off on the deadline
+tick. Previously the timer could shut down before processing that activity.
+Only 36 bytes differ from PN 1.1. ADC, signal sampler, analog and mains
+detectors, timer rates, battery protection, physical power-key handling,
+binding and version-page code are unchanged.
+
+97 CPU checks pass, including digital detection, battery, keys, housekeeping,
+auto-off boundaries and physical power-off. On 2026-09-19 the owner reported:
+"Test pass on new firmware tx rx" for TX PN 2.7 and RX PN 1.2.
+This is a general functional pass, not quantified range/noise or revision testing.
+The release binary is unchanged from the tested candidate.
+The internal version remains 3.0.0; identify this build by SHA-256.
+
+Build (rx-sdk directory):
+python build.py --only batt-critical-recover,digital-correlation,activity-before-autooff --write
+python verify.py --reliability
+
+The default build remains PN 1.0; --digital still verifies PN 1.1.
+Keep the working PN 1.1 and matching recovery image. Owner-confirmed update
+entry: probe off, hold SCAN, connect USB to expose UDISK. Confirm applicability
+and a recovery path before copying the RX image; verify the hash and do not
+interrupt the update. Do not use the TX procedure. The previous installed probe
+version is still unconfirmed; compatibility with every revision is not claimed.
+
+Bench checklist and limits: docs/RELIABILITY-AUDIT-2026-09-19.md
+Digital range/noise and contrast calibration, ADC conversion/preemption,
+analog/mains sensitivity and watchdog/main-loop health remain open.
+Release: https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.2

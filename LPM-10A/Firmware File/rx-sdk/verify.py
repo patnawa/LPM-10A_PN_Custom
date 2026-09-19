@@ -31,8 +31,11 @@ STOCK = require_stock(os.path.join(FW, STOCK_NAME))
 ap = argparse.ArgumentParser(description=__doc__)
 ap.add_argument("image", nargs="?")
 ap.add_argument("--digital", action="store_true", help="verify the opt-in digital-correlation candidate")
+ap.add_argument("--reliability", action="store_true", help="verify PN 1.2: digital + activity-aware auto-off")
 args = ap.parse_args()
-MOD = args.image or os.path.join(FW, patches.DIGITAL_EXPERIMENT if args.digital else "APP_LPM-10RX_PN1.0.bin")
+args.digital = args.digital or args.reliability
+name = patches.RELIABILITY_EXPERIMENT if args.reliability else (patches.DIGITAL_EXPERIMENT if args.digital else "APP_LPM-10RX_PN1.0.bin")
+MOD = args.image or os.path.join(FW, name)
 
 fails = 0
 count = 0
@@ -47,7 +50,7 @@ def check(ok, label, detail=""):
 
 _probe = Image(STOCK)
 for _p in patches.REGISTRY:
-    if _p.default or (args.digital and _p.pid == "digital-correlation"):
+    if _p.default or (args.digital and _p.pid == "digital-correlation") or (args.reliability and _p.pid == "activity-before-autooff"):
         _p(_probe)
 EXPECTED = list(_probe.log)
 
@@ -244,6 +247,14 @@ if args.digital:
         run_checks(stock, mod, check)
     except Exception as ex:
         check(False, f"digital checks aborted: {type(ex).__name__}: {ex}")
+
+if args.reliability:
+    print("\n6. RX keys, timer housekeeping and auto-off boundary")
+    try:
+        from verify_control import run_checks
+        run_checks(stock, mod, check)
+    except Exception as ex:
+        check(False, f"control checks aborted: {type(ex).__name__}: {ex}")
 
 print(f"\n{count} checks: " + ("ALL CHECKS PASSED" if not fails else f"{fails} CHECK(S) FAILED"))
 sys.exit(1 if fails else 0)

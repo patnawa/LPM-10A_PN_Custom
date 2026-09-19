@@ -60,7 +60,8 @@ def require_stock(path):
 class Image:
     def __init__(self, path):
         self.path = require_stock(path)
-        self.data = bytearray(open(self.path, "rb").read())
+        with open(self.path, "rb") as source:
+            self.data = bytearray(source.read())
         self.original = bytes(self.data)
         if len(self.data) != S.APP_SIZE:
             raise PatchError(f"unexpected image size {len(self.data)} (stock is {S.APP_SIZE})")
@@ -76,13 +77,20 @@ class Image:
         return o
 
     def read(self, addr, n):
-        return bytes(self.data[self.f(addr):self.f(addr) + n])
+        o = self._range(addr, n)
+        return bytes(self.data[o:o + n])
+
+    def _range(self, addr, size):
+        o = addr - S.APP_BASE
+        if size < 0 or o < 0 or o + size > len(self.data):
+            raise PatchError(f"@0x{addr:08X}: {size} bytes outside the image")
+        return o
 
     # ---------------------------------------------------------- primitives
     def poke(self, addr, expect_hex, new_bytes, why=""):
         """Overwrite bytes, asserting what was there first; same length only."""
         expect = bytes.fromhex(expect_hex.replace(" ", ""))
-        o = self.f(addr)
+        o = self._range(addr, len(expect))
         found = bytes(self.data[o:o + len(expect)])
         if found != expect:
             raise PatchError(f"@0x{addr:08X}: expected {expect.hex()} but found {found.hex()}")
@@ -95,8 +103,10 @@ class Image:
     def set_string(self, addr, text, why=""):
         o = self.f(addr)
         j = o
-        while self.data[j] != 0:
+        while j < len(self.data) and self.data[j] != 0:
             j += 1
+        if j == len(self.data):
+            raise PatchError(f"@0x{addr:08X}: unterminated string")
         k = j
         while k < len(self.data) and self.data[k] == 0:
             k += 1
@@ -116,7 +126,10 @@ class Image:
 
     # ---------------------------------------------------------- output
     def save(self, path):
-        open(path, "wb").write(bytes(self.data))
+        if len(self.data) != S.APP_SIZE:
+            raise PatchError("refusing to save a resized receiver image")
+        with open(path, "wb") as output:
+            output.write(bytes(self.data))
         return hashlib.sha256(bytes(self.data)).hexdigest()
 
     def diff_offsets(self):

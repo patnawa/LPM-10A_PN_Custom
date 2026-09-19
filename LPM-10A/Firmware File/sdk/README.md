@@ -44,11 +44,21 @@ needs `uharfbuzz`.
 python test_thumb.py            # assembler self-test
 python build.py --list          # what patches exist
 python build.py                 # dry run: prints every byte it would change
-python build.py --write         # emit LPM-10A-TX_PN2.6.bin (owner-reported hardware pass)
+python build.py --write         # emit LPM-10A-TX_PN2.7.bin (owner-reported hardware pass)
 python verify.py                # prove the result is what was intended
 python verify_scan.py           # fast SCAN-only regressions (also in verify.py)
 python -m unittest test_audit -v # allocator, dependency and battery-cancellation regressions
 ```
+
+PN 2.7 adds bounded adaptive FLASH retries and full minimum hold/off durations,
+partial length markers (`~`), overflow text (`OVR`), a stale-calibration redraw
+guard and explicit battery-debounce startup initialisation. The owner reported
+successful TX PN 2.7 / RX PN 1.2 testing on 2026-09-19. See
+[audit, coverage and bench checklist](../../../docs/RELIABILITY-AUDIT-2026-09-19.md).
+Run `python verify_reliability.py` for the focused regressions; they also run in
+section 24 of the full verifier. [TX PN 2.7](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.7)
+is the current release; RX PN 1.2 is a separate opt-in experimental prerelease
+in `../rx-sdk`. Both binaries are unchanged from the owner-tested candidates.
 
 PN 2.6 fixes the digital SCAN wrap, bypasses logging in its timer path, and
 invalidates the cached carrier state before enabling so resume drives the right
@@ -174,19 +184,19 @@ The assembler rejects anything it does not recognise rather than guessing, and
 | `nvp-calibration` | low | measure | **NVP 50–99 % and Zero 0.0–2.0 m**: UP/DOWN adjust the white value on the Length screen, holding OK for a second swaps them, shown as `ZERO 0.0m` / `NVP 69%`, results redraw live, both persisted, Factory Reset clears both |
 | `length-average` | low | measure | Each Test Start runs the PHY's cable diagnostic **4 times** (`AVG_RUNS`) and shows per-pair means; halves the ±0.3 m run-to-run scatter, test takes 4× longer. Code lives in the dead body of the stock `length_convert` |
 | `length-no-sticky` | low | bugfix | The measured length is always displayed; stock kept the previous cable's reading if the new one was inside the tolerance band |
-| `batt-debounce` | low | bugfix | Low-battery shutdown needs 3 consecutive samples < 3150 mV and is cancelled when the pack recovers to ≥ 3250 mV |
+| `batt-debounce` | low | bugfix | Low-battery shutdown needs 3 consecutive samples < 3150 mV and is cancelled when the pack recovers to ≥ 3250 mV; counter explicitly cleared at main entry and cancellation |
 | `batt-gauge` | low | ux | 10-step Li-ion battery gauge instead of 4 steps |
 | `settings-leak` | low | bugfix | Frees the 204-byte buffer leaked by every settings save |
 | `font-pro` | low | ux | Replaces all three fonts: 8x16 and 6x12 ASCII (Ubuntu Sans Mono) and the 171 Chinese glyphs (Droid Sans Fallback; superseded by the Thai cells when `thai-ui` is on) |
-| `version-string` | safe | identity | About screen and boot log report `PN 2.6` (edit `VERSION` in patches.py, 7 characters max) |
-| `length-blind-text` | low | measure | A pair the PHY could not time prints `< 2` / `< 200` / `< 7` (m / cm / ft) instead of `0.0`; the formatter is a copy of length-decimal's with the zero case, in the Thai region |
+| `version-string` | safe | identity | About screen and boot log report `PN 2.7` (edit `VERSION` in patches.py, 7 characters max) |
+| `length-blind-text` | low | measure | Zero-result pairs print `< 2` / `< 200` / `< 7` (m / cm / ft). With `length-average`, partial acquisition uses `~` instead of `=`. Reserved overflow displays `OVR`. These markers are not a diagnosis of physical fault distance. |
 | `cable-back` | low | ux | Cable Test: Back returns to the Switch / Far end selector from the armed and result screens (stock left the screen); code lives in the Thai region |
 | `cable-error-visible` | low | ux | Cable Test: the red "Result error!!" line moves above the Test Retry button (stock drew the button over it); the button moves 9 px down |
 | `scan-labels` | safe | identity | SCAN screen modes labelled `Digital` (0xB6B6 coded pattern) and `825 Hz` (keyed tone) instead of `Noiseless` / `Normal` |
 | `scan-timing` | low | scan | Exact 50-tick digital slots at wrap, no SCAN interrupt-context logging, immediate carrier restore on resume; no carrier or timer changes |
 | `about-url` | safe | identity | About screen shows `github.com/patnawa/LPM-10A_PN_Custom` (string in the cave, 6x12 font, 216 px) where the vendor site was; edit `REPO_URL` in patches.py, 36 characters max |
 | `thai-ui` | low | thai | **The second language is Thai**: 118 Sarabun cells in the glyph table, proportional drawers with the stock signatures, every Chinese string slot a redirect stub to its Thai text, a `gui_blit` hook for the six English-only messages (`wording.py` ASCII_TH), the About labels 14 px left, YES / NO as whole-word cells. English untouched. See `thai/` and `docs/THAI-UI.md` |
-| `flash-blink` | low | flash | FLASH: the port LED blinks with a **fixed 1.5–2 s on time, timed from the link** (PB5), off for the switch's own re-link (about 2–3 s), a regular 4–5 s cycle, instead of stock's 4 s up / 1 s down counter that ignored the link and lost the switch's 2–3 s re-link out of every "up" window; message 8 every 500 ms, phases end at the first tick past their length less half a tick; while waiting for the link the power-up is re-asserted every tick and the PHY power-cycled again after `FLASH_RELINK_MS` = 4 s without one (PN 2.4: PN 2.3 waited without limit and stalled after a few cycles on the unit); the screen indicator clears after 300 ms, the note reads "Watch the port / LED on the switch: / it blinks when linked". `FLASH_ON_MS` / `FLASH_OFF_MS` / `FLASH_RELINK_MS` in patches.py |
+| `flash-blink` | low | flash | Link-aware blink with full minimum 1500 ms hold and 1000 ms PHY-off periods. Failed negotiation backs off 4 → 8 → 16 seconds, retains the working window during the session and resets on re-entry. Power-up is reasserted while waiting; indicator clears after 300 ms. Dispatch and negotiation add delay; links needing >16 s can still fail. |
 | `poe-screen` | low | poe | PoE screen: the voltage column is **refreshed every 0.5 s** while a supply is present (stock drew it once per detection, from the sample just after the first one above 40 V, and not again while the screen was shown), every wire from one latched sample, cleared the moment the supply goes; **"Detecting..."** on entry and **"No PoE"** 3.5 s later without a supply (stock: blank, and its timeout only ever fired once per power-on because the counter was never re-armed). Five hooks and three literal-pool words, code in the cave, which grew the file by 4 KB |
 | `batt-grace` | low | tuning | Low-battery shutdown grace 30 s → 60 s (off by default) |
 
@@ -233,7 +243,7 @@ fresh in-memory build. Sections 4–18 execute the code:
 | 18b | About URL | the About line's `gui_blit` call: geometry (12, 184, 216, 12), 12-px font, the URL text, stock colours; the stock draw for comparison |
 | 19 | Thai UI | the cell table and every cell through the stock glyph drawer; all 64 stubs resolved through RELOC to the wording table; the hook table against `wording.py`; the three routines byte-identical to `thai/drawers.py` assembled; the three jumps; the drawer unit test; then all 61 screen states in Thai pixel-identical to the model, all 61 in English pixel-identical to the same build without `thai-ui` (whose cave grows the same way), every Thai string drawn at least once |
 | 20 | Cable Test Back | action 7 through the key dispatcher in every function state, mod and stock |
-| 22 | FLASH blink | the hook, the 500 ms tick divisor and the indicator delay as Capstone reads them, `flash_tick` byte-identical to its source, the note lines; the handler under emulation with a simulated clock and jittered link ticks: stamps and waits, re-asserts the power-up on every waiting tick, drops the link at the third tick after seeing it (not the second, not the fourth), powers up after two dark ticks, waits again, power-cycles after 4 s without a link and resumes, the hold timed by the clock (20 bunched ticks cannot shorten it), nothing while the session is not active or on another screen; stock's counter: up four messages, down one, regardless of the link |
+| 22 | FLASH blink | Hook, tick divisor, indicator delay and source-byte checks; full minimum hold/off intervals including just-before-boundary calls, bunched messages, retry, session gates and stock comparison. Section 24 adds adaptive 4/8/16-second windows, slow-link acquisitions, restart and rollover tests. |
 | 21 | PoE screen | the five hook sites branch to the emitted blocks, the three literals point at the latch, and the blocks are the assembled sources, in the cave; `poe_tick` under emulation on the POE screen with a supply: 49 ticks post nothing, the 50th posts one 0x14 with the partial flag set, 200 ticks post four, no span / other screens post nothing, the supply going away posts one full redraw at once; screen entry: timeout counter 0xFFFF → 0, live cell cleared, "Detecting..." at (117, 220), the stock 0x14 still posted when a span is known, stock leaves the counter parked; the timeout's 0x14 draws "No PoE" (stock: nothing); a live refresh 48.2 → 53.1 V changes only the voltage column, to exactly what a full redraw draws, and the rows are drawn once; a sample changed mid-redraw does not reach the screen (stock: the second wire shows it) |
 
 Each behavioural check runs the stock image as well, so the report shows the
@@ -299,9 +309,9 @@ Two things the patches rely on:
 * A hook may read a register that is not an argument register, if the site
   guarantees it (e.g. `batt_low_check` takes the millivolts in **r5** because
   that is where `battery_ui_update` keeps them). Say so in the patch docstring.
-* Variables in the RAM arena are **not** zero-initialised. Design them so a
-  garbage value is harmless (the low-battery counter is reset by the first
-  healthy sample and can at worst reproduce stock behaviour once).
+* Variables in the RAM arena are **not** zero-initialised. Initialise before
+  use: PN 2.7 clears the debounce word at main entry; FLASH writes both phase
+  timestamp and retry-window words before publishing its waiting phase.
 
 ## Known, not yet fixed
 

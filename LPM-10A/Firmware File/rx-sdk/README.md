@@ -1,5 +1,14 @@
 # LPM-10A receiver (probe) firmware SDK
 
+**PN 1.2 Reliability experimental prerelease; owner-reported hardware pass.**
+The owner reported successful new TX/RX testing on 2026-09-19. Retains the PN 1.1
+digital detector and checks existing activity before idle auto-off. A narrow
+deadline-ordering bug was reproduced in the original timer handler and fixed in
+its existing 36-byte block. No ADC, analog/mains detector, battery, timer-rate,
+speaker or device-binding changes from PN 1.1. See
+[release notes](../RX-PN1.2-README.txt) and
+[audit coverage](../../../docs/RELIABILITY-AUDIT-2026-09-19.md).
+
 **2026-09-19: experimental digital detector available, off by default.**
 The V3.0.0-based PN 1.1 digital candidate adds bounded bit-error tolerance
 alongside the stock exact matcher, plus a provisional contrast floor. The
@@ -51,7 +60,21 @@ python build.py --only batt-critical-recover,digital-correlation --write
 python verify.py --digital     # 41 checks, including original battery regressions
 ```
 
-This writes `../APP_LPM-10RX_PN1.1-digital-experimental.bin`, not PN 1.0.
+For the newer **PN 1.2 Reliability experimental prerelease**:
+
+```bash
+python build.py --only batt-critical-recover,digital-correlation,activity-before-autooff --write
+python verify.py --reliability # 97 checks, including keys, housekeeping and auto-off
+python -m unittest test_image -v
+```
+
+This writes `../APP_LPM-10RX_PN1.2-reliability-experimental.bin` without replacing
+PN 1.0 or PN 1.1. `--all` now includes this new opt-in patch too. A custom subset
+containing `activity-before-autooff` needs an explicit `--out` filename. Bounds
+checks reject truncated reads, unterminated strings and resized-image writes.
+
+The earlier two-patch digital command writes
+`../APP_LPM-10RX_PN1.1-digital-experimental.bin`, not PN 1.0 or PN 1.2.
 The default build/verification still use PN 1.0. The internal vendor version
 string is deliberately unchanged (`3.0.0`); use the candidate hash to identify it.
 Stock's five-read trimmed sampler is retained: this is not oversampling or

@@ -1,0 +1,36 @@
+LPM-10A TX PN 2.7 - OWNER-REPORTED HARDWARE PASS
+Date: 2026-09-19
+
+TX tester only. Do not copy this file to the RX probe.
+File: LPM-10A-TX_PN2.7.bin
+Size: 393216 bytes (unchanged from PN 2.6)
+SHA-256: 2c14ed7be027cb3476896883e13eefb08cf953eb98993c56c100517f7c421360
+
+Changes from PN 2.6:
+- FLASH retries back off from 4 to 8 to 16 seconds; keep the working window
+  for that session. Full minimum 1500 ms hold / 1000 ms PHY-off periods.
+- Length: '~' means a partial average (1-3 of 4 runs yielded a reading).
+  Rerun and check the connection. '=' does not certify accuracy/stability.
+- OVR replaces a number that cannot fit the display representation, instead
+  of wrapping into a tiny false reading. Other units may still fit.
+- Queued NVP/Zero redraws cannot paint another screen.
+- Battery debounce is explicitly cleared at boot, preserving three-sample arming.
+
+Validation: full CPU verifier passed, including 61 UI states in both languages,
+39 SCAN checks and 51 new reliability checks. On 2026-09-19 the owner reported:
+"Test pass on new firmware tx rx" for TX PN 2.7 and RX PN 1.2.
+This is a general functional pass, not a detailed edge-case or PoE-supply matrix.
+The release binary is unchanged from the tested candidate.
+
+Keep PN 2.6 and a matching stock recovery image. Verify this hash first.
+TX update: power off, hold M + Power for the update screen, connect USB-C,
+copy the TX image, wait for completion without unplugging, then power-cycle.
+About should read Software:PN 2.7. If refused, the documented fallback filename
+is LPM-10A-TX_V2.0.7_260610.bin. Do not use this procedure on the RX probe.
+Bench checklist and unresolved risks:
+docs/RELIABILITY-AUDIT-2026-09-19.md
+
+Outstanding: cross-pair length smoothing, raw PHY range/status validation,
+PoE classification/concurrency, other interrupt queue calls, battery sample
+gaps and real Speed/QC/PoE measurement tests. Links needing >16 s can still fail.
+Release: https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.7

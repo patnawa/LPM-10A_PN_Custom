@@ -65,8 +65,13 @@ def main():
     else:
         sel = [p for p in patches.REGISTRY if p.default or args.all]
 
-    experimental = any(p.pid == "digital-correlation" for p in sel)
-    out = args.out or (os.path.join(FW_DIR, patches.DIGITAL_EXPERIMENT) if experimental else OUT)
+    reliability = any(p.pid == "activity-before-autooff" for p in sel)
+    experimental = reliability or any(p.pid == "digital-correlation" for p in sel)
+    # A nonstandard subset must have an explicit name, not impersonate PN 1.2.
+    if reliability and {p.pid for p in sel} != {"batt-critical-recover", "activity-before-autooff", "digital-correlation"} and not args.out:
+        ap.error("the PN 1.2 candidate needs all three patches; give --out for a custom subset")
+    name = patches.RELIABILITY_EXPERIMENT if reliability else patches.DIGITAL_EXPERIMENT
+    out = args.out or (os.path.join(FW_DIR, name) if experimental else OUT)
     if experimental:
         print("EXPERIMENTAL V3.0.0-BASED RX IMAGE: bench validation and matching-device recovery required.")
 

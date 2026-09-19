@@ -2,14 +2,14 @@
 
 ## Current release update (2026-09-19)
 
-TX PN 2.6 and experimental RX PN 1.1 Digital pass CPU verification; the owner
-reports that both new firmware builds work perfectly on their hardware.
-See [SCAN changes and test scope](SCAN-IMPROVEMENTS-2026-09-19.md).
-TX adds wrap/resume/interrupt-path fixes and the PN 2.5 battery/tooling fixes;
-RX adds bounded bit-error tolerance without changing the ADC sampler.
+TX PN 2.7 and experimental RX PN 1.2 Reliability pass CPU verification; the
+owner reports both new builds passed hardware testing. TX adds adaptive FLASH
+retries, minimum phase timing, partial/overflow length markers, guarded redraws
+and battery startup initialisation. RX adds activity-aware auto-off while
+retaining the digital detector. See [audit and test scope](RELIABILITY-AUDIT-2026-09-19.md).
 
-Next priorities are the [open FLASH/length edge cases](FLASH-LENGTH-AUDIT-2026-09-19.md),
-quantified RX range/noise and adjacent-cable tests, and explicit PoE-supply and
+Next priorities are remaining length pair-filter/raw-status issues, interrupt
+queue and ADC concurrency, quantified RX range/noise and adjacent-cable tests, and explicit PoE-supply and
 long-duration checks. The general hardware report is not a detailed checklist.
 Earlier plans below are historical where superseded by this update; the RX
 oversampling and strength-indication proposals have not been implemented.
