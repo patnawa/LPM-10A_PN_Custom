@@ -28,6 +28,7 @@ FW_DIR = os.path.dirname(HERE)
 STOCK = os.path.join(FW_DIR, "LPM-10A-TX_V2.0.7_260610.bin")
 STOCK_SHA = "29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b"
 OUT = os.path.join(FW_DIR, f"LPM-10A-TX_{patches.VERSION.replace(' ', '')}.bin")
+ROADMAP_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.8-roadmap.bin")
 
 
 def disasm_region(data, payload_off, addr, n):
@@ -45,12 +46,16 @@ def main():
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--all", action="store_true", help="include risk=untested")
+    ap.add_argument("--roadmap", action="store_true", help="PN 2.8 roadmap experiment (distinct output file)")
     ap.add_argument("--only", help="comma-separated patch ids")
     ap.add_argument("--with", dest="extra", help="comma-separated non-default patch ids to add to the default set")
-    ap.add_argument("--out", default=OUT)
+    ap.add_argument("--out")
     args = ap.parse_args()
-    if args.only is not None and (args.all or args.extra is not None):
-        ap.error("--only cannot be combined with --all or --with")
+    if args.roadmap and (args.all or args.only is not None or args.extra is not None):
+        ap.error("--roadmap is a fixed profile; do not combine it with --all, --only or --with")
+    if args.only is not None and (args.all or args.extra is not None or args.roadmap):
+        ap.error("--only cannot be combined with --all, --with or --roadmap")
+    args.out = args.out or (ROADMAP_OUT if args.roadmap else OUT)
 
     if args.list:
         print(f"{'id':22} {'risk':9} {'group':8} {'default':8} title (required patches)")
@@ -71,6 +76,9 @@ def main():
             return 2
     else:
         extra = {x.strip() for x in args.extra.split(",")} if args.extra else set()
+        if args.roadmap:
+            from roadmap import PATCHES
+            extra.update(PATCHES)
         missing = extra - {p.pid for p in patches.REGISTRY}
         if missing:
             print(f"unknown patch id(s): {', '.join(sorted(missing))}")

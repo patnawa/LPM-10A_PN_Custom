@@ -12,6 +12,15 @@ ORG = 0x08067C98
 # (source line, expected Capstone rendering)
 CASES = [
     ("nop",                      "nop"),
+    ("mrs r3, primask",           "mrs r3, primask"),
+    ("msr primask, r3",           "msr primask, r3"),
+    ("mrs r0, msp",               "mrs r0, msp"),
+    ("mrs r1, psp",               "mrs r1, psp"),
+    ("mrs r2, ipsr",              "mrs r2, ipsr"),
+    ("cpsid i",                   "cpsid i"),
+    ("cpsie i",                   "cpsie i"),
+    ("dsb",                      "dsb sy"),
+    ("isb",                      "isb sy"),
     ("movs r0, #0",              "movs r0, #0"),
     ("movs r3, #255",            "movs r3, #0xff"),
     ("mov r1, r2",               "mov r1, r2"),

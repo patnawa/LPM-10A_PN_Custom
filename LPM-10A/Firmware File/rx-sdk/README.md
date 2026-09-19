@@ -1,6 +1,14 @@
 # LPM-10A receiver (probe) firmware SDK
 
-**PN 1.2 Reliability experimental prerelease; owner-reported hardware pass.**
+**PN 1.3 Digital Strength experimental prerelease:** `python build.py --roadmap --write`
+builds `../experimental/APP_LPM-10RX_PN1.3-roadmap.bin`. It adds recent-signal
+auto-off protection, serialized ADC completion, main-loop watchdog feeding and
+three digital beep cadences. Run `python -m unittest test_roadmap -v`.
+The owner reported a device test pass on 2026-09-19; the release preserves the
+tested binary. The existing PN 1.0/1.1/1.2 profiles remain reproducible.
+See the [implementation report](../../../docs/ROADMAP-IMPLEMENTATION-2026-09-19.md).
+
+**Previous PN 1.2 Reliability experimental prerelease; owner-reported hardware pass.**
 The owner reported successful new TX/RX testing on 2026-09-19. Retains the PN 1.1
 digital detector and checks existing activity before idle auto-off. A narrow
 deadline-ordering bug was reproduced in the original timer handler and fixed in
@@ -60,7 +68,7 @@ python build.py --only batt-critical-recover,digital-correlation --write
 python verify.py --digital     # 41 checks, including original battery regressions
 ```
 
-For the newer **PN 1.2 Reliability experimental prerelease**:
+For the previous **PN 1.2 Reliability experimental prerelease**:
 
 ```bash
 python build.py --only batt-critical-recover,digital-correlation,activity-before-autooff --write

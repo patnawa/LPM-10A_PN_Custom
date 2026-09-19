@@ -1,5 +1,14 @@
 # LPM-10A firmware SDK
 
+**TX PN 2.8 roadmap release; owner-reported hardware pass.** The base build fixes partial
+zero formatting and protects the PoE latch copy. `python build.py --roadmap --write`
+adds deferred ISR events, service-task watchdog gating, calibration autosave and
+retained crash diagnostics in `../experimental/LPM-10A-TX_PN2.8-roadmap.bin`.
+Run `python -m unittest test_roadmap -v` for that profile. The owner reported a
+device test pass on 2026-09-19; the release preserves the tested binary. The
+default base profile remains a separate unreleased comparison build. See the
+[implementation report](../../../docs/ROADMAP-IMPLEMENTATION-2026-09-19.md).
+
 A reverse-engineering and patching toolkit for the FNIRSI LPM-10A cable tester
 (TX / main unit), with hash-verified build inputs.
 
@@ -44,7 +53,7 @@ needs `uharfbuzz`.
 python test_thumb.py            # assembler self-test
 python build.py --list          # what patches exist
 python build.py                 # dry run: prints every byte it would change
-python build.py --write         # emit LPM-10A-TX_PN2.7.bin (owner-reported hardware pass)
+python build.py --write         # emit LPM-10A-TX_PN2.8.bin (unreleased base candidate)
 python verify.py                # prove the result is what was intended
 python verify_scan.py           # fast SCAN-only regressions (also in verify.py)
 python -m unittest test_audit -v # allocator, dependency and battery-cancellation regressions
@@ -57,7 +66,7 @@ successful TX PN 2.7 / RX PN 1.2 testing on 2026-09-19. See
 [audit, coverage and bench checklist](../../../docs/RELIABILITY-AUDIT-2026-09-19.md).
 Run `python verify_reliability.py` for the focused regressions; they also run in
 section 24 of the full verifier. [TX PN 2.7](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.7)
-is the current release; RX PN 1.2 is a separate opt-in experimental prerelease
+is the previous release; RX PN 1.2 is the previous opt-in experimental prerelease
 in `../rx-sdk`. Both binaries are unchanged from the owner-tested candidates.
 
 PN 2.6 fixes the digital SCAN wrap, bypasses logging in its timer path, and
@@ -188,7 +197,7 @@ The assembler rejects anything it does not recognise rather than guessing, and
 | `batt-gauge` | low | ux | 10-step Li-ion battery gauge instead of 4 steps |
 | `settings-leak` | low | bugfix | Frees the 204-byte buffer leaked by every settings save |
 | `font-pro` | low | ux | Replaces all three fonts: 8x16 and 6x12 ASCII (Ubuntu Sans Mono) and the 171 Chinese glyphs (Droid Sans Fallback; superseded by the Thai cells when `thai-ui` is on) |
-| `version-string` | safe | identity | About screen and boot log report `PN 2.7` (edit `VERSION` in patches.py, 7 characters max) |
+| `version-string` | safe | identity | About screen and boot log report `PN 2.8` (edit `VERSION` in patches.py, 7 characters max) |
 | `length-blind-text` | low | measure | Zero-result pairs print `< 2` / `< 200` / `< 7` (m / cm / ft). With `length-average`, partial acquisition uses `~` instead of `=`. Reserved overflow displays `OVR`. These markers are not a diagnosis of physical fault distance. |
 | `cable-back` | low | ux | Cable Test: Back returns to the Switch / Far end selector from the armed and result screens (stock left the screen); code lives in the Thai region |
 | `cable-error-visible` | low | ux | Cable Test: the red "Result error!!" line moves above the Test Retry button (stock drew the button over it); the button moves 9 px down |

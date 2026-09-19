@@ -1032,7 +1032,7 @@ STOCK_FONT_SHA = {
 # Group: identity
 # =====================================================================
 
-VERSION = "PN 2.7"          # owner-reported TX/RX hardware pass, 2026-09-19
+VERSION = "PN 2.8"          # roadmap profile: owner-reported device pass, 2026-09-19
 
 
 @patch("version-string", f"Report the firmware version as {VERSION}",
@@ -1447,6 +1447,7 @@ def p_length_blind(img):
     selected, counts 1..AVG_RUNS-1 replace '=' with '~' to mark partial
     acquisition. Counts are read only for their pair index (r4 at the call
     site); no extra persistent RAM or changes to measurement means.
+    PN 2.8: a calibrated zero uses blind text before examining those counts.
     """
     from lpm10a.thumb import assemble
     syms = dict(sprintf=0x0800A38C | 1, leng_unit_idx=0x200002C0)
@@ -1456,6 +1457,8 @@ def p_length_blind(img):
     if hasattr(img, "avg_acc"):
         syms["COUNTS"] = img.avg_acc + 16
         partial = f"""
+            cmp  r3, #0
+            beq  complete          ; blind text wins over a partial numeric marker
             ldr  r5, =COUNTS
             add  r5, r4
             ldrb r5, [r5]
@@ -1671,6 +1674,8 @@ def p_poe_screen(img):
 
     latch_hook = img.emit_code("""
     latch_hook:                 ; 0x08013632: the 0x14 handler starts drawing
+            mrs  r3, primask
+            cpsid i
             ldr  r0, =POE_SAMPLES
             ldr  r1, =LATCH
             ldr  r2, [r0]
@@ -1681,6 +1686,7 @@ def p_poe_screen(img):
             str  r2, [r1, #8]       ; max, min
             ldr  r2, [r0, #12]
             str  r2, [r1, #12]      ; mv (+ the u16 after it)
+            msr  primask, r3        ; preserve the caller's interrupt mask
             movw r0, #0x2105        ; the displaced instruction
             b.w  POE_RESULT_CONT
     """, extra_syms=syms, why="latch_hook: one sample for the whole redraw")
@@ -1977,3 +1983,7 @@ def p_batt_grace(img):
     # 0x0800E6EA:  movs r0, #0x1e  ->  movs r0, #0x3c
     img.poke(0x0800E6EA, "1e20", bytes.fromhex("3c20"),
              "battery shutdown countdown 30 -> 60 seconds")
+
+
+from roadmap import register as _register_roadmap
+_register_roadmap(patch)

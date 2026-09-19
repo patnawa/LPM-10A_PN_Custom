@@ -48,7 +48,8 @@ def pattern(phase=0, low=500, high=1500, wrong=()):
 
 
 class Detector:
-    def __init__(self, image):
+    def __init__(self, image, graded=False):
+        self.graded = graded
         self.uc = uc = Uc(UC_ARCH_ARM, UC_MODE_THUMB | UC_MODE_MCLASS)
         uc.mem_map(0x08000000, 0x20000)
         uc.mem_map(0x20000000, 0x10000)
@@ -63,6 +64,8 @@ class Detector:
         self.steps += 1
 
     def write(self, uc, access, addr, size, value, user):
+        if self.graded and (addr, size) == (0x2000005D, 1):
+            return
         if not (STACK - 144 <= addr and addr + size <= STACK) and (addr, size) not in {
                 (ACTIVE, 1), (RECENT, 2), (BEEP, 1), (GAP, 1)}:
             self.bad_writes.append((addr, size))
@@ -91,9 +94,13 @@ class Detector:
         assert [uc.reg_read(r) for r in SAVED] == sentinel, 'callee-saved register corruption'
         assert not self.bad_writes, f'write outside owned stack / output flags: {self.bad_writes}'
         self.max_steps = max(self.max_steps, self.steps)
-        found = uc.mem_read(BEEP, 1)[0] == 50
+        found = uc.mem_read(BEEP, 1)[0] > 0
         if found:
-            assert uc.mem_read(GAP, 1)[0] == 50
+            mean = (sum(samples) - min(samples) - max(samples)) // 46
+            contrast = sum(abs(x - mean) for x in samples)
+            gap = (100 if contrast < 500 else 50 if contrast <= 1000 else 30) if self.graded else 50
+            assert uc.mem_read(GAP, 1)[0] == gap
+            assert uc.mem_read(BEEP, 1)[0] == min(gap, 50)
             assert struct.unpack('<H', uc.mem_read(RECENT, 2))[0] == 800
         return found
 
@@ -115,8 +122,8 @@ def sampled_wave(phase, ratio, noise, rng):
     return out
 
 
-def run_checks(stock, mod, check):
-    old, new = Detector(stock), Detector(mod)
+def run_checks(stock, mod, check, graded=False):
+    old, new = Detector(stock), Detector(mod, graded=graded)
     clean = [pattern(p, low, high) for p in range(8)
              for low, high in ((0, 1000), (500, 1500), (3000, 3100), (0, 4095))]
     check(all(old.run(x) and new.run(x) for x in clean),
@@ -188,6 +195,9 @@ def run_checks(stock, mod, check):
     check(new.max_steps < 12000, 'bounded execution, ABI, <=144-byte stack footprint and write ownership',
           f'max observed {new.max_steps} instructions; not measured CPU cycles')
     spans = ((0x080072A4, 0x08007320), (0x080075F8, 0x08007724), (0x0800AC1C, 0x0800AD98))
+    if graded:
+        spans = spans[1:]  # roadmap ADC transaction has its own peripheral-model tests
     check(all(len(stock[a - BASE:b - BASE]) == b - a
               and stock[a - BASE:b - BASE] == mod[a - BASE:b - BASE] for a, b in spans),
-          'ADC access, trimmed sampler and TIM5 sampler/speaker interrupt untouched')
+          ('trimmed sampler and TIM5 sampler/speaker interrupt untouched' if graded else
+           'ADC access, trimmed sampler and TIM5 sampler/speaker interrupt untouched'))

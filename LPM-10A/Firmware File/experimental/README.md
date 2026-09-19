@@ -1,7 +1,19 @@
 # Experimental builds
 
-Images here are **not** releases. Each one is the default PN build plus one
-experiment, for measuring something on hardware. `verify.py` reports two
+This directory retains experimental profiles and the exact roadmap binaries
+published after the owner's device test pass.
+
+The **PN 2.8 TX / PN 1.3 RX roadmap** builds implement the requested fixes
+and Ideas 1–7. In the corresponding SDK directory, run `python build.py --roadmap --write`
+and `python -m unittest test_roadmap -v`. Their dedicated tests must pass without
+expected failures. Checksums are in `ROADMAP-SHA256SUMS.txt`; see the
+[implementation report](../../../docs/ROADMAP-IMPLEMENTATION-2026-09-19.md).
+The owner reported a device test pass on 2026-09-19. These exact files are now
+the [TX PN 2.8 release](../../../docs/releases/v2.8.md) and
+[RX PN 1.3 experimental prerelease](../../../docs/releases/rx-v1.3.md).
+
+The older **PN 2.4 blind-zone experiment** below is the default PN build plus one
+experiment, for measuring something on hardware. Its original verifier reports two
 expected failures on them (the byte-for-byte match with the default build and
 the undeclared instruction at the experiment's site); everything else must pass.
 

@@ -17,6 +17,9 @@ REGISTRY = []
 
 DIGITAL_EXPERIMENT = "APP_LPM-10RX_PN1.1-digital-experimental.bin"
 RELIABILITY_EXPERIMENT = "APP_LPM-10RX_PN1.2-reliability-experimental.bin"
+ROADMAP_EXPERIMENT = "experimental/APP_LPM-10RX_PN1.3-roadmap.bin"
+ROADMAP_PATCHES = {"batt-critical-recover", "activity-before-autooff", "digital-correlation",
+                   "recent-signal-autooff", "adc-complete", "main-watchdog", "digital-strength"}
 
 
 def patch(pid, title, risk, default=True, group="misc"):
@@ -124,11 +127,12 @@ def p_activity_autooff(img):
     img.poke(site,
              "40f20410 c2f20000 0168 0131 0160 0068 49f2e131 c0f20401 8842 03d3 ffe7 fcf7defd ffe7",
              code, "TIM1: pending activity wins over idle auto-off at the deadline")
+    img.activity_autooff = True
 
 
 @patch("digital-correlation", "Experimental digital detector: phase search and bounded bit-error tolerance",
        risk="untested", default=False, group="scan")
-def p_digital_correlation(img):
+def p_digital_correlation(img, strength=False):
     """Replace only analyse_mode0, in its existing 336-byte footprint.
 
     Keep the ADC sampler, 48-sample snapshot, trimmed threshold, PA2 gate,
@@ -147,9 +151,12 @@ def p_digital_correlation(img):
     """
     site, size = 0x08009E08, 0x150
     old = img.read(site, size)
-    if hashlib.sha256(old).hexdigest() != "ccb897bffd0017ae556df66c6bcb5cfd709959e869a1ee7caf2eb9c2b5452f7a":
+    if strength:
+        if old != getattr(img, "digital_code", None):
+            raise PatchError("digital-strength requires digital-correlation first")
+    elif hashlib.sha256(old).hexdigest() != "ccb897bffd0017ae556df66c6bcb5cfd709959e869a1ee7caf2eb9c2b5452f7a":
         raise PatchError("digital detector is not the audited V3.0.0 routine")
-    code = img.assemble_at(site, """
+    source = """
         push {r3, r4, r5, r6, r7, lr}
         sub  sp, #96
         ldr  r0, =0x20000008
@@ -273,8 +280,183 @@ def p_digital_correlation(img):
     done:
         add  sp, #96
         pop  {r3, r4, r5, r6, r7, pc}
-    """)
+    """
+    if strength:
+        source = source.replace("ldr  r0, [sp, #96]\n        cmp  r0, #2",
+                                "ldr r0, [sp, #96]\n        str r7, [sp, #96]\n        cmp r0, #2")
+        source = source.replace("""        ldr  r0, =0x2000010C
+        movs r1, #50
+        strb r1, [r0]
+        ldr  r0, =0x2000005A
+        strb r1, [r0]""", """        ldr r7, [sp, #96]
+        movs r1, #100
+        movw r0, #500
+        cmp r7, r0
+        blo grade_ready
+        movs r1, #50
+        movw r0, #1000
+        cmp r7, r0
+        bls grade_ready
+        movs r1, #30
+    grade_ready:
+        ldr r0, =0x2000005A
+        strb r1, [r0, #3]       ; owned padding byte: repeat gap
+        strb r1, [r0]
+        cmp r1, #50
+        bls grade_on
+        movs r1, #50
+    grade_on:
+        ldr r0, =0x2000010C
+        strb r1, [r0]""")
+    code = img.assemble_at(site, source)
     if len(code) > size:
         raise PatchError(f"digital detector exceeds in-place footprint: {len(code)} > {size}")
     code += bytes.fromhex("00bf") * ((size - len(code)) // 2)
     img.poke(site, old.hex(), code, "experimental digital detection: 48-bit correlation over eight phases")
+    img.digital_code = code
+
+
+@patch("recent-signal-autooff", "Reset idle time for a recently detected digital signal",
+       risk="untested", default=False, group="power")
+def p_recent_autooff(img):
+    # Replaces the already patched prefix and stock tick/beep housekeeping.
+    # The base is idle_ticks (0x104): signal_recent is -0x98, NOT -0xA0.
+    if not getattr(img, "activity_autooff", False):
+        raise PatchError("recent-signal-autooff requires activity-before-autooff")
+    site, size = 0x0800A992, 0x5E
+    code = img.assemble_at(site, """
+        ldr r0, =0x20000104
+        ldr r1, [r0]
+        adds r1, #1
+        ldrb r2, [r0, #8]
+        ldr r3, =0x2000006C
+        ldrh r3, [r3]
+        orrs r3, r2
+        beq idle
+        movs r1, #0
+    idle:
+        str r1, [r0]
+        ldr r3, =300001
+        cmp r1, r3
+        blo housekeeping
+        bl power_off
+    housekeeping:
+        ldr r0, =0x200000FC
+        ldr r1, [r0]
+        adds r1, #1
+        str r1, [r0]
+        ldrb r1, [r0, #16]
+        cbz r1, done
+        subs r1, #1
+        strb r1, [r0, #16]
+    done:
+        b.w 0x0800A9F0
+    """)
+    _replace(img, site, size, code, "TIM1: recent signal or beep resets idle before deadline check")
+
+
+def _replace(img, site, size, code, why):
+    audited = {
+        0x080072A4: "90910793a729f7ce82a20beacebb8381c653e0e27bbdf281529dd50e5c8c9db5",
+        0x08007724: "6248df7f65b4da246ef8b64a2a8aec580606f87006ce5f9829bad38b5014e828",
+        0x0800A992: "a4316ad81168615fed4a38e7d7fba3120600b29ff490a38599364209bf0b4a98",
+    }
+    offset = site - 0x08006800
+    if hashlib.sha256(img.original[offset:offset+size]).hexdigest() != audited[site]:
+        raise PatchError(f"{why}: original routine differs from audited V3.0.0")
+    if site != 0x0800A992 and img.read(site, size) != img.original[offset:offset+size]:
+        raise PatchError(f"{why}: patch site already modified")
+    if len(code) > size or len(code) % 2:
+        raise PatchError(f"{why}: code {len(code)} exceeds slot {size}")
+    img.poke(site, img.read(site, size).hex(), code + bytes.fromhex("00bf") * ((size-len(code))//2), why)
+
+
+@patch("adc-complete", "Serialize channel selection through completed ADC conversion",
+       risk="untested", default=False, group="reliability")
+def p_adc_complete(img):
+    # N32L40x manual, ADC_STS: ENDC bit 1, clear by writing zero (SDK
+    # ADC_ClearFlag writes 0x7F & ~flag). Mask only the transaction and restore
+    # PRIMASK. A finite 128-poll timeout requests reset instead of returning
+    # fabricated battery/tone data or leaving a conversion in flight.
+    site, size = 0x080072A4, 0x44
+    code = img.assemble_at(site, """
+        push {r4, r5, r6, lr}
+        mov r4, r0
+        mrs r6, primask
+        cpsid i
+        bl adc_config_regular_channel
+        mov r0, r4
+        movs r1, #0x4D
+        str r1, [r0]          ; clear ENDC, ENDCA and STR before starting
+        bl adc_software_start_conv
+        movs r2, #128
+    poll:
+        ldr r0, [r4]
+        lsls r0, r0, #30
+        bmi ready
+        subs r2, #1
+        bne poll
+        ldr r0, =0xE000ED0C
+        ldr r1, =0x05FA0004
+        str r1, [r0]
+    reset_pending:
+        b reset_pending
+    ready:
+        mov r0, r4
+        bl adc_get_data
+    done:
+        msr primask, r6
+        pop {r4, r5, r6, pc}
+    """)
+    _replace(img, site, size, code, "ADC: selected-channel completion, bounded wait, restore interrupt mask")
+
+
+@patch("main-watchdog", "Refresh IWDG from completed main-loop iterations",
+       risk="untested", default=False, group="reliability")
+def p_main_watchdog(img):
+    # Reuse the two movw/movt instructions which load mode at the loop head.
+    # r5 already permanently holds &mode on every route into this loop.
+    img.poke(0x0800B8F2, "40f24800 c2f20000",
+             img.assemble_at(0x0800B8F2, "bl iwdg_reload\nmov r0, r5\nnop"),
+             "main loop: watchdog refresh before mode dispatch")
+    img.poke(0x0800AA8E, "fdf7c9fb", bytes.fromhex("00bf00bf"),
+             "TIM1: remove unconditional watchdog refresh")
+
+
+@patch("digital-strength", "Three contrast-based digital beep cadences",
+       risk="untested", default=False, group="scan")
+def p_digital_strength(img):
+    """Own the zero-initialized padding byte 0x2000005D between the byte
+    sample_idx_mode1 and halfword agc_samples; no sample buffer is borrowed.
+    Correlation still decides eligibility; contrast chooses cadence only.
+    """
+    p_digital_correlation(img, strength=True)
+    site, size = 0x08007724, 0x4C
+    code = img.assemble_at(site, """
+        push {r4, lr}
+        ldr r4, =0x2000010C
+        ldrb r0, [r4]
+        bl speaker_tick
+        ldr r0, =0x2000006C
+        ldrh r0, [r0]
+        cbz r0, done
+        ldr r0, =0x2000005A
+        ldrb r1, [r0]
+        cbnz r1, done
+        ldrb r1, [r0, #3]
+        cmp r1, #30
+        beq valid
+        cmp r1, #100
+        beq valid
+        movs r1, #50
+    valid:
+        strb r1, [r0]
+        cmp r1, #50
+        bls on
+        movs r1, #50
+    on:
+        strb r1, [r4]
+    done:
+        pop {r4, pc}
+    """)
+    _replace(img, site, size, code, "digital cadence: high 30/30, medium 50/50, low 50/100 ms")

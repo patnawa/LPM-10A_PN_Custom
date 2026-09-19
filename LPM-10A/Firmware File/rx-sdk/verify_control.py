@@ -62,7 +62,7 @@ class Control:
         assert [uc.reg_read(r) for r in SAVED] == sentinels
 
 
-def run_checks(stock, mod, check):
+def run_checks(stock, mod, check, roadmap=False):
     def deadline(buf, idle, beep):
         c = Control(buf)
         c.w32(IDLE, idle); c.w8(BEEP, beep)
@@ -112,9 +112,11 @@ def run_checks(stock, mod, check):
     c = Control(mod)
     for _ in range(1000):
         c.run()
-    check(c.calls.count(0x08007770) == c.calls.count(0x080084D8) == c.calls.count(0x08008224) == 2
+    check(c.calls.count(0x08007770) == c.calls.count(0x080084D8) == 2
+          and c.calls.count(0x08008224) == (0 if roadmap else 2)
           and c.calls.count(0x0800ADC0) == 1000 and c.read(TICK, 4) == 1000,
-          "1000 TIM1 ticks: battery, gain and watchdog each twice; interrupt acknowledged every tick")
+          ("1000 TIM1 ticks: battery/gain twice, no ISR watchdog feed; every tick acknowledged" if roadmap else
+           "1000 TIM1 ticks: battery, gain and watchdog each twice; interrupt acknowledged every tick"))
     c = Control(mod); c.pending = False
     c.w32(IDLE, 300001); c.w8(BEEP, 50); c.run()
     check(not c.calls and c.read(IDLE, 4) == 300001 and c.read(BEEP) == 50,
@@ -129,6 +131,12 @@ def run_checks(stock, mod, check):
     c.run()
     check(not early and c.calls.count(0x08007570) == 1,
           "physical power key still powers off after 1200 ticks, regardless of recent activity")
+
+    if roadmap:
+        for start, end in ((0x080085F4, 0x08008718), (0x08009F58, 0x0800A080)):
+            check(stock[start-0x08006800:end-0x08006800] == mod[start-0x08006800:end-0x08006800],
+                  f"analog/mains analyzer bytes unchanged at {start:#x}")
+        return
 
     # No other firmware paths changed between the prior digital image and PN 1.2.
     from pathlib import Path

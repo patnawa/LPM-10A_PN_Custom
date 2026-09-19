@@ -1,4 +1,4 @@
-"""Execute the PN 2.7 reliability fixes in Unicorn, including full length runs.
+"""Execute PN 2.7 reliability and PN 2.8 blind-zero fixes, including full length runs.
 
 Hardware, link-acquisition delay and task scheduling are simulated. Arithmetic,
 formatting, state machines and the PHY diagnostic control flow are real firmware.
@@ -178,6 +178,12 @@ def run_checks(data, img, check):
     m = Machine(data, 7)
     check([text_for(m, 0, u, 0) for u in range(3)] == ["1-2 = < 2", "1-2 = < 200", "1-2 = < 7"],
           "zero-count blind-pair text preserved; formatter return length / ABI checked on every call")
+    for count in range(patches.AVG_RUNS + 1):
+        for pair in range(4):
+            m.w8(img.avg_acc + 16 + pair, count)
+            check([text_for(m, pair, u, 0) for u in range(3)] ==
+                  ["1-2 = < 2", "1-2 = < 200", "1-2 = < 7"],
+                  f"blind zero never becomes a numeric zero: pair {pair}, count {count}")
 
 
 if __name__ == "__main__":

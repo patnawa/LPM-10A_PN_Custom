@@ -1,0 +1,66 @@
+# TX PN 2.8 — blind-zero fix, ISR deferral, autosave and crash diagnostics
+
+Firmware for the **LPM-10A TX tester**. On 2026-09-19 the owner reported
+"test pass on device" for the TX PN 2.8 / RX PN 1.3 candidates and requested
+publication. This release contains the exact tested TX roadmap binary.
+
+## Downloads
+
+- `LPM-10A-TX_PN2.8-roadmap.bin` — 393216 bytes, all roadmap enhancements.
+- `PN2.8-README.txt` — changes, update instructions and validation limits.
+- `PN2.8-SHA256SUMS.txt` — binary checksum.
+
+```text
+0dcc893e242867d368a87c7c2f64750424b749bab91c3e45285fd9e1a5650a4b
+```
+
+Use the `-roadmap.bin` file for this release. The SDK's default
+`LPM-10A-TX_PN2.8.bin` is a smaller base profile used for regression comparisons;
+it does not include all the roadmap enhancements and is not a release asset.
+
+## Changes from PN 2.7
+
+- Partial zero-length results display `< 2 m`, `< 200 cm` or `< 7 ft` instead
+  of a misleading numeric zero. Nonzero partial averages retain `~`.
+- Defer all ten application SysTick callbacks to a service task, including
+  queue, logging and battery work. Pending-bit updates and drains are protected.
+- Require service-task progress before TIM2 refreshes the watchdog after startup.
+- Save changed NVP, Zero and unit when leaving Length. Use a static staging
+  buffer, check flash return codes/readback and avoid writes when unchanged.
+- Retain fault PC/LR, CFSR and exception information across application warm
+  reset and display it in About, with MSP/PSP and floating-point frame handling.
+- Prevent PoE task preemption midway through the 16-byte GUI sample copy.
+
+Companion probe: [RX PN 1.3 Digital Strength](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.3).
+
+## Validation and limits
+
+Owner-reported device pass; 13 roadmap CPU test groups, 12 existing SDK audit
+tests and assembler checks pass. The full TX base verifier also passes.
+Both About language branches were rendered and visually checked.
+
+The device report is a general functional pass, not a per-condition test matrix.
+The watchdog checks service-task/scheduler progress, not every task independently.
+Pending periodic events coalesce during a worker stall. Autosave occurs on screen
+exit; power loss while editing or during flash writing can still lose changes.
+Crash records do not survive power loss. Vendor pair consensus, PHY status/range
+interpretation and PoE classification remain separate limitations.
+
+## Build, update and recovery
+
+From `LPM-10A/Firmware File/sdk`:
+
+```text
+python build.py --roadmap --write
+python -m unittest test_roadmap -v
+```
+
+1. Verify: `certutil -hashfile LPM-10A-TX_PN2.8-roadmap.bin SHA256`.
+2. Power off, hold **M + Power** for the update screen, then connect USB-C.
+3. Copy the TX binary to the removable drive and wait for completion without
+   unplugging. Power-cycle; About reads `Software:PN 2.8`.
+4. Keep the working PN 2.7 image and a matching recovery image. The documented
+   fallback filename is `LPM-10A-TX_V2.0.7_260610.bin` if the bootloader refuses
+   the custom filename. TX and RX images/update procedures are different.
+
+[Implementation, audit corrections and detailed coverage](https://github.com/patnawa/LPM-10A_PN_Custom/blob/v2.8/docs/ROADMAP-IMPLEMENTATION-2026-09-19.md)

@@ -42,9 +42,12 @@ def main():
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--all", action="store_true", help="include risk=untested")
+    ap.add_argument("--roadmap", action="store_true", help="build the PN 1.3 roadmap experiment")
     ap.add_argument("--only", help="comma-separated patch ids")
     ap.add_argument("--out", help="output path (experimental builds use a distinct filename)")
     args = ap.parse_args()
+    if args.roadmap and (args.all or args.only is not None):
+        ap.error("--roadmap is a fixed profile; do not combine it with --all or --only")
 
     if args.list:
         print(f"{'id':24} {'risk':9} {'group':8} {'default':8} title")
@@ -53,8 +56,8 @@ def main():
             print(f"{p.pid:24} {p.risk:9} {p.group:8} {'yes' if p.default else 'no':8} {p.title}")
         return 0
 
-    if args.only is not None and args.all:
-        ap.error("--only cannot be combined with --all")
+    if args.only is not None and (args.all or args.roadmap):
+        ap.error("--only cannot be combined with --all or --roadmap")
     if args.only is not None:
         want = [x.strip() for x in args.only.split(",")]
         sel = [p for p in patches.REGISTRY if p.pid in want]
@@ -63,14 +66,17 @@ def main():
             print(f"unknown patch id(s): {', '.join(sorted(missing))}")
             return 2
     else:
-        sel = [p for p in patches.REGISTRY if p.default or args.all]
+        sel = [p for p in patches.REGISTRY if p.default or args.all or
+               (args.roadmap and p.pid in patches.ROADMAP_PATCHES)]
 
     reliability = any(p.pid == "activity-before-autooff" for p in sel)
     experimental = reliability or any(p.pid == "digital-correlation" for p in sel)
     # A nonstandard subset must have an explicit name, not impersonate PN 1.2.
-    if reliability and {p.pid for p in sel} != {"batt-critical-recover", "activity-before-autooff", "digital-correlation"} and not args.out:
+    if reliability and not args.roadmap and {p.pid for p in sel} != {"batt-critical-recover", "activity-before-autooff", "digital-correlation"} and not args.out:
         ap.error("the PN 1.2 candidate needs all three patches; give --out for a custom subset")
     name = patches.RELIABILITY_EXPERIMENT if reliability else patches.DIGITAL_EXPERIMENT
+    if args.roadmap:
+        name = patches.ROADMAP_EXPERIMENT
     out = args.out or (os.path.join(FW_DIR, name) if experimental else OUT)
     if experimental:
         print("EXPERIMENTAL V3.0.0-BASED RX IMAGE: bench validation and matching-device recovery required.")

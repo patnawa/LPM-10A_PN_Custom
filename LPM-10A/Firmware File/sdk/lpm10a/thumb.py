@@ -26,7 +26,7 @@ Supported:
                 rsbs Rd,Rn,#0 | uxtb/uxth/sxtb/sxth Rd,Rm
     mul/div     muls Rd,Rn,Rd | mul Rd,Rn,Rm | mls Rd,Rn,Rm,Ra
                 udiv/sdiv Rd,Rn,Rm
-    misc        nop
+    misc        nop | mrs/msr (MSP, PSP, PRIMASK, IPSR) | cpsid/cpsie i | dsb/isb
 """
 import re
 import struct
@@ -183,7 +183,7 @@ class Asm:
         return pc + self._insn_size(mn, ops), 0
 
     def _insn_size(self, mn, ops):
-        if mn in ("movw", "movt", "bl", "b.w", "blx.w", "udiv", "sdiv", "mls", "mul"):
+        if mn in ("movw", "movt", "bl", "b.w", "blx.w", "udiv", "sdiv", "mls", "mul", "mrs", "msr", "dsb", "isb"):
             return 4
         return 2
 
@@ -273,6 +273,26 @@ class Asm:
 
         if mn == "nop":
             return h(0xBF00)
+
+        if mn in ("mrs", "msr"):
+            special = {"msp": 8, "psp": 9, "primask": 16, "ipsr": 5}
+            name = o[1 if mn == "mrs" else 0].lower()
+            if name not in special or (mn == "msr" and name == "ipsr"):
+                raise AsmError(f"unsupported special register: {name}")
+            reg = _reg(o[0 if mn == "mrs" else 1], False)
+            if reg >= 13:
+                raise AsmError("special register transfer needs r0-r12")
+            if mn == "mrs":
+                return h(0xF3EF) + h(0x8000 | (reg << 8) | special[name])
+            return h(0xF380 | reg) + h(0x8800 | special[name])
+        if mn in ("cpsid", "cpsie"):
+            if ops.strip().lower() != "i":
+                raise AsmError("only interrupt mask i is supported")
+            return h(0xB672 if mn == "cpsid" else 0xB662)
+        if mn in ("dsb", "isb"):
+            if ops.strip().lower() not in ("", "sy"):
+                raise AsmError("only full-system barriers are supported")
+            return h(0xF3BF) + h(0x8F4F if mn == "dsb" else 0x8F6F)
 
         if mn == "movs":
             rd, imm = _reg(o[0]), E(o[1].lstrip("#"))
