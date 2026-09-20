@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-09-20T22:01:43.654612+07:00",
+  "method": "STLink direct protocol; no target-memory writes, reset, halt, erase, unlock, or flash algorithm",
+  "requested_swd_hz": 100000,
+  "reads": {
+    "cpuid": {
+      "address": "0xE000ED00",
+      "bytes_hex": "41c20f41"
+    },
+    "boot_vectors": {
+      "address": "0x08000000",
+      "error": "TransferFaultError: Memory transfer fault (read) @ 0x08000000-0x0800001f"
+    }
+  },
+  "probe_firmware": "V2J31M7",
+  "reported_target_voltage": 3.155844155844156,
+  "swd_entered": true,
+  "dpidr": "0x2BA01477",
+  "dp_ctrl_stat": "0xF0000040",
+  "dp_power_acks": true
+}

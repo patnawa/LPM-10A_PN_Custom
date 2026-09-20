@@ -1,0 +1,12 @@
+{
+  "started_at": "2026-09-20T22:07:00.382078+07:00",
+  "method": "Live SRAM read, core not halted; not an atomic snapshot and not a firmware backup",
+  "address": "0x20000000",
+  "length": 24576,
+  "target_memory_writes": false,
+  "flash_or_option_writes": false,
+  "completed_at": "2026-09-20T22:07:03.857941+07:00",
+  "sha256": "673e3bacad0e1d01321ad0eed70a64a1ab2b3eceea8a1a2299a1d84108a59a8b",
+  "path": "C:\\Users\\Alpha\\Desktop\\LPM-10RX-SWD-2026-09-20\\rx-sram-live-2206.bin",
+  "nonzero_bytes": 16613
+}

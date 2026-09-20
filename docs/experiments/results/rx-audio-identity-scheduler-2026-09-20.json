@@ -1,0 +1,630 @@
+{
+  "method": "Real Thumb scheduler, TIM1 and PN1.13 audio helper; synthetic ticks, no detector refresh; not hardware timing.",
+  "unit": "One TIM1 delivery and five speaker deliveries; nominally about 1 ms, not a measured millisecond.",
+  "images": [
+    {
+      "image": "APP_LPM-10RX_V3.0.0_260416.bin",
+      "version": -1,
+      "sha256": "083f3825e8f8a38627417e26732e88fd13ee0dbe3c13ca1cd1cd9c4875c7c8c5",
+      "version_string": "3.0.0\u0000",
+      "cases": [
+        {
+          "grade": 0,
+          "pulse_units": [
+            49.8
+          ],
+          "quiet_units": [
+            49.2
+          ],
+          "pulse_count": 9,
+          "last_off_units": 842.0,
+          "final_audible": false
+        }
+      ]
+    },
+    {
+      "image": "APP_LPM-10RX_PN1.0.bin",
+      "version": 0,
+      "sha256": "419c52a04a0e9a840b405669fc51aa785659e41bda3296caac62f37ebc7d1244",
+      "version_string": "3.0.0\u0000",
+      "cases": [
+        {
+          "grade": 0,
+          "pulse_units": [
+            49.8
+          ],
+          "quiet_units": [
+            49.2
+          ],
+          "pulse_count": 9,
+          "last_off_units": 842.0,
+          "final_audible": false
+        }
+      ]
+    },
+    {
+      "image": "APP_LPM-10RX_PN1.1-digital-experimental.bin",
+      "version": 1,
+      "sha256": "70c72436c30d91df52b6bc2935cde1f2077989b7b16c7223ddff829eb774d56f",
+      "version_string": "3.0.0\u0000",
+      "cases": [
+        {
+          "grade": 0,
+          "pulse_units": [
+            49.8
+          ],
+          "quiet_units": [
+            49.2
+          ],
+          "pulse_count": 9,
+          "last_off_units": 842.0,
+          "final_audible": false
+        }
+      ]
+    },
+    {
+      "image": "APP_LPM-10RX_PN1.2-reliability-experimental.bin",
+      "version": 2,
+      "sha256": "8176a40988eea3319c5c46dd65b0c97dce16c420b2e7fcbb3ddb05b28feef879",
+      "version_string": "3.0.0\u0000",
+      "cases": [
+        {
+          "grade": 0,
+          "pulse_units": [
+            49.8
+          ],
+          "quiet_units": [
+            49.2
+          ],
+          "pulse_count": 9,
+          "last_off_units": 842.0,
+          "final_audible": false
+        }
+      ]
+    },
+    {
+      "image": "APP_LPM-10RX_PN1.3-roadmap.bin",
+      "version": 3,
+      "sha256": "fa51768b92d08fafe280312a61b2059e3050cfa69c6b43fb4d443640708d43f2",
+      "version_string": "3.0.0\u0000",
+      "cases": [
+        {
+          "grade": 30,
+          "pulse_units": [
+            29.8
+          ],
+          "quiet_units": [
+            29.2
+          ],
+          "pulse_count": 14,
+          "last_off_units": 797.0,
+          "final_audible": false
+        },
+        {
+          "grade": 50,
+          "pulse_units": [
+            49.8
+          ],
+          "quiet_units": [
+            49.2
+          ],
+          "pulse_count": 9,
+          "last_off_units": 842.0,
+          "final_audible": false
+        },
+        {
+          "grade": 100,
+          "pulse_units": [
+            49.8
+          ],
+          "quiet_units": [
+            99.2
+          ],
+          "pulse_count": 6,
+          "last_off_units": 795.0,
+          "final_audible": false
+        }
+      ]
+    },
+    {
+      "image": "APP_LPM-10RX_PN1.4-roadmap.bin",
+      "version": 4,
+      "sha256": "f2faee8220231ff6b4b80d9c916307c801d246ecaae438677d2929734442430c",
+      "version_string": "3.0.0\u0000",
+      "cases": [
+        {
+          "grade": 30,
+          "pulse_units": [
+            29.8
+          ],
+          "quiet_units": [
+            29.2
+          ],
+          "pulse_count": 14,
+          "last_off_units": 797.0,
+          "final_audible": false
+        },
+        {
+          "grade": 50,
+          "pulse_units": [
+            49.8
+          ],
+          "quiet_units": [
+            49.2
+          ],
+          "pulse_count": 9,
+          "last_off_units": 842.0,
+          "final_audible": false
+        },
+        {
+          "grade": 100,
+          "pulse_units": [
+            49.8
+          ],
+          "quiet_units": [
+            99.2
+          ],
+          "pulse_count": 6,
+          "last_off_units": 795.0,
+          "final_audible": false
+        }
+      ]
+    },
+    {
+      "image": "APP_LPM-10RX_PN1.5-audit.bin",
+      "version": 5,
+      "sha256": "6874d65549e3c67b3ad1020495effc93645e325e104eaa7697737a44c11fb0cd",
+      "version_string": "3.0.0\u0000",
+      "cases": [
+        {
+          "grade": 30,
+          "pulse_units": [
+            29.8
+          ],
+          "quiet_units": [
+            29.2
+          ],
+          "pulse_count": 14,
+          "last_off_units": 797.0,
+          "final_audible": false
+        },
+        {
+          "grade": 50,
+          "pulse_units": [
+            49.8
+          ],
+          "quiet_units": [
+            49.2
+          ],
+          "pulse_count": 9,
+          "last_off_units": 842.0,
+          "final_audible": false
+        },
+        {
+          "grade": 100,
+          "pulse_units": [
+            49.8
+          ],
+          "quiet_units": [
+            99.2
+          ],
+          "pulse_count": 6,
+          "last_off_units": 795.0,
+          "final_audible": false
+        }
+      ]
+    },
+    {
+      "image": "APP_LPM-10RX_PN1.6-followup.bin",
+      "version": 6,
+      "sha256": "159bd15f50e3329fd866bdd7e1ebdac2900569dbd2686e2956d82585280457dc",
+      "version_string": "3.0.0\u0000",
+      "cases": [
+        {
+          "grade": 30,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            29.0
+          ],
+          "pulse_count": 14,
+          "last_off_units": 797.0,
+          "final_audible": false
+        },
+        {
+          "grade": 50,
+          "pulse_units": [
+            50.0
+          ],
+          "quiet_units": [
+            49.0
+          ],
+          "pulse_count": 9,
+          "last_off_units": 842.0,
+          "final_audible": false
+        },
+        {
+          "grade": 100,
+          "pulse_units": [
+            50.0
+          ],
+          "quiet_units": [
+            99.0
+          ],
+          "pulse_count": 6,
+          "last_off_units": 795.0,
+          "final_audible": false
+        }
+      ]
+    },
+    {
+      "image": "APP_LPM-10RX_PN1.7-precision.bin",
+      "version": 7,
+      "sha256": "5ccd7990043507911aeb357d83b0bc6fd054208ff6d253b7feea718e963d38e6",
+      "version_string": "3.0.0\u0000",
+      "cases": [
+        {
+          "grade": 1,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            159.0
+          ],
+          "pulse_count": 2,
+          "last_off_units": 219.0,
+          "final_audible": false
+        },
+        {
+          "grade": 3,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            74.0
+          ],
+          "pulse_count": 3,
+          "last_off_units": 238.0,
+          "final_audible": false
+        },
+        {
+          "grade": 5,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            19.0
+          ],
+          "pulse_count": 7,
+          "last_off_units": 324.0,
+          "final_audible": false
+        }
+      ]
+    },
+    {
+      "image": "APP_LPM-10RX_PN1.8-pinpoint.bin",
+      "version": 8,
+      "sha256": "a588af8e0883fca119b9ed00e30761502ec0c4e0d2b6fee16a67c8b7cacc615d",
+      "version_string": "3.0.0\u0000",
+      "cases": [
+        {
+          "grade": 20,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            19.0
+          ],
+          "pulse_count": 7,
+          "last_off_units": 324.0,
+          "final_audible": false
+        },
+        {
+          "grade": 50,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            49.0
+          ],
+          "pulse_count": 4,
+          "last_off_units": 267.0,
+          "final_audible": false
+        },
+        {
+          "grade": 160,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            159.0
+          ],
+          "pulse_count": 2,
+          "last_off_units": 219.0,
+          "final_audible": false
+        }
+      ]
+    },
+    {
+      "image": "APP_LPM-10RX_PN1.9-robust.bin",
+      "version": 9,
+      "sha256": "6128e0a4a0261f3da51bea232c8e431474033f0a09fd24283faa0a743b67fe3e",
+      "version_string": "3.0.0\u0000",
+      "cases": [
+        {
+          "grade": 1,
+          "pulse_units": [
+            100.0
+          ],
+          "quiet_units": [
+            159.0
+          ],
+          "pulse_count": 2,
+          "last_off_units": 359.0,
+          "final_audible": false
+        },
+        {
+          "grade": 20,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            19.0
+          ],
+          "pulse_count": 7,
+          "last_off_units": 324.0,
+          "final_audible": false
+        },
+        {
+          "grade": 50,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            49.0
+          ],
+          "pulse_count": 4,
+          "last_off_units": 267.0,
+          "final_audible": false
+        },
+        {
+          "grade": 160,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            159.0
+          ],
+          "pulse_count": 2,
+          "last_off_units": 219.0,
+          "final_audible": false
+        }
+      ]
+    },
+    {
+      "image": "APP_LPM-10RX_PN1.10-sync.bin",
+      "version": 10,
+      "sha256": "6570f521054d77ee97c1a0e37e5a9da0a975d41d452e5f14e63aadb68a9f6e21",
+      "version_string": "3.0.0\u0000",
+      "cases": [
+        {
+          "grade": 1,
+          "pulse_units": [
+            100.0
+          ],
+          "quiet_units": [
+            159.0
+          ],
+          "pulse_count": 2,
+          "last_off_units": 359.0,
+          "final_audible": false
+        },
+        {
+          "grade": 20,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            19.0
+          ],
+          "pulse_count": 7,
+          "last_off_units": 324.0,
+          "final_audible": false
+        },
+        {
+          "grade": 50,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            49.0
+          ],
+          "pulse_count": 4,
+          "last_off_units": 267.0,
+          "final_audible": false
+        },
+        {
+          "grade": 160,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            159.0
+          ],
+          "pulse_count": 2,
+          "last_off_units": 219.0,
+          "final_audible": false
+        }
+      ]
+    },
+    {
+      "image": "APP_LPM-10RX_PN1.11-tracking.bin",
+      "version": 11,
+      "sha256": "3e39ae56832cf92881ffdc46564e293278d6c3f1b55a9832b7a9a8350f031828",
+      "version_string": "3.0.0\u0000",
+      "cases": [
+        {
+          "grade": 1,
+          "pulse_units": [
+            100.0
+          ],
+          "quiet_units": [
+            159.0
+          ],
+          "pulse_count": 2,
+          "last_off_units": 359.0,
+          "final_audible": false
+        },
+        {
+          "grade": 20,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            19.0
+          ],
+          "pulse_count": 7,
+          "last_off_units": 324.0,
+          "final_audible": false
+        },
+        {
+          "grade": 50,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            49.0
+          ],
+          "pulse_count": 4,
+          "last_off_units": 267.0,
+          "final_audible": false
+        },
+        {
+          "grade": 160,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            159.0
+          ],
+          "pulse_count": 2,
+          "last_off_units": 219.0,
+          "final_audible": false
+        }
+      ]
+    },
+    {
+      "image": "APP_LPM-10RX_PN1.12-overload.bin",
+      "version": 12,
+      "sha256": "4ea18c52bde25353a9a38dbf46775425860f7859bc2c10e3c908a7bff4044403",
+      "version_string": "3.0.0\u0000",
+      "cases": [
+        {
+          "grade": 1,
+          "pulse_units": [
+            100.0
+          ],
+          "quiet_units": [
+            159.0
+          ],
+          "pulse_count": 2,
+          "last_off_units": 359.0,
+          "final_audible": false
+        },
+        {
+          "grade": 20,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            19.0
+          ],
+          "pulse_count": 7,
+          "last_off_units": 324.0,
+          "final_audible": false
+        },
+        {
+          "grade": 50,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            49.0
+          ],
+          "pulse_count": 4,
+          "last_off_units": 267.0,
+          "final_audible": false
+        },
+        {
+          "grade": 160,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            159.0
+          ],
+          "pulse_count": 2,
+          "last_off_units": 219.0,
+          "final_audible": false
+        }
+      ]
+    },
+    {
+      "image": "APP_LPM-10RX_PN1.13-audio-clock.bin",
+      "version": 13,
+      "sha256": "2cafd8a234a9b372a4d09c4969b28c8c35a45f05b72c57d2248d39f22cf7373b",
+      "version_string": "3.0.0\u0000",
+      "cases": [
+        {
+          "grade": 1,
+          "pulse_units": [
+            100.0
+          ],
+          "quiet_units": [
+            159.0
+          ],
+          "pulse_count": 2,
+          "last_off_units": 359.0,
+          "final_audible": false
+        },
+        {
+          "grade": 20,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            19.0
+          ],
+          "pulse_count": 7,
+          "last_off_units": 324.0,
+          "final_audible": false
+        },
+        {
+          "grade": 50,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            49.0
+          ],
+          "pulse_count": 4,
+          "last_off_units": 267.0,
+          "final_audible": false
+        },
+        {
+          "grade": 160,
+          "pulse_units": [
+            30.0
+          ],
+          "quiet_units": [
+            159.0
+          ],
+          "pulse_count": 2,
+          "last_off_units": 219.0,
+          "final_audible": false
+        }
+      ]
+    }
+  ]
+}

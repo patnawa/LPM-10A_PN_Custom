@@ -1,0 +1,8 @@
+{
+  "recorded_at": "2026-09-20T22:45:47.734682+07:00",
+  "owner_response": "RX เปิดและทำงานได้ปกติ",
+  "context": "After all SWD and full UDISK read-only scans; owner disconnected RX USB and SWD and powered normally from battery",
+  "flash_or_option_writes_in_swd_investigation": false,
+  "new_firmware_copies_in_swd_investigation": false,
+  "explicit_target_halt_or_reset_commands": false
+}

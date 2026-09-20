@@ -1,0 +1,1767 @@
+{
+  "scope": "Read-only static comparison of local application binaries with previously captured live SRAM. No target commands or firmware mutation. Runtime addresses verified in rx_swd_runtime_capture.py.",
+  "capture": {
+    "path": "C:\\Users\\Alpha\\Desktop\\LPM-10RX-SWD-2026-09-20\\digital-pause-20260920-221932.jsonl",
+    "sha256": "b925f22b2a3d0c368e97c2296b763bb66329ec478ac04383d66ea9bd5ad686b3",
+    "rows": 2348,
+    "duration_s": 40.00655840000036,
+    "state_start": "0x20000048",
+    "state_length_bytes": 40,
+    "tail_start": "0x200000EC",
+    "tail_length_bytes": 16,
+    "statistics": {
+      "byte_0x20000048": {
+        "min": 0,
+        "max": 0,
+        "distinct": 1,
+        "histogram": {
+          "0": 2348
+        }
+      },
+      "byte_0x20000049": {
+        "min": 0,
+        "max": 0,
+        "distinct": 1,
+        "histogram": {
+          "0": 2348
+        }
+      },
+      "byte_0x20000058": {
+        "min": 0,
+        "max": 0,
+        "distinct": 1,
+        "histogram": {
+          "0": 2348
+        }
+      },
+      "byte_0x20000059": {
+        "min": 0,
+        "max": 0,
+        "distinct": 1,
+        "histogram": {
+          "0": 2348
+        }
+      },
+      "byte_0x2000005A": {
+        "min": 0,
+        "max": 0,
+        "distinct": 1,
+        "histogram": {
+          "0": 2348
+        }
+      },
+      "byte_0x2000005B": {
+        "min": 0,
+        "max": 0,
+        "distinct": 1,
+        "histogram": {
+          "0": 2348
+        }
+      },
+      "byte_0x2000005C": {
+        "min": 0,
+        "max": 50,
+        "distinct": 51,
+        "histogram": {
+          "0": 533,
+          "1": 10,
+          "2": 15,
+          "3": 16,
+          "4": 15,
+          "5": 10,
+          "6": 11,
+          "7": 15,
+          "8": 21,
+          "9": 15,
+          "10": 11,
+          "11": 17,
+          "12": 23,
+          "13": 17,
+          "14": 16,
+          "15": 16,
+          "16": 18,
+          "17": 12,
+          "18": 10,
+          "19": 17,
+          "20": 15,
+          "21": 17,
+          "22": 10,
+          "23": 11,
+          "24": 14,
+          "25": 19,
+          "26": 16,
+          "27": 12,
+          "28": 18,
+          "29": 18,
+          "30": 21,
+          "31": 12,
+          "32": 19,
+          "33": 17,
+          "34": 14,
+          "35": 9,
+          "36": 13,
+          "37": 20,
+          "38": 13,
+          "39": 13,
+          "40": 11,
+          "41": 11,
+          "42": 22,
+          "43": 18,
+          "44": 11,
+          "45": 11,
+          "46": 25,
+          "47": 20,
+          "48": 10,
+          "49": 17,
+          "50": 1073
+        }
+      },
+      "byte_0x2000005D": {
+        "min": 0,
+        "max": 47,
+        "distinct": 48,
+        "histogram": {
+          "0": 38,
+          "1": 67,
+          "2": 42,
+          "3": 48,
+          "4": 49,
+          "5": 55,
+          "6": 40,
+          "7": 42,
+          "8": 69,
+          "9": 41,
+          "10": 42,
+          "11": 53,
+          "12": 51,
+          "13": 47,
+          "14": 39,
+          "15": 73,
+          "16": 35,
+          "17": 39,
+          "18": 60,
+          "19": 49,
+          "20": 51,
+          "21": 40,
+          "22": 65,
+          "23": 37,
+          "24": 40,
+          "25": 63,
+          "26": 48,
+          "27": 47,
+          "28": 50,
+          "29": 53,
+          "30": 42,
+          "31": 40,
+          "32": 68,
+          "33": 42,
+          "34": 43,
+          "35": 55,
+          "36": 51,
+          "37": 44,
+          "38": 48,
+          "39": 60,
+          "40": 39,
+          "41": 41,
+          "42": 59,
+          "43": 47,
+          "44": 51,
+          "45": 41,
+          "46": 64,
+          "47": 40
+        }
+      },
+      "byte_0x2000005E": {
+        "min": 0,
+        "max": 0,
+        "distinct": 1,
+        "histogram": {
+          "0": 2348
+        }
+      },
+      "byte_0x2000005F": {
+        "min": 0,
+        "max": 0,
+        "distinct": 1,
+        "histogram": {
+          "0": 2348
+        }
+      },
+      "halfword_0x20000060": {
+        "min": 2486,
+        "max": 2602,
+        "distinct": 26,
+        "histogram": {
+          "2486": 29,
+          "2573": 29,
+          "2577": 29,
+          "2578": 58,
+          "2579": 59,
+          "2581": 29,
+          "2582": 87,
+          "2583": 117,
+          "2584": 87,
+          "2585": 117,
+          "2586": 58,
+          "2587": 88,
+          "2588": 174,
+          "2589": 29,
+          "2590": 29,
+          "2591": 58,
+          "2592": 146,
+          "2593": 203,
+          "2594": 217,
+          "2595": 350,
+          "2596": 59,
+          "2597": 34,
+          "2598": 58,
+          "2600": 59,
+          "2601": 58,
+          "2602": 87
+        }
+      },
+      "halfword_0x20000062": {
+        "min": 1293,
+        "max": 1297,
+        "distinct": 5,
+        "histogram": {
+          "1293": 209,
+          "1294": 827,
+          "1295": 933,
+          "1296": 350,
+          "1297": 29
+        }
+      },
+      "halfword_0x20000064": {
+        "min": 1293,
+        "max": 1297,
+        "distinct": 5,
+        "histogram": {
+          "1293": 209,
+          "1294": 827,
+          "1295": 932,
+          "1296": 351,
+          "1297": 29
+        }
+      },
+      "halfword_0x20000066": {
+        "min": 1292,
+        "max": 1299,
+        "distinct": 6,
+        "histogram": {
+          "1292": 87,
+          "1293": 116,
+          "1294": 931,
+          "1295": 923,
+          "1296": 262,
+          "1299": 29
+        }
+      },
+      "halfword_0x20000068": {
+        "min": 1292,
+        "max": 1299,
+        "distinct": 6,
+        "histogram": {
+          "1292": 87,
+          "1293": 116,
+          "1294": 931,
+          "1295": 923,
+          "1296": 262,
+          "1299": 29
+        }
+      },
+      "halfword_0x2000006A": {
+        "min": 1293,
+        "max": 1297,
+        "distinct": 5,
+        "histogram": {
+          "1293": 203,
+          "1294": 1182,
+          "1295": 876,
+          "1296": 58,
+          "1297": 29
+        }
+      },
+      "halfword_0x2000006C": {
+        "min": 2,
+        "max": 2,
+        "distinct": 1,
+        "histogram": {
+          "2": 2348
+        }
+      },
+      "halfword_0x2000006E": {
+        "min": 0,
+        "max": 800,
+        "distinct": 275,
+        "histogram": {
+          "0": 538,
+          "2": 1,
+          "19": 1,
+          "37": 1,
+          "54": 1,
+          "71": 1,
+          "88": 1,
+          "105": 1,
+          "122": 1,
+          "139": 1,
+          "156": 1,
+          "173": 1,
+          "190": 1,
+          "207": 1,
+          "225": 1,
+          "242": 1,
+          "259": 1,
+          "275": 1,
+          "292": 1,
+          "309": 1,
+          "327": 1,
+          "344": 1,
+          "361": 1,
+          "378": 1,
+          "395": 1,
+          "413": 1,
+          "430": 1,
+          "447": 1,
+          "464": 1,
+          "481": 1,
+          "499": 1,
+          "515": 1,
+          "533": 1,
+          "550": 1,
+          "560": 9,
+          "561": 8,
+          "562": 4,
+          "563": 4,
+          "564": 8,
+          "565": 8,
+          "566": 7,
+          "567": 4,
+          "568": 8,
+          "569": 9,
+          "570": 8,
+          "571": 1,
+          "572": 5,
+          "573": 14,
+          "574": 9,
+          "575": 6,
+          "576": 8,
+          "577": 12,
+          "578": 10,
+          "579": 5,
+          "580": 4,
+          "581": 10,
+          "582": 4,
+          "583": 9,
+          "584": 5,
+          "585": 8,
+          "586": 6,
+          "587": 8,
+          "588": 4,
+          "589": 3,
+          "590": 13,
+          "591": 10,
+          "592": 8,
+          "593": 8,
+          "594": 10,
+          "595": 12,
+          "596": 4,
+          "597": 6,
+          "598": 7,
+          "599": 7,
+          "600": 6,
+          "601": 7,
+          "602": 6,
+          "603": 8,
+          "604": 7,
+          "605": 5,
+          "606": 3,
+          "607": 12,
+          "608": 10,
+          "609": 7,
+          "610": 10,
+          "611": 8,
+          "612": 11,
+          "613": 6,
+          "614": 6,
+          "615": 6,
+          "616": 8,
+          "617": 7,
+          "618": 4,
+          "619": 7,
+          "620": 9,
+          "621": 6,
+          "622": 7,
+          "623": 3,
+          "624": 8,
+          "625": 15,
+          "626": 5,
+          "627": 9,
+          "628": 8,
+          "629": 10,
+          "630": 8,
+          "631": 4,
+          "632": 9,
+          "633": 7,
+          "634": 5,
+          "635": 6,
+          "636": 6,
+          "637": 8,
+          "638": 6,
+          "639": 9,
+          "640": 3,
+          "641": 9,
+          "642": 10,
+          "643": 10,
+          "644": 8,
+          "645": 7,
+          "646": 11,
+          "647": 9,
+          "648": 3,
+          "649": 6,
+          "650": 11,
+          "651": 5,
+          "652": 6,
+          "653": 5,
+          "654": 9,
+          "655": 6,
+          "656": 7,
+          "657": 5,
+          "658": 5,
+          "659": 13,
+          "660": 10,
+          "661": 9,
+          "662": 5,
+          "663": 11,
+          "664": 11,
+          "665": 2,
+          "666": 5,
+          "667": 12,
+          "668": 6,
+          "669": 6,
+          "670": 5,
+          "671": 8,
+          "672": 7,
+          "673": 7,
+          "674": 4,
+          "675": 4,
+          "676": 10,
+          "677": 13,
+          "678": 8,
+          "679": 7,
+          "680": 11,
+          "681": 8,
+          "682": 5,
+          "683": 7,
+          "684": 11,
+          "685": 4,
+          "686": 7,
+          "687": 5,
+          "688": 7,
+          "689": 7,
+          "690": 8,
+          "691": 4,
+          "692": 5,
+          "693": 9,
+          "694": 11,
+          "695": 9,
+          "696": 9,
+          "697": 11,
+          "698": 7,
+          "699": 6,
+          "700": 3,
+          "701": 13,
+          "702": 6,
+          "703": 7,
+          "704": 2,
+          "705": 8,
+          "706": 9,
+          "707": 7,
+          "708": 5,
+          "709": 4,
+          "710": 8,
+          "711": 13,
+          "712": 6,
+          "713": 11,
+          "714": 10,
+          "715": 8,
+          "716": 7,
+          "717": 3,
+          "718": 11,
+          "719": 7,
+          "720": 8,
+          "721": 2,
+          "722": 8,
+          "723": 7,
+          "724": 6,
+          "725": 7,
+          "726": 3,
+          "727": 9,
+          "728": 12,
+          "729": 7,
+          "730": 10,
+          "731": 11,
+          "732": 8,
+          "733": 8,
+          "734": 2,
+          "735": 8,
+          "736": 10,
+          "737": 7,
+          "738": 3,
+          "739": 8,
+          "740": 6,
+          "741": 8,
+          "742": 7,
+          "743": 2,
+          "744": 8,
+          "745": 14,
+          "746": 8,
+          "747": 6,
+          "748": 10,
+          "749": 11,
+          "750": 7,
+          "751": 3,
+          "752": 8,
+          "753": 8,
+          "754": 9,
+          "755": 4,
+          "756": 6,
+          "757": 5,
+          "758": 10,
+          "759": 8,
+          "760": 2,
+          "761": 6,
+          "762": 14,
+          "763": 7,
+          "764": 7,
+          "765": 12,
+          "766": 11,
+          "767": 5,
+          "768": 5,
+          "769": 6,
+          "770": 10,
+          "771": 10,
+          "772": 2,
+          "773": 4,
+          "774": 8,
+          "775": 9,
+          "776": 7,
+          "777": 3,
+          "778": 5,
+          "779": 12,
+          "780": 10,
+          "781": 7,
+          "782": 9,
+          "783": 13,
+          "784": 9,
+          "785": 4,
+          "786": 4,
+          "787": 7,
+          "788": 14,
+          "789": 2,
+          "790": 4,
+          "791": 7,
+          "792": 9,
+          "793": 6,
+          "794": 5,
+          "795": 4,
+          "796": 11,
+          "797": 11,
+          "798": 7,
+          "799": 10,
+          "800": 5
+        }
+      },
+      "byte_0x200000EC": {
+        "min": 0,
+        "max": 0,
+        "distinct": 1,
+        "histogram": {
+          "0": 2348
+        }
+      },
+      "byte_0x200000ED": {
+        "min": 0,
+        "max": 0,
+        "distinct": 1,
+        "histogram": {
+          "0": 2348
+        }
+      },
+      "byte_0x200000EE": {
+        "min": 0,
+        "max": 0,
+        "distinct": 1,
+        "histogram": {
+          "0": 2348
+        }
+      },
+      "byte_0x200000EF": {
+        "min": 0,
+        "max": 0,
+        "distinct": 1,
+        "histogram": {
+          "0": 2348
+        }
+      },
+      "byte_0x200000F0": {
+        "min": 0,
+        "max": 10,
+        "distinct": 11,
+        "histogram": {
+          "0": 2,
+          "1": 242,
+          "2": 232,
+          "3": 231,
+          "4": 226,
+          "5": 231,
+          "6": 265,
+          "7": 235,
+          "8": 216,
+          "9": 242,
+          "10": 226
+        }
+      },
+      "byte_0x200000F1": {
+        "min": 0,
+        "max": 0,
+        "distinct": 1,
+        "histogram": {
+          "0": 2348
+        }
+      }
+    }
+  },
+  "profile_count": 16,
+  "profiles": [
+    {
+      "path": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_FNIRSI_originals\\APP_LPM-10RX_V3.0.0_260416.bin",
+      "bytes": 26152,
+      "sha256": "083f3825e8f8a38627417e26732e88fd13ee0dbe3c13ca1cd1cd9c4875c7c8c5",
+      "sampler_matches_official_stock": true,
+      "sampler_sites": {
+        "digital_substep": {
+          "address": "0x0800760e",
+          "bytes": "40f2ee00c2f20000",
+          "instructions": [
+            "0x0800760e: movw r0, #0xee",
+            "0x08007612: movt r0, #0x2000"
+          ]
+        },
+        "digital_subbuffer": {
+          "address": "0x08007668",
+          "bytes": "40f2f000c2f20000",
+          "instructions": [
+            "0x08007668: movw r0, #0xf0",
+            "0x0800766c: movt r0, #0x2000"
+          ]
+        },
+        "digital_sample_index": {
+          "address": "0x08007676",
+          "bytes": "40f25b01c2f20001",
+          "instructions": [
+            "0x08007676: movw r1, #0x5b",
+            "0x0800767a: movt r1, #0x2000"
+          ]
+        },
+        "digital_sample_buffer": {
+          "address": "0x08007680",
+          "bytes": "40f26e03c2f20003",
+          "instructions": [
+            "0x08007680: movw r3, #0x6e",
+            "0x08007684: movt r3, #0x2000"
+          ]
+        }
+      },
+      "scheduler_group": "stock-style MOVW pointers",
+      "scheduler_bytes": "80b540f20c10c2f200000078fff7eafe40f26c00c2f200000088012815dbffe740f25a00c2f20000007868b9ffe740f20c10c2f2000032210170007840f25a01c2f200010870ffe7ffe780bd",
+      "scheduler_disassembly": [
+        "0x08007724: push {r7, lr}",
+        "0x08007726: movw r0, #0x10c",
+        "0x0800772a: movt r0, #0x2000",
+        "0x0800772e: ldrb r0, [r0]",
+        "0x08007730: bl #0x8007508",
+        "0x08007734: movw r0, #0x6c",
+        "0x08007738: movt r0, #0x2000",
+        "0x0800773c: ldrh r0, [r0]",
+        "0x0800773e: cmp r0, #1",
+        "0x08007740: blt #0x800776e",
+        "0x08007742: b #0x8007744",
+        "0x08007744: movw r0, #0x5a",
+        "0x08007748: movt r0, #0x2000",
+        "0x0800774c: ldrb r0, [r0]",
+        "0x0800774e: cbnz r0, #0x800776c",
+        "0x08007750: b #0x8007752",
+        "0x08007752: movw r0, #0x10c",
+        "0x08007756: movt r0, #0x2000",
+        "0x0800775a: movs r1, #0x32",
+        "0x0800775c: strb r1, [r0]",
+        "0x0800775e: ldrb r0, [r0]",
+        "0x08007760: movw r1, #0x5a",
+        "0x08007764: movt r1, #0x2000",
+        "0x08007768: strb r0, [r1]",
+        "0x0800776a: b #0x800776c",
+        "0x0800776c: b #0x800776e",
+        "0x0800776e: pop {r7, pc}"
+      ],
+      "scheduler_disassembly_note": "Literal pool and padding excluded; scheduler_bytes retains the complete 0x08007724..0x0800776F region."
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\APP_LPM-10RX_PN1.0.bin",
+      "bytes": 26152,
+      "sha256": "419c52a04a0e9a840b405669fc51aa785659e41bda3296caac62f37ebc7d1244",
+      "sampler_matches_official_stock": true,
+      "sampler_sites": {
+        "digital_substep": {
+          "address": "0x0800760e",
+          "bytes": "40f2ee00c2f20000",
+          "instructions": [
+            "0x0800760e: movw r0, #0xee",
+            "0x08007612: movt r0, #0x2000"
+          ]
+        },
+        "digital_subbuffer": {
+          "address": "0x08007668",
+          "bytes": "40f2f000c2f20000",
+          "instructions": [
+            "0x08007668: movw r0, #0xf0",
+            "0x0800766c: movt r0, #0x2000"
+          ]
+        },
+        "digital_sample_index": {
+          "address": "0x08007676",
+          "bytes": "40f25b01c2f20001",
+          "instructions": [
+            "0x08007676: movw r1, #0x5b",
+            "0x0800767a: movt r1, #0x2000"
+          ]
+        },
+        "digital_sample_buffer": {
+          "address": "0x08007680",
+          "bytes": "40f26e03c2f20003",
+          "instructions": [
+            "0x08007680: movw r3, #0x6e",
+            "0x08007684: movt r3, #0x2000"
+          ]
+        }
+      },
+      "scheduler_group": "stock-style MOVW pointers",
+      "scheduler_bytes": "80b540f20c10c2f200000078fff7eafe40f26c00c2f200000088012815dbffe740f25a00c2f20000007868b9ffe740f20c10c2f2000032210170007840f25a01c2f200010870ffe7ffe780bd",
+      "scheduler_disassembly": [
+        "0x08007724: push {r7, lr}",
+        "0x08007726: movw r0, #0x10c",
+        "0x0800772a: movt r0, #0x2000",
+        "0x0800772e: ldrb r0, [r0]",
+        "0x08007730: bl #0x8007508",
+        "0x08007734: movw r0, #0x6c",
+        "0x08007738: movt r0, #0x2000",
+        "0x0800773c: ldrh r0, [r0]",
+        "0x0800773e: cmp r0, #1",
+        "0x08007740: blt #0x800776e",
+        "0x08007742: b #0x8007744",
+        "0x08007744: movw r0, #0x5a",
+        "0x08007748: movt r0, #0x2000",
+        "0x0800774c: ldrb r0, [r0]",
+        "0x0800774e: cbnz r0, #0x800776c",
+        "0x08007750: b #0x8007752",
+        "0x08007752: movw r0, #0x10c",
+        "0x08007756: movt r0, #0x2000",
+        "0x0800775a: movs r1, #0x32",
+        "0x0800775c: strb r1, [r0]",
+        "0x0800775e: ldrb r0, [r0]",
+        "0x08007760: movw r1, #0x5a",
+        "0x08007764: movt r1, #0x2000",
+        "0x08007768: strb r0, [r1]",
+        "0x0800776a: b #0x800776c",
+        "0x0800776c: b #0x800776e",
+        "0x0800776e: pop {r7, pc}"
+      ],
+      "scheduler_disassembly_note": "Literal pool and padding excluded; scheduler_bytes retains the complete 0x08007724..0x0800776F region."
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\APP_LPM-10RX_PN1.1-digital-experimental.bin",
+      "bytes": 26152,
+      "sha256": "70c72436c30d91df52b6bc2935cde1f2077989b7b16c7223ddff829eb774d56f",
+      "sampler_matches_official_stock": true,
+      "sampler_sites": {
+        "digital_substep": {
+          "address": "0x0800760e",
+          "bytes": "40f2ee00c2f20000",
+          "instructions": [
+            "0x0800760e: movw r0, #0xee",
+            "0x08007612: movt r0, #0x2000"
+          ]
+        },
+        "digital_subbuffer": {
+          "address": "0x08007668",
+          "bytes": "40f2f000c2f20000",
+          "instructions": [
+            "0x08007668: movw r0, #0xf0",
+            "0x0800766c: movt r0, #0x2000"
+          ]
+        },
+        "digital_sample_index": {
+          "address": "0x08007676",
+          "bytes": "40f25b01c2f20001",
+          "instructions": [
+            "0x08007676: movw r1, #0x5b",
+            "0x0800767a: movt r1, #0x2000"
+          ]
+        },
+        "digital_sample_buffer": {
+          "address": "0x08007680",
+          "bytes": "40f26e03c2f20003",
+          "instructions": [
+            "0x08007680: movw r3, #0x6e",
+            "0x08007684: movt r3, #0x2000"
+          ]
+        }
+      },
+      "scheduler_group": "stock-style MOVW pointers",
+      "scheduler_bytes": "80b540f20c10c2f200000078fff7eafe40f26c00c2f200000088012815dbffe740f25a00c2f20000007868b9ffe740f20c10c2f2000032210170007840f25a01c2f200010870ffe7ffe780bd",
+      "scheduler_disassembly": [
+        "0x08007724: push {r7, lr}",
+        "0x08007726: movw r0, #0x10c",
+        "0x0800772a: movt r0, #0x2000",
+        "0x0800772e: ldrb r0, [r0]",
+        "0x08007730: bl #0x8007508",
+        "0x08007734: movw r0, #0x6c",
+        "0x08007738: movt r0, #0x2000",
+        "0x0800773c: ldrh r0, [r0]",
+        "0x0800773e: cmp r0, #1",
+        "0x08007740: blt #0x800776e",
+        "0x08007742: b #0x8007744",
+        "0x08007744: movw r0, #0x5a",
+        "0x08007748: movt r0, #0x2000",
+        "0x0800774c: ldrb r0, [r0]",
+        "0x0800774e: cbnz r0, #0x800776c",
+        "0x08007750: b #0x8007752",
+        "0x08007752: movw r0, #0x10c",
+        "0x08007756: movt r0, #0x2000",
+        "0x0800775a: movs r1, #0x32",
+        "0x0800775c: strb r1, [r0]",
+        "0x0800775e: ldrb r0, [r0]",
+        "0x08007760: movw r1, #0x5a",
+        "0x08007764: movt r1, #0x2000",
+        "0x08007768: strb r0, [r1]",
+        "0x0800776a: b #0x800776c",
+        "0x0800776c: b #0x800776e",
+        "0x0800776e: pop {r7, pc}"
+      ],
+      "scheduler_disassembly_note": "Literal pool and padding excluded; scheduler_bytes retains the complete 0x08007724..0x0800776F region."
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\APP_LPM-10RX_PN1.2-reliability-experimental.bin",
+      "bytes": 26152,
+      "sha256": "8176a40988eea3319c5c46dd65b0c97dce16c420b2e7fcbb3ddb05b28feef879",
+      "sampler_matches_official_stock": true,
+      "sampler_sites": {
+        "digital_substep": {
+          "address": "0x0800760e",
+          "bytes": "40f2ee00c2f20000",
+          "instructions": [
+            "0x0800760e: movw r0, #0xee",
+            "0x08007612: movt r0, #0x2000"
+          ]
+        },
+        "digital_subbuffer": {
+          "address": "0x08007668",
+          "bytes": "40f2f000c2f20000",
+          "instructions": [
+            "0x08007668: movw r0, #0xf0",
+            "0x0800766c: movt r0, #0x2000"
+          ]
+        },
+        "digital_sample_index": {
+          "address": "0x08007676",
+          "bytes": "40f25b01c2f20001",
+          "instructions": [
+            "0x08007676: movw r1, #0x5b",
+            "0x0800767a: movt r1, #0x2000"
+          ]
+        },
+        "digital_sample_buffer": {
+          "address": "0x08007680",
+          "bytes": "40f26e03c2f20003",
+          "instructions": [
+            "0x08007680: movw r3, #0x6e",
+            "0x08007684: movt r3, #0x2000"
+          ]
+        }
+      },
+      "scheduler_group": "stock-style MOVW pointers",
+      "scheduler_bytes": "80b540f20c10c2f200000078fff7eafe40f26c00c2f200000088012815dbffe740f25a00c2f20000007868b9ffe740f20c10c2f2000032210170007840f25a01c2f200010870ffe7ffe780bd",
+      "scheduler_disassembly": [
+        "0x08007724: push {r7, lr}",
+        "0x08007726: movw r0, #0x10c",
+        "0x0800772a: movt r0, #0x2000",
+        "0x0800772e: ldrb r0, [r0]",
+        "0x08007730: bl #0x8007508",
+        "0x08007734: movw r0, #0x6c",
+        "0x08007738: movt r0, #0x2000",
+        "0x0800773c: ldrh r0, [r0]",
+        "0x0800773e: cmp r0, #1",
+        "0x08007740: blt #0x800776e",
+        "0x08007742: b #0x8007744",
+        "0x08007744: movw r0, #0x5a",
+        "0x08007748: movt r0, #0x2000",
+        "0x0800774c: ldrb r0, [r0]",
+        "0x0800774e: cbnz r0, #0x800776c",
+        "0x08007750: b #0x8007752",
+        "0x08007752: movw r0, #0x10c",
+        "0x08007756: movt r0, #0x2000",
+        "0x0800775a: movs r1, #0x32",
+        "0x0800775c: strb r1, [r0]",
+        "0x0800775e: ldrb r0, [r0]",
+        "0x08007760: movw r1, #0x5a",
+        "0x08007764: movt r1, #0x2000",
+        "0x08007768: strb r0, [r1]",
+        "0x0800776a: b #0x800776c",
+        "0x0800776c: b #0x800776e",
+        "0x0800776e: pop {r7, pc}"
+      ],
+      "scheduler_disassembly_note": "Literal pool and padding excluded; scheduler_bytes retains the complete 0x08007724..0x0800776F region."
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\experimental\\APP_LPM-10RX_PN1.10-sync.bin",
+      "bytes": 26152,
+      "sha256": "6570f521054d77ee97c1a0e37e5a9da0a975d41d452e5f14e63aadb68a9f6e21",
+      "sampler_matches_official_stock": true,
+      "sampler_sites": {
+        "digital_substep": {
+          "address": "0x0800760e",
+          "bytes": "40f2ee00c2f20000",
+          "instructions": [
+            "0x0800760e: movw r0, #0xee",
+            "0x08007612: movt r0, #0x2000"
+          ]
+        },
+        "digital_subbuffer": {
+          "address": "0x08007668",
+          "bytes": "40f2f000c2f20000",
+          "instructions": [
+            "0x08007668: movw r0, #0xf0",
+            "0x0800766c: movt r0, #0x2000"
+          ]
+        },
+        "digital_sample_index": {
+          "address": "0x08007676",
+          "bytes": "40f25b01c2f20001",
+          "instructions": [
+            "0x08007676: movw r1, #0x5b",
+            "0x0800767a: movt r1, #0x2000"
+          ]
+        },
+        "digital_sample_buffer": {
+          "address": "0x08007680",
+          "bytes": "40f26e03c2f20003",
+          "instructions": [
+            "0x08007680: movw r3, #0x6e",
+            "0x08007684: movt r3, #0x2000"
+          ]
+        }
+      },
+      "scheduler_group": "PN1.7+ gate/freshness scheduler",
+      "scheduler_bytes": "eff3108372b60e4a107898b90d48417881b9a7300178a73802290bd1818c40f2f410814206d90848017819b9c17809b100f0cabf107883f31088fff7d3be00000c010020480000205a000020",
+      "scheduler_disassembly": [
+        "0x08007724: mrs r3, primask",
+        "0x08007728: cpsid i",
+        "0x0800772a: ldr r2, [pc, #0x38]",
+        "0x0800772c: ldrb r0, [r2]",
+        "0x0800772e: cbnz r0, #0x8007758",
+        "0x08007730: ldr r0, [pc, #0x34]",
+        "0x08007732: ldrb r1, [r0, #1]",
+        "0x08007734: cbnz r1, #0x8007758",
+        "0x08007736: adds r0, #0xa7",
+        "0x08007738: ldrb r1, [r0]",
+        "0x0800773a: subs r0, #0xa7",
+        "0x0800773c: cmp r1, #2",
+        "0x0800773e: bne #0x8007758",
+        "0x08007740: ldrh r1, [r0, #0x24]",
+        "0x08007742: movw r0, #0x1f4",
+        "0x08007746: cmp r1, r0",
+        "0x08007748: bls #0x8007758",
+        "0x0800774a: ldr r0, [pc, #0x20]",
+        "0x0800774c: ldrb r1, [r0]",
+        "0x0800774e: cbnz r1, #0x8007758",
+        "0x08007750: ldrb r1, [r0, #3]",
+        "0x08007752: cbz r1, #0x8007758",
+        "0x08007754: b.w #0x80086ec",
+        "0x08007758: ldrb r0, [r2]",
+        "0x0800775a: msr primask, r3",
+        "0x0800775e: b.w #0x8007508"
+      ],
+      "scheduler_disassembly_note": "Literal pool and padding excluded; scheduler_bytes retains the complete 0x08007724..0x0800776F region."
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\experimental\\APP_LPM-10RX_PN1.11-tracking.bin",
+      "bytes": 26152,
+      "sha256": "3e39ae56832cf92881ffdc46564e293278d6c3f1b55a9832b7a9a8350f031828",
+      "sampler_matches_official_stock": true,
+      "sampler_sites": {
+        "digital_substep": {
+          "address": "0x0800760e",
+          "bytes": "40f2ee00c2f20000",
+          "instructions": [
+            "0x0800760e: movw r0, #0xee",
+            "0x08007612: movt r0, #0x2000"
+          ]
+        },
+        "digital_subbuffer": {
+          "address": "0x08007668",
+          "bytes": "40f2f000c2f20000",
+          "instructions": [
+            "0x08007668: movw r0, #0xf0",
+            "0x0800766c: movt r0, #0x2000"
+          ]
+        },
+        "digital_sample_index": {
+          "address": "0x08007676",
+          "bytes": "40f25b01c2f20001",
+          "instructions": [
+            "0x08007676: movw r1, #0x5b",
+            "0x0800767a: movt r1, #0x2000"
+          ]
+        },
+        "digital_sample_buffer": {
+          "address": "0x08007680",
+          "bytes": "40f26e03c2f20003",
+          "instructions": [
+            "0x08007680: movw r3, #0x6e",
+            "0x08007684: movt r3, #0x2000"
+          ]
+        }
+      },
+      "scheduler_group": "PN1.7+ gate/freshness scheduler",
+      "scheduler_bytes": "eff3108372b60e4a107898b90d48417881b9a7300178a73802290bd1818c40f2f410814206d90848017819b9c17809b100f0cabf107883f31088fff7d3be00000c010020480000205a000020",
+      "scheduler_disassembly": [
+        "0x08007724: mrs r3, primask",
+        "0x08007728: cpsid i",
+        "0x0800772a: ldr r2, [pc, #0x38]",
+        "0x0800772c: ldrb r0, [r2]",
+        "0x0800772e: cbnz r0, #0x8007758",
+        "0x08007730: ldr r0, [pc, #0x34]",
+        "0x08007732: ldrb r1, [r0, #1]",
+        "0x08007734: cbnz r1, #0x8007758",
+        "0x08007736: adds r0, #0xa7",
+        "0x08007738: ldrb r1, [r0]",
+        "0x0800773a: subs r0, #0xa7",
+        "0x0800773c: cmp r1, #2",
+        "0x0800773e: bne #0x8007758",
+        "0x08007740: ldrh r1, [r0, #0x24]",
+        "0x08007742: movw r0, #0x1f4",
+        "0x08007746: cmp r1, r0",
+        "0x08007748: bls #0x8007758",
+        "0x0800774a: ldr r0, [pc, #0x20]",
+        "0x0800774c: ldrb r1, [r0]",
+        "0x0800774e: cbnz r1, #0x8007758",
+        "0x08007750: ldrb r1, [r0, #3]",
+        "0x08007752: cbz r1, #0x8007758",
+        "0x08007754: b.w #0x80086ec",
+        "0x08007758: ldrb r0, [r2]",
+        "0x0800775a: msr primask, r3",
+        "0x0800775e: b.w #0x8007508"
+      ],
+      "scheduler_disassembly_note": "Literal pool and padding excluded; scheduler_bytes retains the complete 0x08007724..0x0800776F region."
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\experimental\\APP_LPM-10RX_PN1.12-overload.bin",
+      "bytes": 26152,
+      "sha256": "4ea18c52bde25353a9a38dbf46775425860f7859bc2c10e3c908a7bff4044403",
+      "sampler_matches_official_stock": true,
+      "sampler_sites": {
+        "digital_substep": {
+          "address": "0x0800760e",
+          "bytes": "40f2ee00c2f20000",
+          "instructions": [
+            "0x0800760e: movw r0, #0xee",
+            "0x08007612: movt r0, #0x2000"
+          ]
+        },
+        "digital_subbuffer": {
+          "address": "0x08007668",
+          "bytes": "40f2f000c2f20000",
+          "instructions": [
+            "0x08007668: movw r0, #0xf0",
+            "0x0800766c: movt r0, #0x2000"
+          ]
+        },
+        "digital_sample_index": {
+          "address": "0x08007676",
+          "bytes": "40f25b01c2f20001",
+          "instructions": [
+            "0x08007676: movw r1, #0x5b",
+            "0x0800767a: movt r1, #0x2000"
+          ]
+        },
+        "digital_sample_buffer": {
+          "address": "0x08007680",
+          "bytes": "40f26e03c2f20003",
+          "instructions": [
+            "0x08007680: movw r3, #0x6e",
+            "0x08007684: movt r3, #0x2000"
+          ]
+        }
+      },
+      "scheduler_group": "PN1.7+ gate/freshness scheduler",
+      "scheduler_bytes": "eff3108372b60e4a107898b90d48417881b9a7300178a73802290bd1818c40f2f410814206d90848017819b9c17809b100f0cabf107883f31088fff7d3be00000c010020480000205a000020",
+      "scheduler_disassembly": [
+        "0x08007724: mrs r3, primask",
+        "0x08007728: cpsid i",
+        "0x0800772a: ldr r2, [pc, #0x38]",
+        "0x0800772c: ldrb r0, [r2]",
+        "0x0800772e: cbnz r0, #0x8007758",
+        "0x08007730: ldr r0, [pc, #0x34]",
+        "0x08007732: ldrb r1, [r0, #1]",
+        "0x08007734: cbnz r1, #0x8007758",
+        "0x08007736: adds r0, #0xa7",
+        "0x08007738: ldrb r1, [r0]",
+        "0x0800773a: subs r0, #0xa7",
+        "0x0800773c: cmp r1, #2",
+        "0x0800773e: bne #0x8007758",
+        "0x08007740: ldrh r1, [r0, #0x24]",
+        "0x08007742: movw r0, #0x1f4",
+        "0x08007746: cmp r1, r0",
+        "0x08007748: bls #0x8007758",
+        "0x0800774a: ldr r0, [pc, #0x20]",
+        "0x0800774c: ldrb r1, [r0]",
+        "0x0800774e: cbnz r1, #0x8007758",
+        "0x08007750: ldrb r1, [r0, #3]",
+        "0x08007752: cbz r1, #0x8007758",
+        "0x08007754: b.w #0x80086ec",
+        "0x08007758: ldrb r0, [r2]",
+        "0x0800775a: msr primask, r3",
+        "0x0800775e: b.w #0x8007508"
+      ],
+      "scheduler_disassembly_note": "Literal pool and padding excluded; scheduler_bytes retains the complete 0x08007724..0x0800776F region."
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\experimental\\APP_LPM-10RX_PN1.13-audio-clock.bin",
+      "bytes": 26152,
+      "sha256": "2cafd8a234a9b372a4d09c4969b28c8c35a45f05b72c57d2248d39f22cf7373b",
+      "sampler_matches_official_stock": true,
+      "sampler_sites": {
+        "digital_substep": {
+          "address": "0x0800760e",
+          "bytes": "40f2ee00c2f20000",
+          "instructions": [
+            "0x0800760e: movw r0, #0xee",
+            "0x08007612: movt r0, #0x2000"
+          ]
+        },
+        "digital_subbuffer": {
+          "address": "0x08007668",
+          "bytes": "40f2f000c2f20000",
+          "instructions": [
+            "0x08007668: movw r0, #0xf0",
+            "0x0800766c: movt r0, #0x2000"
+          ]
+        },
+        "digital_sample_index": {
+          "address": "0x08007676",
+          "bytes": "40f25b01c2f20001",
+          "instructions": [
+            "0x08007676: movw r1, #0x5b",
+            "0x0800767a: movt r1, #0x2000"
+          ]
+        },
+        "digital_sample_buffer": {
+          "address": "0x08007680",
+          "bytes": "40f26e03c2f20003",
+          "instructions": [
+            "0x08007680: movw r3, #0x6e",
+            "0x08007684: movt r3, #0x2000"
+          ]
+        }
+      },
+      "scheduler_group": "PN1.7+ gate/freshness scheduler",
+      "scheduler_bytes": "eff3108372b60e4a107898b90d48417881b9a7300178a73802290bd1818c40f2f410814206d90848017819b9c17809b100f0cabf107883f31088fff7d3be00000c010020480000205a000020",
+      "scheduler_disassembly": [
+        "0x08007724: mrs r3, primask",
+        "0x08007728: cpsid i",
+        "0x0800772a: ldr r2, [pc, #0x38]",
+        "0x0800772c: ldrb r0, [r2]",
+        "0x0800772e: cbnz r0, #0x8007758",
+        "0x08007730: ldr r0, [pc, #0x34]",
+        "0x08007732: ldrb r1, [r0, #1]",
+        "0x08007734: cbnz r1, #0x8007758",
+        "0x08007736: adds r0, #0xa7",
+        "0x08007738: ldrb r1, [r0]",
+        "0x0800773a: subs r0, #0xa7",
+        "0x0800773c: cmp r1, #2",
+        "0x0800773e: bne #0x8007758",
+        "0x08007740: ldrh r1, [r0, #0x24]",
+        "0x08007742: movw r0, #0x1f4",
+        "0x08007746: cmp r1, r0",
+        "0x08007748: bls #0x8007758",
+        "0x0800774a: ldr r0, [pc, #0x20]",
+        "0x0800774c: ldrb r1, [r0]",
+        "0x0800774e: cbnz r1, #0x8007758",
+        "0x08007750: ldrb r1, [r0, #3]",
+        "0x08007752: cbz r1, #0x8007758",
+        "0x08007754: b.w #0x80086ec",
+        "0x08007758: ldrb r0, [r2]",
+        "0x0800775a: msr primask, r3",
+        "0x0800775e: b.w #0x8007508"
+      ],
+      "scheduler_disassembly_note": "Literal pool and padding excluded; scheduler_bytes retains the complete 0x08007724..0x0800776F region."
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\experimental\\APP_LPM-10RX_PN1.13-id-lamp.bin",
+      "bytes": 26152,
+      "sha256": "e68cbb7d2d3cea417fec0bd76bdcf11c7ddef84fc8f13711edc31171be6709ce",
+      "sampler_matches_official_stock": true,
+      "sampler_sites": {
+        "digital_substep": {
+          "address": "0x0800760e",
+          "bytes": "40f2ee00c2f20000",
+          "instructions": [
+            "0x0800760e: movw r0, #0xee",
+            "0x08007612: movt r0, #0x2000"
+          ]
+        },
+        "digital_subbuffer": {
+          "address": "0x08007668",
+          "bytes": "40f2f000c2f20000",
+          "instructions": [
+            "0x08007668: movw r0, #0xf0",
+            "0x0800766c: movt r0, #0x2000"
+          ]
+        },
+        "digital_sample_index": {
+          "address": "0x08007676",
+          "bytes": "40f25b01c2f20001",
+          "instructions": [
+            "0x08007676: movw r1, #0x5b",
+            "0x0800767a: movt r1, #0x2000"
+          ]
+        },
+        "digital_sample_buffer": {
+          "address": "0x08007680",
+          "bytes": "40f26e03c2f20003",
+          "instructions": [
+            "0x08007680: movw r3, #0x6e",
+            "0x08007684: movt r3, #0x2000"
+          ]
+        }
+      },
+      "scheduler_group": "PN1.7+ gate/freshness scheduler",
+      "scheduler_bytes": "eff3108372b60e4a107898b90d48417881b9a7300178a73802290bd1818c40f2f410814206d90848017819b9c17809b100f0cabf107883f31088fff7d3be00000c010020480000205a000020",
+      "scheduler_disassembly": [
+        "0x08007724: mrs r3, primask",
+        "0x08007728: cpsid i",
+        "0x0800772a: ldr r2, [pc, #0x38]",
+        "0x0800772c: ldrb r0, [r2]",
+        "0x0800772e: cbnz r0, #0x8007758",
+        "0x08007730: ldr r0, [pc, #0x34]",
+        "0x08007732: ldrb r1, [r0, #1]",
+        "0x08007734: cbnz r1, #0x8007758",
+        "0x08007736: adds r0, #0xa7",
+        "0x08007738: ldrb r1, [r0]",
+        "0x0800773a: subs r0, #0xa7",
+        "0x0800773c: cmp r1, #2",
+        "0x0800773e: bne #0x8007758",
+        "0x08007740: ldrh r1, [r0, #0x24]",
+        "0x08007742: movw r0, #0x1f4",
+        "0x08007746: cmp r1, r0",
+        "0x08007748: bls #0x8007758",
+        "0x0800774a: ldr r0, [pc, #0x20]",
+        "0x0800774c: ldrb r1, [r0]",
+        "0x0800774e: cbnz r1, #0x8007758",
+        "0x08007750: ldrb r1, [r0, #3]",
+        "0x08007752: cbz r1, #0x8007758",
+        "0x08007754: b.w #0x80086ec",
+        "0x08007758: ldrb r0, [r2]",
+        "0x0800775a: msr primask, r3",
+        "0x0800775e: b.w #0x8007508"
+      ],
+      "scheduler_disassembly_note": "Literal pool and padding excluded; scheduler_bytes retains the complete 0x08007724..0x0800776F region."
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\experimental\\APP_LPM-10RX_PN1.3-roadmap.bin",
+      "bytes": 26152,
+      "sha256": "fa51768b92d08fafe280312a61b2059e3050cfa69c6b43fb4d443640708d43f2",
+      "sampler_matches_official_stock": true,
+      "sampler_sites": {
+        "digital_substep": {
+          "address": "0x0800760e",
+          "bytes": "40f2ee00c2f20000",
+          "instructions": [
+            "0x0800760e: movw r0, #0xee",
+            "0x08007612: movt r0, #0x2000"
+          ]
+        },
+        "digital_subbuffer": {
+          "address": "0x08007668",
+          "bytes": "40f2f000c2f20000",
+          "instructions": [
+            "0x08007668: movw r0, #0xf0",
+            "0x0800766c: movt r0, #0x2000"
+          ]
+        },
+        "digital_sample_index": {
+          "address": "0x08007676",
+          "bytes": "40f25b01c2f20001",
+          "instructions": [
+            "0x08007676: movw r1, #0x5b",
+            "0x0800767a: movt r1, #0x2000"
+          ]
+        },
+        "digital_sample_buffer": {
+          "address": "0x08007680",
+          "bytes": "40f26e03c2f20003",
+          "instructions": [
+            "0x08007680: movw r3, #0x6e",
+            "0x08007684: movt r3, #0x2000"
+          ]
+        }
+      },
+      "scheduler_group": "PN1.3-1.5 literal pointers",
+      "scheduler_bytes": "10b50b4c2078fff7edfe0a48008868b10948017851b9c1781e2902d0642900d032210170322900d93221217010bd00000c0100206c0000205a00002000bf00bf00bf00bf00bf00bf00bf00bf",
+      "scheduler_disassembly": [
+        "0x08007724: push {r4, lr}",
+        "0x08007726: ldr r4, [pc, #0x2c]",
+        "0x08007728: ldrb r0, [r4]",
+        "0x0800772a: bl #0x8007508",
+        "0x0800772e: ldr r0, [pc, #0x28]",
+        "0x08007730: ldrh r0, [r0]",
+        "0x08007732: cbz r0, #0x8007750",
+        "0x08007734: ldr r0, [pc, #0x24]",
+        "0x08007736: ldrb r1, [r0]",
+        "0x08007738: cbnz r1, #0x8007750",
+        "0x0800773a: ldrb r1, [r0, #3]",
+        "0x0800773c: cmp r1, #0x1e",
+        "0x0800773e: beq #0x8007746",
+        "0x08007740: cmp r1, #0x64",
+        "0x08007742: beq #0x8007746",
+        "0x08007744: movs r1, #0x32",
+        "0x08007746: strb r1, [r0]",
+        "0x08007748: cmp r1, #0x32",
+        "0x0800774a: bls #0x800774e",
+        "0x0800774c: movs r1, #0x32",
+        "0x0800774e: strb r1, [r4]",
+        "0x08007750: pop {r4, pc}"
+      ],
+      "scheduler_disassembly_note": "Literal pool and padding excluded; scheduler_bytes retains the complete 0x08007724..0x0800776F region."
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\experimental\\APP_LPM-10RX_PN1.4-roadmap.bin",
+      "bytes": 26152,
+      "sha256": "f2faee8220231ff6b4b80d9c916307c801d246ecaae438677d2929734442430c",
+      "sampler_matches_official_stock": true,
+      "sampler_sites": {
+        "digital_substep": {
+          "address": "0x0800760e",
+          "bytes": "40f2ee00c2f20000",
+          "instructions": [
+            "0x0800760e: movw r0, #0xee",
+            "0x08007612: movt r0, #0x2000"
+          ]
+        },
+        "digital_subbuffer": {
+          "address": "0x08007668",
+          "bytes": "40f2f000c2f20000",
+          "instructions": [
+            "0x08007668: movw r0, #0xf0",
+            "0x0800766c: movt r0, #0x2000"
+          ]
+        },
+        "digital_sample_index": {
+          "address": "0x08007676",
+          "bytes": "40f25b01c2f20001",
+          "instructions": [
+            "0x08007676: movw r1, #0x5b",
+            "0x0800767a: movt r1, #0x2000"
+          ]
+        },
+        "digital_sample_buffer": {
+          "address": "0x08007680",
+          "bytes": "40f26e03c2f20003",
+          "instructions": [
+            "0x08007680: movw r3, #0x6e",
+            "0x08007684: movt r3, #0x2000"
+          ]
+        }
+      },
+      "scheduler_group": "PN1.3-1.5 literal pointers",
+      "scheduler_bytes": "10b50b4c2078fff7edfe0a48008868b10948017851b9c1781e2902d0642900d032210170322900d93221217010bd00000c0100206c0000205a00002000bf00bf00bf00bf00bf00bf00bf00bf",
+      "scheduler_disassembly": [
+        "0x08007724: push {r4, lr}",
+        "0x08007726: ldr r4, [pc, #0x2c]",
+        "0x08007728: ldrb r0, [r4]",
+        "0x0800772a: bl #0x8007508",
+        "0x0800772e: ldr r0, [pc, #0x28]",
+        "0x08007730: ldrh r0, [r0]",
+        "0x08007732: cbz r0, #0x8007750",
+        "0x08007734: ldr r0, [pc, #0x24]",
+        "0x08007736: ldrb r1, [r0]",
+        "0x08007738: cbnz r1, #0x8007750",
+        "0x0800773a: ldrb r1, [r0, #3]",
+        "0x0800773c: cmp r1, #0x1e",
+        "0x0800773e: beq #0x8007746",
+        "0x08007740: cmp r1, #0x64",
+        "0x08007742: beq #0x8007746",
+        "0x08007744: movs r1, #0x32",
+        "0x08007746: strb r1, [r0]",
+        "0x08007748: cmp r1, #0x32",
+        "0x0800774a: bls #0x800774e",
+        "0x0800774c: movs r1, #0x32",
+        "0x0800774e: strb r1, [r4]",
+        "0x08007750: pop {r4, pc}"
+      ],
+      "scheduler_disassembly_note": "Literal pool and padding excluded; scheduler_bytes retains the complete 0x08007724..0x0800776F region."
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\experimental\\APP_LPM-10RX_PN1.5-audit.bin",
+      "bytes": 26152,
+      "sha256": "6874d65549e3c67b3ad1020495effc93645e325e104eaa7697737a44c11fb0cd",
+      "sampler_matches_official_stock": true,
+      "sampler_sites": {
+        "digital_substep": {
+          "address": "0x0800760e",
+          "bytes": "40f2ee00c2f20000",
+          "instructions": [
+            "0x0800760e: movw r0, #0xee",
+            "0x08007612: movt r0, #0x2000"
+          ]
+        },
+        "digital_subbuffer": {
+          "address": "0x08007668",
+          "bytes": "40f2f000c2f20000",
+          "instructions": [
+            "0x08007668: movw r0, #0xf0",
+            "0x0800766c: movt r0, #0x2000"
+          ]
+        },
+        "digital_sample_index": {
+          "address": "0x08007676",
+          "bytes": "40f25b01c2f20001",
+          "instructions": [
+            "0x08007676: movw r1, #0x5b",
+            "0x0800767a: movt r1, #0x2000"
+          ]
+        },
+        "digital_sample_buffer": {
+          "address": "0x08007680",
+          "bytes": "40f26e03c2f20003",
+          "instructions": [
+            "0x08007680: movw r3, #0x6e",
+            "0x08007684: movt r3, #0x2000"
+          ]
+        }
+      },
+      "scheduler_group": "PN1.3-1.5 literal pointers",
+      "scheduler_bytes": "10b50b4c2078fff7edfe0a48008868b10948017851b9c1781e2902d0642900d032210170322900d93221217010bd00000c0100206c0000205a00002000bf00bf00bf00bf00bf00bf00bf00bf",
+      "scheduler_disassembly": [
+        "0x08007724: push {r4, lr}",
+        "0x08007726: ldr r4, [pc, #0x2c]",
+        "0x08007728: ldrb r0, [r4]",
+        "0x0800772a: bl #0x8007508",
+        "0x0800772e: ldr r0, [pc, #0x28]",
+        "0x08007730: ldrh r0, [r0]",
+        "0x08007732: cbz r0, #0x8007750",
+        "0x08007734: ldr r0, [pc, #0x24]",
+        "0x08007736: ldrb r1, [r0]",
+        "0x08007738: cbnz r1, #0x8007750",
+        "0x0800773a: ldrb r1, [r0, #3]",
+        "0x0800773c: cmp r1, #0x1e",
+        "0x0800773e: beq #0x8007746",
+        "0x08007740: cmp r1, #0x64",
+        "0x08007742: beq #0x8007746",
+        "0x08007744: movs r1, #0x32",
+        "0x08007746: strb r1, [r0]",
+        "0x08007748: cmp r1, #0x32",
+        "0x0800774a: bls #0x800774e",
+        "0x0800774c: movs r1, #0x32",
+        "0x0800774e: strb r1, [r4]",
+        "0x08007750: pop {r4, pc}"
+      ],
+      "scheduler_disassembly_note": "Literal pool and padding excluded; scheduler_bytes retains the complete 0x08007724..0x0800776F region."
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\experimental\\APP_LPM-10RX_PN1.6-followup.bin",
+      "bytes": 26152,
+      "sha256": "159bd15f50e3329fd866bdd7e1ebdac2900569dbd2686e2956d82585280457dc",
+      "sampler_matches_official_stock": true,
+      "sampler_sites": {
+        "digital_substep": {
+          "address": "0x0800760e",
+          "bytes": "40f2ee00c2f20000",
+          "instructions": [
+            "0x0800760e: movw r0, #0xee",
+            "0x08007612: movt r0, #0x2000"
+          ]
+        },
+        "digital_subbuffer": {
+          "address": "0x08007668",
+          "bytes": "40f2f000c2f20000",
+          "instructions": [
+            "0x08007668: movw r0, #0xf0",
+            "0x0800766c: movt r0, #0x2000"
+          ]
+        },
+        "digital_sample_index": {
+          "address": "0x08007676",
+          "bytes": "40f25b01c2f20001",
+          "instructions": [
+            "0x08007676: movw r1, #0x5b",
+            "0x0800767a: movt r1, #0x2000"
+          ]
+        },
+        "digital_sample_buffer": {
+          "address": "0x08007680",
+          "bytes": "40f26e03c2f20003",
+          "instructions": [
+            "0x08007680: movw r3, #0x6e",
+            "0x08007684: movt r3, #0x2000"
+          ]
+        }
+      },
+      "scheduler_group": "PN1.6 relative pointers",
+      "scheduler_bytes": "eff3108372b60d4a107888b90c48417871b9a7300178a738022909d1818c39b1817c29b9417d8174322900d932211170107883f31088fff7d5be00000c0100204800002000bf00bf00bf00bf",
+      "scheduler_disassembly": [
+        "0x08007724: mrs r3, primask",
+        "0x08007728: cpsid i",
+        "0x0800772a: ldr r2, [pc, #0x34]",
+        "0x0800772c: ldrb r0, [r2]",
+        "0x0800772e: cbnz r0, #0x8007754",
+        "0x08007730: ldr r0, [pc, #0x30]",
+        "0x08007732: ldrb r1, [r0, #1]",
+        "0x08007734: cbnz r1, #0x8007754",
+        "0x08007736: adds r0, #0xa7",
+        "0x08007738: ldrb r1, [r0]",
+        "0x0800773a: subs r0, #0xa7",
+        "0x0800773c: cmp r1, #2",
+        "0x0800773e: bne #0x8007754",
+        "0x08007740: ldrh r1, [r0, #0x24]",
+        "0x08007742: cbz r1, #0x8007754",
+        "0x08007744: ldrb r1, [r0, #0x12]",
+        "0x08007746: cbnz r1, #0x8007754",
+        "0x08007748: ldrb r1, [r0, #0x15]",
+        "0x0800774a: strb r1, [r0, #0x12]",
+        "0x0800774c: cmp r1, #0x32",
+        "0x0800774e: bls #0x8007752",
+        "0x08007750: movs r1, #0x32",
+        "0x08007752: strb r1, [r2]",
+        "0x08007754: ldrb r0, [r2]",
+        "0x08007756: msr primask, r3",
+        "0x0800775a: b.w #0x8007508"
+      ],
+      "scheduler_disassembly_note": "Literal pool and padding excluded; scheduler_bytes retains the complete 0x08007724..0x0800776F region."
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\experimental\\APP_LPM-10RX_PN1.7-precision.bin",
+      "bytes": 26152,
+      "sha256": "5ccd7990043507911aeb357d83b0bc6fd054208ff6d253b7feea718e963d38e6",
+      "sampler_matches_official_stock": true,
+      "sampler_sites": {
+        "digital_substep": {
+          "address": "0x0800760e",
+          "bytes": "40f2ee00c2f20000",
+          "instructions": [
+            "0x0800760e: movw r0, #0xee",
+            "0x08007612: movt r0, #0x2000"
+          ]
+        },
+        "digital_subbuffer": {
+          "address": "0x08007668",
+          "bytes": "40f2f000c2f20000",
+          "instructions": [
+            "0x08007668: movw r0, #0xf0",
+            "0x0800766c: movt r0, #0x2000"
+          ]
+        },
+        "digital_sample_index": {
+          "address": "0x08007676",
+          "bytes": "40f25b01c2f20001",
+          "instructions": [
+            "0x08007676: movw r1, #0x5b",
+            "0x0800767a: movt r1, #0x2000"
+          ]
+        },
+        "digital_sample_buffer": {
+          "address": "0x08007680",
+          "bytes": "40f26e03c2f20003",
+          "instructions": [
+            "0x08007680: movw r3, #0x6e",
+            "0x08007684: movt r3, #0x2000"
+          ]
+        }
+      },
+      "scheduler_group": "PN1.7+ gate/freshness scheduler",
+      "scheduler_bytes": "eff3108372b60e4a107898b90d48417881b9a7300178a73802290bd1818c40f2f410814206d90848017819b9c17809b100f0cabf107883f31088fff7d3be00000c010020480000205a000020",
+      "scheduler_disassembly": [
+        "0x08007724: mrs r3, primask",
+        "0x08007728: cpsid i",
+        "0x0800772a: ldr r2, [pc, #0x38]",
+        "0x0800772c: ldrb r0, [r2]",
+        "0x0800772e: cbnz r0, #0x8007758",
+        "0x08007730: ldr r0, [pc, #0x34]",
+        "0x08007732: ldrb r1, [r0, #1]",
+        "0x08007734: cbnz r1, #0x8007758",
+        "0x08007736: adds r0, #0xa7",
+        "0x08007738: ldrb r1, [r0]",
+        "0x0800773a: subs r0, #0xa7",
+        "0x0800773c: cmp r1, #2",
+        "0x0800773e: bne #0x8007758",
+        "0x08007740: ldrh r1, [r0, #0x24]",
+        "0x08007742: movw r0, #0x1f4",
+        "0x08007746: cmp r1, r0",
+        "0x08007748: bls #0x8007758",
+        "0x0800774a: ldr r0, [pc, #0x20]",
+        "0x0800774c: ldrb r1, [r0]",
+        "0x0800774e: cbnz r1, #0x8007758",
+        "0x08007750: ldrb r1, [r0, #3]",
+        "0x08007752: cbz r1, #0x8007758",
+        "0x08007754: b.w #0x80086ec",
+        "0x08007758: ldrb r0, [r2]",
+        "0x0800775a: msr primask, r3",
+        "0x0800775e: b.w #0x8007508"
+      ],
+      "scheduler_disassembly_note": "Literal pool and padding excluded; scheduler_bytes retains the complete 0x08007724..0x0800776F region."
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\experimental\\APP_LPM-10RX_PN1.8-pinpoint.bin",
+      "bytes": 26152,
+      "sha256": "a588af8e0883fca119b9ed00e30761502ec0c4e0d2b6fee16a67c8b7cacc615d",
+      "sampler_matches_official_stock": true,
+      "sampler_sites": {
+        "digital_substep": {
+          "address": "0x0800760e",
+          "bytes": "40f2ee00c2f20000",
+          "instructions": [
+            "0x0800760e: movw r0, #0xee",
+            "0x08007612: movt r0, #0x2000"
+          ]
+        },
+        "digital_subbuffer": {
+          "address": "0x08007668",
+          "bytes": "40f2f000c2f20000",
+          "instructions": [
+            "0x08007668: movw r0, #0xf0",
+            "0x0800766c: movt r0, #0x2000"
+          ]
+        },
+        "digital_sample_index": {
+          "address": "0x08007676",
+          "bytes": "40f25b01c2f20001",
+          "instructions": [
+            "0x08007676: movw r1, #0x5b",
+            "0x0800767a: movt r1, #0x2000"
+          ]
+        },
+        "digital_sample_buffer": {
+          "address": "0x08007680",
+          "bytes": "40f26e03c2f20003",
+          "instructions": [
+            "0x08007680: movw r3, #0x6e",
+            "0x08007684: movt r3, #0x2000"
+          ]
+        }
+      },
+      "scheduler_group": "PN1.7+ gate/freshness scheduler",
+      "scheduler_bytes": "eff3108372b60e4a107898b90d48417881b9a7300178a73802290bd1818c40f2f410814206d90848017819b9c17809b100f0cabf107883f31088fff7d3be00000c010020480000205a000020",
+      "scheduler_disassembly": [
+        "0x08007724: mrs r3, primask",
+        "0x08007728: cpsid i",
+        "0x0800772a: ldr r2, [pc, #0x38]",
+        "0x0800772c: ldrb r0, [r2]",
+        "0x0800772e: cbnz r0, #0x8007758",
+        "0x08007730: ldr r0, [pc, #0x34]",
+        "0x08007732: ldrb r1, [r0, #1]",
+        "0x08007734: cbnz r1, #0x8007758",
+        "0x08007736: adds r0, #0xa7",
+        "0x08007738: ldrb r1, [r0]",
+        "0x0800773a: subs r0, #0xa7",
+        "0x0800773c: cmp r1, #2",
+        "0x0800773e: bne #0x8007758",
+        "0x08007740: ldrh r1, [r0, #0x24]",
+        "0x08007742: movw r0, #0x1f4",
+        "0x08007746: cmp r1, r0",
+        "0x08007748: bls #0x8007758",
+        "0x0800774a: ldr r0, [pc, #0x20]",
+        "0x0800774c: ldrb r1, [r0]",
+        "0x0800774e: cbnz r1, #0x8007758",
+        "0x08007750: ldrb r1, [r0, #3]",
+        "0x08007752: cbz r1, #0x8007758",
+        "0x08007754: b.w #0x80086ec",
+        "0x08007758: ldrb r0, [r2]",
+        "0x0800775a: msr primask, r3",
+        "0x0800775e: b.w #0x8007508"
+      ],
+      "scheduler_disassembly_note": "Literal pool and padding excluded; scheduler_bytes retains the complete 0x08007724..0x0800776F region."
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\experimental\\APP_LPM-10RX_PN1.9-robust.bin",
+      "bytes": 26152,
+      "sha256": "6128e0a4a0261f3da51bea232c8e431474033f0a09fd24283faa0a743b67fe3e",
+      "sampler_matches_official_stock": true,
+      "sampler_sites": {
+        "digital_substep": {
+          "address": "0x0800760e",
+          "bytes": "40f2ee00c2f20000",
+          "instructions": [
+            "0x0800760e: movw r0, #0xee",
+            "0x08007612: movt r0, #0x2000"
+          ]
+        },
+        "digital_subbuffer": {
+          "address": "0x08007668",
+          "bytes": "40f2f000c2f20000",
+          "instructions": [
+            "0x08007668: movw r0, #0xf0",
+            "0x0800766c: movt r0, #0x2000"
+          ]
+        },
+        "digital_sample_index": {
+          "address": "0x08007676",
+          "bytes": "40f25b01c2f20001",
+          "instructions": [
+            "0x08007676: movw r1, #0x5b",
+            "0x0800767a: movt r1, #0x2000"
+          ]
+        },
+        "digital_sample_buffer": {
+          "address": "0x08007680",
+          "bytes": "40f26e03c2f20003",
+          "instructions": [
+            "0x08007680: movw r3, #0x6e",
+            "0x08007684: movt r3, #0x2000"
+          ]
+        }
+      },
+      "scheduler_group": "PN1.7+ gate/freshness scheduler",
+      "scheduler_bytes": "eff3108372b60e4a107898b90d48417881b9a7300178a73802290bd1818c40f2f410814206d90848017819b9c17809b100f0cabf107883f31088fff7d3be00000c010020480000205a000020",
+      "scheduler_disassembly": [
+        "0x08007724: mrs r3, primask",
+        "0x08007728: cpsid i",
+        "0x0800772a: ldr r2, [pc, #0x38]",
+        "0x0800772c: ldrb r0, [r2]",
+        "0x0800772e: cbnz r0, #0x8007758",
+        "0x08007730: ldr r0, [pc, #0x34]",
+        "0x08007732: ldrb r1, [r0, #1]",
+        "0x08007734: cbnz r1, #0x8007758",
+        "0x08007736: adds r0, #0xa7",
+        "0x08007738: ldrb r1, [r0]",
+        "0x0800773a: subs r0, #0xa7",
+        "0x0800773c: cmp r1, #2",
+        "0x0800773e: bne #0x8007758",
+        "0x08007740: ldrh r1, [r0, #0x24]",
+        "0x08007742: movw r0, #0x1f4",
+        "0x08007746: cmp r1, r0",
+        "0x08007748: bls #0x8007758",
+        "0x0800774a: ldr r0, [pc, #0x20]",
+        "0x0800774c: ldrb r1, [r0]",
+        "0x0800774e: cbnz r1, #0x8007758",
+        "0x08007750: ldrb r1, [r0, #3]",
+        "0x08007752: cbz r1, #0x8007758",
+        "0x08007754: b.w #0x80086ec",
+        "0x08007758: ldrb r0, [r2]",
+        "0x0800775a: msr primask, r3",
+        "0x0800775e: b.w #0x8007508"
+      ],
+      "scheduler_disassembly_note": "Literal pool and padding excluded; scheduler_bytes retains the complete 0x08007724..0x0800776F region."
+    }
+  ],
+  "conclusion": "Observed normal Digital execution is incompatible with the fixed RAM layout of every stored RX profile, including exact PN1.13. This does not identify the installed image/version or prove the bootloader rejection mechanism; protected flash was not read."
+}

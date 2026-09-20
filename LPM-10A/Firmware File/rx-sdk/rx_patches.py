@@ -396,7 +396,7 @@ def _replace(img, site, size, code, why):
 def p_adc_complete(img):
     # N32L40x manual, ADC_STS: ENDC bit 1, clear by writing zero (SDK
     # ADC_ClearFlag writes 0x7F & ~flag). Mask only the transaction and restore
-    # PRIMASK. A finite 128-poll timeout requests reset instead of returning
+    # PRIMASK. A finite 500-poll timeout requests reset instead of returning
     # fabricated battery/tone data or leaving a conversion in flight.
     site, size = 0x080072A4, 0x44
     code = img.assemble_at(site, """
@@ -493,3 +493,18 @@ _register_precision(patch)
 
 from pinpoint_fixes import register as _register_pinpoint
 _register_pinpoint(patch)
+
+from robust_fixes import register as _register_robust
+_register_robust(patch)
+
+from sync_fixes import register as _register_sync
+_register_sync(patch)
+
+from tracking_fixes import register as _register_tracking
+_register_tracking(patch)
+
+from overload_fixes import register as _register_overload
+_register_overload(patch)
+
+from audio_clock_fixes import register as _register_audio_clock
+_register_audio_clock(patch)

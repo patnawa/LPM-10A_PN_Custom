@@ -1,0 +1,61 @@
+{
+  "started_at": "2026-09-20T22:31:21.376960+07:00",
+  "method": "Live SWD SRAM reads and Windows raw-volume reads only; no firmware copy, reset, halt or target-memory writes",
+  "sram_snapshots": [
+    {
+      "started_at": "2026-09-20T22:31:21.398846+07:00",
+      "registers": {
+        "DBG_ID": 576995351,
+        "VTOR": 134217728,
+        "DHCSR": 16842752,
+        "FLASH_OB": 67108862
+      },
+      "path": "C:\\Users\\Alpha\\Desktop\\LPM-10RX-SWD-2026-09-20\\rx-sram-udisk-before.bin",
+      "length": 24576,
+      "sha256": "b9f38ef99acda3365150e5685fe7fc33a571e68bc91b61c6d19bd2d79053b193",
+      "completed_at": "2026-09-20T22:31:24.953702+07:00"
+    },
+    {
+      "started_at": "2026-09-20T22:31:25.026535+07:00",
+      "registers": {
+        "DBG_ID": 576995351,
+        "VTOR": 134217728,
+        "DHCSR": 16842752,
+        "FLASH_OB": 67108862
+      },
+      "path": "C:\\Users\\Alpha\\Desktop\\LPM-10RX-SWD-2026-09-20\\rx-sram-udisk-after-reads.bin",
+      "length": 24576,
+      "sha256": "0b674f4c37e182704b51825124265a82be3561e70e710e1b4db7c1729fa0c4bb",
+      "completed_at": "2026-09-20T22:31:28.513979+07:00"
+    }
+  ],
+  "volume_reads": [
+    {
+      "path": "C:\\Users\\Alpha\\Desktop\\LPM-10RX-SWD-2026-09-20\\udisk-boot-sector-swd-session.bin",
+      "length": 2048,
+      "sha256": "28a86f2023b8eacdb7120b3d8693654309c3f173704392f8336f7a7f0ceca118"
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Desktop\\LPM-10RX-SWD-2026-09-20\\udisk-root-swd-session.bin",
+      "length": 16384,
+      "sha256": "52d7bc9c38e7c1095674e74ad9287f946231b6de0629593ee079566155490f81",
+      "offset": 57344,
+      "nonzero_bytes": 39
+    },
+    {
+      "path": "C:\\Users\\Alpha\\Desktop\\LPM-10RX-SWD-2026-09-20\\udisk-data-prefix-swd-session.bin",
+      "length": 32768,
+      "sha256": "c35020473aed1b4642cd726cad727b63fff2824ad68cedd7ffb73c7cbd890479",
+      "offset": 73728,
+      "nonzero_bytes": 0
+    }
+  ],
+  "geometry": {
+    "bytes_per_sector": 2048,
+    "sectors_per_cluster": 4,
+    "root_offset": 57344,
+    "data_offset": 73728
+  },
+  "root_first_96_hex": "554e4b4f574e202054585420004b9c429238923800009d429238000000000000424f4f544c4f414445522008000000000000000000009d4292380000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "completed_at": "2026-09-20T22:31:28.513979+07:00"
+}

@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-09-20T22:09:43.378435+07:00",
+  "method": "Read-only SCB status and SRAM; no reset/halt/memorywrite",
+  "reads": {
+    "scb_cpuid_icsr_vtor": {
+      "address": "0xE000ED00",
+      "bytes_hex": "41c20f410000000000680008"
+    },
+    "scb_cfsr_hfsr_dfsr_mmfar_bfar_afsr": {
+      "address": "0xE000ED28",
+      "bytes_hex": "000000000000000000000000280c0140280c014000000000"
+    },
+    "data_bss_prefix": {
+      "address": "0x20000000",
+      "bytes_hex": "000000000090d003010100000d418800bbe4080b000000000000000000000000"
+    },
+    "runtime_counters": {
+      "address": "0x200000FC",
+      "bytes_hex": "00000000000000000000000000000000"
+    }
+  }
+}

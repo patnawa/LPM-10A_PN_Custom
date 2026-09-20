@@ -1,5 +1,15 @@
 # Roadmap: what to check next
 
+## Owner checkpoint (2026-09-20)
+
+The owner requested Git push and an archival prerelease, and is retaining the
+currently working devices. Preserve TX PN 2.14, RX experimental profiles, tests
+and the SWD/update investigation in the
+[development snapshot](releases/TONE-SNAPSHOT-2026-09-20.md).
+RX PN 1.13 installation remains unconfirmed and the Digital tail is unresolved.
+Resume device-update work when a compatible RX image and a verifiable update
+path are available. No further hardware changes are part of this checkpoint.
+
 ## Current release update (2026-09-19)
 
 TX PN 2.7 and experimental RX PN 1.2 Reliability pass CPU verification; the
@@ -142,10 +152,22 @@ toolkit (`LPM-10A/Firmware File/rx-sdk`). The uncancellable low-battery shutdown
 fixed in `APP_LPM-10RX_PN1.0.bin`; the exact-match tone decoder (whose 5 ms sample is
 0.94 % shorter than the transmitter's slot by construction) and the missing strength
 grading in digital mode are the next body of work after the transmitter is validated.
-Update mode confirmed 2026-09-18 (probe off, hold SCAN, plug USB → "UDISK" drive); the
-probe runs V3.0.1, newer than the V3.0.0 in the package, so the PN 1.0 receiver build is a
-downgrade with no way back and stays unflashed. Next steps: read whatever the drive exposes
-(a 3.0.1 image would be the way back), or obtain 3.0.1 from FNIRSI, then re-audit on 3.0.1.
+Update-mode entry was owner-confirmed on 2026-09-18 (probe off, hold SCAN,
+plug USB → a drive appears). Early notes asserted V3.0.1, but installed version
+was subsequently clarified as uncertain. The empty `3.0.1.TXT` seen on UDISK
+does not establish application version or downgrade behavior. On 2026-09-20,
+two authorized transfers of a PN 1.13 startup-lamp diagnostic did not produce
+its visible marker, although the lamp key works. Next steps require verified
+RX update instructions or application-flash readback; see the
+[identity investigation](RX-IDENTITY-MARKER-PN1.13-2026-09-20.md).
+
+Live SWD inspection now identifies N32L406 and L1 protection. Battery-first,
+three-wire operation permits SRAM/timer measurements, but not flash backup.
+A 2,348-sample Digital capture has a different layout from all stored RX images
+and an approximately 800-tick repeated-audio hold. Exact PN1.13 normal execution
+is incompatible with the observed state. Resolve the actual application/update
+path before attributing device results to further PN patches; see
+[live findings](RX-SWD-FINDINGS-2026-09-20.md).
 
 ## 6. Not planned
 

@@ -1,0 +1,16 @@
+{
+  "authorization": "User explicitly approved copying the PN1.13 lamp identity diagnostic to connected RX",
+  "started_at": "2026-09-20T21:15:47.3951961+07:00",
+  "completed_at": "2026-09-20T21:15:47.4732008+07:00",
+  "source": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\experimental\\APP_LPM-10RX_PN1.13-id-lamp.bin",
+  "source_sha256": "e68cbb7d2d3cea417fec0bd76bdcf11c7ddef84fc8f13711edc31171be6709ce",
+  "destination": "D:\\APP_LPM-10RX_V3.0.0_260416.bin",
+  "bytes_written": 26152,
+  "flush_to_disk_requested": true,
+  "target_model": "NATIONS SD Flash Disk USB Device",
+  "file_write_result": "completed without OS error",
+  "device_flash_readback": "not available",
+  "startup_marker_result": "Owner reports lamp does not turn on automatically at startup; manual lamp key works normally. Marker not observed; installed-image identity unresolved.",
+  "files_deleted": 0,
+  "raw_sector_writes": 0
+}

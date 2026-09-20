@@ -1,6 +1,77 @@
 # LPM-10A receiver (probe) firmware SDK
 
-**PN 1.8 pinpoint experimental prerelease:** `python build.py --pinpoint --write` builds
+**PN 1.13 audio-clock test candidate:** `python build.py --audio-clock --write`
+builds [APP_LPM-10RX_PN1.13-audio-clock.bin](../experimental/APP_LPM-10RX_PN1.13-audio-clock.bin).
+Moves the shared BEEP/GAP countdowns to TIM5, which already generates speaker
+output; TIM1 retains the other counters. This addresses a pulse stretching when
+TIM1 delivery is delayed while TIM5 still runs. Detection and strength mapping
+stay byte-identical to PN 1.12. No new RAM is allocated. The actual cause of the
+owner's approximately one-second Digital/key sound is not established. The
+owner tried PN 1.13 and reports the symptom is unchanged. Keep TX PN 2.14; see the
+[candidate report](../../../docs/TONE-AUDIO-CLOCK-PN1.13-PN2.14-2026-09-20.md).
+
+The supplied clip now establishes a train of short pulses after TX Digital →
+Analog. Its approximately 50 ms cadence differs from the expected PN 1.13
+normal pulse, so installed-image identity is under investigation. See the
+[clip analysis](../../../docs/TONE-CLIP-DIAGNOSIS-2026-09-20.md).
+
+`python identity_marker.py --write` builds the separate, temporary PN 1.13
+startup lamp diagnostic from the exact existing artifact. Without `--write`
+it is a dry run. This one-byte identity check does not alter normal build
+profiles; see [scope and verification](../../../docs/RX-IDENTITY-MARKER-PN1.13-2026-09-20.md).
+
+**PN 1.12 local overload candidate:** `python build.py --overload --write` builds
+[APP_LPM-10RX_PN1.12-overload.bin](../experimental/APP_LPM-10RX_PN1.12-overload.bin).
+Includes the exact PN 1.11 profile, then marks Digital exact fallback uncertain
+when all newest 16 raw ADC readings equal 4095. Lower-zero and brief-contact
+behavior remain unchanged. The prior `--tracking` output stays byte-identical.
+See the [PN 1.12 report](../../../docs/TONE-OVERLOAD-PN1.12-PN2.14-2026-09-20.md).
+The owner confirms RX PN 1.12 / TX PN 2.14: both modes receive and sweeping is
+more accurate. Later feedback reports Digital sound continuing about one second
+after moving away or pressing TX Pause; Analog has no such delay. Digital release
+latency remains an open device issue.
+See [owner feedback](../../../docs/TONE-DEVICE-FEEDBACK-2026-09-20.md).
+
+**PN 1.11 local tracking candidate:** `python build.py --tracking --write` builds
+[APP_LPM-10RX_PN1.11-tracking.bin](../experimental/APP_LPM-10RX_PN1.11-tracking.bin).
+Based on exact PN 1.9, it adds robust local B6 acquisition with legacy fallback,
+32 retained / 16 new sample overlap, recent strength, interpolated short Analog
+feedback and bit-exact integer DFT. It omits Sync32. No image growth, new gain
+setting or persistent RAM allocation. Run `python -m unittest discover -p "test_*.py" -q`.
+See the [paired report and limitations](../../../docs/TONE-TRACKING-PN1.11-PN2.14-2026-09-20.md).
+Device validation is pending; Fluke comparison has not been run.
+
+**PN 1.10 status after device feedback:** the owner confirms Digital/Analog
+receive correctly, but Sync32 remains silent in digital mode. TX PN 2.14
+therefore removes Sync32 and Pulse test from its menu. The installed RX PN 1.10
+can keep receiving the established waveforms; no RX update is needed for that
+TX change. See the [follow-up](../../../docs/TONE-RECOVERY-PN2.14-2026-09-20.md).
+
+**PN 1.10 historical paired tracing implementation:** `python build.py --sync --write`
+adds automatic Sync32 recognition to the existing digital mode while retaining
+legacy recognition and PN 1.9 median-based feedback. Original TX Digital
+remains compatible. Run
+`python -m unittest test_rx_sync test_sync_profile test_scan_pair -q` after
+building both candidates. See the
+[paired report and timing limits](../../../docs/SCAN-SYNC-PN2.13-PN1.10-2026-09-20.md).
+The Sync32 implementation is retained for investigation, not recommended for
+tracing after the reported hardware failure.
+
+**PN 1.9 robust local experimental candidate:** `python build.py --robust --write`
+builds [APP_LPM-10RX_PN1.9-robust.bin](../experimental/APP_LPM-10RX_PN1.9-robust.bin).
+It estimates strength using medians grouped by the expected digital code,
+improving cable-strength ranking in synthetic impulse tests. Existing digital
+detection and sampling remain unchanged. A valid code with an upper-rail-dominated
+or inseparable strength estimate gives distinct 100 ms pulses with 160 ms quiet
+gaps; normal feedback retains 30 ms pulses. Run
+`python -m unittest test_rx_robust test_robust_profile -v`. See
+[device notes](../experimental/RX-PN1.9-ROBUST-README.txt),
+[checksum](../experimental/RX-ROBUST-SHA256SUMS.txt), and the
+[implementation report](../../../docs/RX-ROBUST-PN1.9-2026-09-20.md).
+This candidate has not been published or flashed; hardware validation is pending.
+PN 1.8 remains the current owner-tested experimental prerelease.
+
+**Current owner-tested PN 1.8 pinpoint experimental prerelease:** `python build.py --pinpoint --write` builds
 `../experimental/APP_LPM-10RX_PN1.8-pinpoint.bin`. It adds finer digital beep
 intervals across a wider strength range, with a small deadband to reduce jitter.
 Signal eligibility, sampling and PN 1.7 release behavior remain unchanged.

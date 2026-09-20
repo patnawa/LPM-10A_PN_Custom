@@ -1,0 +1,34 @@
+{
+  "timestamp": "2026-09-20T22:35:34.570871+07:00",
+  "method": "Class-driver SCSI_PASS_THROUGH_DIRECT; READ CAPACITY(10) and READ(10) only; API handle needs read/write access but no device-data writes issued",
+  "commands": [
+    {
+      "label": "udisk-read-capacity-direct",
+      "cdb_hex": "25000000000000000000",
+      "win32_ok": true,
+      "win32_error": 0,
+      "scsi_status": 0,
+      "transfer_length": 8,
+      "sense_hex": "0000000000000000000000000000000000000000000000000000000000000000",
+      "path": "C:\\Users\\Alpha\\Desktop\\LPM-10RX-SWD-2026-09-20\\udisk-read-capacity-direct.bin",
+      "sha256": "d7f1149d9c6442395d54c792f7b2ddfe97cfd36c309d49ba2dd34c232075ee8f",
+      "response_hex": "0000c7ff00000800"
+    },
+    {
+      "label": "udisk-root-scsi-direct",
+      "cdb_hex": "28000000001c00000100",
+      "win32_ok": true,
+      "win32_error": 0,
+      "scsi_status": 0,
+      "transfer_length": 2048,
+      "sense_hex": "0000000000000000000000000000000000000000000000000000000000000000",
+      "path": "C:\\Users\\Alpha\\Desktop\\LPM-10RX-SWD-2026-09-20\\udisk-root-scsi-direct.bin",
+      "sha256": "cf674fadf723ddc983b8b788e8ac1014346549a284583813777f8c824d6a0dd5",
+      "first_96_hex": "554e4b4f574e202054585420004b9c429238923800009d429238000000000000424f4f544c4f414445522008000000000000000000009d4292380000000000000000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ],
+  "capacity": {
+    "last_lba": 51199,
+    "bytes_per_sector": 2048
+  }
+}

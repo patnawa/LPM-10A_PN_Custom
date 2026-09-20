@@ -2,11 +2,99 @@
 
 # LPM-10A PN Custom Firmware
 
+**Development snapshot, 2026-09-20:** [TX PN 2.14 / RX experiments and investigation](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/tone-snapshot-2026-09-20)
+is an archival prerelease. The owner is keeping the currently working devices;
+no new RX installation is recommended by this snapshot. **RX PN 1.13 uptake
+is unconfirmed and the Digital audio tail remains unresolved.** Live RX state
+differs from all stored RX images, so earlier filename-based device-pass reports
+do not authenticate an installed PN version. See the
+[snapshot notes and exact artifact checksums](docs/releases/TONE-SNAPSHOT-2026-09-20.md).
+The previously published releases below remain available; TX PN 2.12 retains
+the GitHub Latest designation.
+
 **TX release: PN 2.12 (2026-09-19).** Port FLASH now uses PHY link status;
 the owner confirms the blink fix on a D-Link gigabit switch. Includes the
 PHY setup, FLASH timing, battery monitoring and settings-save corrections.
 See the [release notes](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.12) and
 [Port FLASH investigation](docs/PORT-FLASH-STATUS-2026-09-19.md).
+
+**Archived TX PN 2.14 candidate: Digital / Analog only.** Removes Sync32 and Pulse
+test from the tone menu after the owner's Sync32 failure report, retaining
+`Digital 454 kHz` / `Analog 825 Hz` labels and the established waveforms.
+Also fixes a RIGHT-key carrier-cache defect found in the
+[detailed performance audit](docs/TONE-PERFORMANCE-AUDIT-2026-09-20.md).
+RX PN 1.10 supports these modes; no RX update is
+required for this TX menu change. See the
+[two-mode candidate and verification](docs/TONE-RECOVERY-PN2.14-2026-09-20.md).
+คำอธิบายภาษาไทย: [ความหมายของ Digital 454 kHz / Analog 825 Hz](#tone-probe-frequencies).
+See the latest [owner device feedback](docs/TONE-DEVICE-FEEDBACK-2026-09-20.md).
+The owner reports using RX PN 1.12 / TX PN 2.14 files and basic tone-function operation;
+the installed RX image has not been authenticated.
+PN 2.12 remains the published TX release.
+
+**Archived RX PN 1.13 test candidate: independent audio countdown.** Moves
+the shared pulse/quiet-gap countdown to the existing speaker timer, so delayed
+TIM1 delivery cannot stretch a pulse while TIM5 continues. Detection and
+strength processing remain PN 1.12. This investigates the owner's long Digital
+tail and long key-confirmation sound. The owner tried PN 1.13 and reports the
+symptom is unchanged; this candidate has not resolved the device issue.
+Use the same TX PN 2.14. See the
+[PN 1.13 file, verification and device checks](docs/TONE-AUDIO-CLOCK-PN1.13-PN2.14-2026-09-20.md).
+
+**Video follow-up:** the supplied clip shows repeated short beeps for about
+0.8–1.0 seconds after TX Digital → Analog. Its roughly 50 ms pulse pattern
+differs from PN 1.13's expected normal 30 ms pulses; installed-image identity
+remains unverified. Retrying the stock filename left the symptom unchanged;
+the RX UDISK's empty `3.0.1.TXT` does not authenticate the running image.
+See the [clip analysis and live-drive findings](docs/TONE-CLIP-DIAGNOSIS-2026-09-20.md)
+and the [startup lamp identity diagnostic](docs/RX-IDENTITY-MARKER-PN1.13-2026-09-20.md).
+After both authorized diagnostic transfers (streamed write and native Windows
+file copy), the owner reports no automatic startup lamp, although the lamp key
+works normally. The identity check has not passed; host file-copy success must
+not be treated as confirmed application uptake. RX update requirements remain
+unresolved; a [vendor support draft](docs/RX-UPDATE-SUPPORT-REQUEST-2026-09-20.md)
+collects the questions needed to proceed.
+
+**Live SWD investigation:** ST-Link V2 now reads the receiver's chip identity,
+RAM and timers. `DBG_ID` identifies N32L406 with 128 KiB flash and 24 KiB SRAM;
+L1 read protection prevents application-flash backup. Battery-first operation
+with three-wire SWD works. A 2,348-sample Digital/Pause recording shows a
+different application layout from every stored V3.0.0-based PN image and
+eight new pulses after the last detection refresh. Sound scheduling ends
+about 0.82–0.87 s after that refresh while both timers keep advancing;
+this is not evidence of a tenfold timer slowdown. The captured state is
+incompatible with normal execution of exact PN 1.13. Its installed version
+remains unknown. No firmware or option bytes were written during this inspection.
+See the [live findings](docs/RX-SWD-FINDINGS-2026-09-20.md) and
+[measured Digital release](docs/RX-LIVE-DIGITAL-RELEASE-2026-09-20.md).
+
+**Preserved local RX PN 1.12 candidate: upper-rail Digital uncertainty.** Includes
+PN 1.11 tracking and prevents an older exact-code span from supplying normal
+strength when all newest 16 ADC values are at the upper rail. Reuses the existing
+100 ms uncertainty indication; lower-zero and brief-contact behavior remain.
+Use with the same TX PN 2.14. See the
+[PN 1.12 files, tests and limits](docs/TONE-OVERLOAD-PN1.12-PN2.14-2026-09-20.md).
+The owner reports both modes receive and cable sweeping is more accurate on
+the owner-reported RX PN 1.12 / TX PN 2.14 files. Later feedback identifies an open Digital
+issue: sound continues about one second after moving away or pressing TX Pause;
+Analog does not show this delay. Other tested functions were reported passing.
+Fluke comparison remains unperformed. See the
+[scoped owner feedback](docs/TONE-DEVICE-FEEDBACK-2026-09-20.md).
+
+**Preserved RX PN 1.11 candidate: faster Digital tracking and finer Analog feedback.**
+Adds robust local B6 acquisition with legacy fallback, overlapping updates after
+16 new samples, recent code-based strength, and short interpolated Analog beeps.
+Exact integer DFT reduces profiled Analog work by about 74%. The new RX binary
+awaits device testing; comparison with Fluke has not been performed. See
+[RX PN 1.11 / TX PN 2.14 and verification](docs/TONE-TRACKING-PN1.11-PN2.14-2026-09-20.md).
+The [evidence review](docs/TONE-GOAL-EVIDENCE-2026-09-20.md) distinguishes software
+results from the device and comparison results still needed.
+
+**RX PN 1.9 local candidate: robust code-based strength.** Uses code-associated
+group medians to reduce misleading strength from impulses, with a distinct
+longer pulse for readings unsuitable for comparison. See the
+[implementation and device-test plan](docs/RX-ROBUST-PN1.9-2026-09-20.md).
+Hardware validation is pending; PN 1.8 remains the published owner-tested RX build.
 
 **RX prerelease: PN 1.8 pinpoint feedback.** Finer beep intervals span a wider
 digital strength range, with a small deadband to reduce jitter. Includes the
@@ -568,6 +656,59 @@ The build requires the verified V3.0.0 receiver input image.
 Confirm applicability and a stock recovery path for your unit before flashing;
 do not apply the TX procedure or TX binary to the probe. See
 [RX release notes](LPM-10A/Firmware%20File/RX-PN1.8-README.txt).
+
+## Tone probe frequencies
+
+**Digital 454 kHz และ Analog 825 Hz บอกความถี่คนละส่วนของสัญญาณ**
+TX PN 2.14 รุ่นทดลองมีเพียงสองโหมดนี้ โดยคงรูปคลื่นและวงจรส่งเดิม
+ผู้ใช้ยืนยันว่า Digital/Analog ของ PN 2.13 ใช้งานได้ ส่วน Sync32 ไม่ตอบสนอง
+จึงนำ Sync32 และ Pulse test ออกจากเมนูตามคำขอ โดย RX PN 1.10 เดิมยังใช้ต่อได้
+
+| ชื่อบนหน้าจอ TX | ความหมาย | โหมด RX ที่ใช้คู่กัน |
+|---|---|---|
+| **Digital 454 kHz** | ใช้คลื่นพาหะประมาณ 454,000 รอบ/วินาที แล้วเปิด–ปิดตามรหัสดิจิทัล B6 เพื่อให้โพรบตรวจหารหัสที่ตรงกัน | Digital; ใช้กับ RX รุ่นก่อนหน้าได้ |
+| **Analog 825 Hz** | ใช้คลื่นพาหะประมาณ 454 kHz เช่นกัน แต่เปิด–ปิดเป็นจังหวะประมาณ 825 รอบ/วินาที ให้โพรบตรวจหาจังหวะนี้ | Analog |
+
+**454 kHz คือความถี่พาหะ (carrier frequency)** ส่วน **825 Hz คือความถี่ของ
+จังหวะเปิด–ปิดพาหะ (modulation frequency)** จึงไม่ควรนำตัวเลขสองค่านี้มา
+เปรียบเทียบว่าค่าสูงกว่าจะค้นหาสายได้ดีกว่า ทั้งสองค่าไม่ใช่ความถี่เสียงบี๊บ
+แจ้งความแรงที่โพรบสร้างขึ้น และเป็นค่าประมาณจากการตั้งค่าในเฟิร์มแวร์
+ไม่ใช่ค่าที่วัดจากเครื่องของผู้ใช้
+
+Digital มีอัตราชิปประมาณ 198 ชิป/วินาที หมายถึงจำนวนช่วงรหัสต่อวินาที
+ซึ่งแยกจากความถี่พาหะ 454 kHz เสียงบี๊บของ RX ใช้บอกความแรงที่ตรวจจับได้
+ให้ใช้โหมด RX ตรงกับ TX ตามตารางด้านบน
+
+บันทึกการทดลองเดิม: Sync32 ไม่ผ่านการใช้งานจริงที่ผู้ใช้รายงาน แม้จำลอง CPU
+แล้วผ่าน ส่วน Pulse test เป็นพัลส์สำหรับออสซิลโลสโคปและไม่มีรหัสหรือจังหวะ
+825 Hz ให้โพรบตรวจจับ จึงไม่เหมาะเป็นโหมดค้นหาสายปกติ ทั้งสองโหมดไม่มีใน
+เมนู PN 2.14 แล้ว ดู [บันทึกการตรวจสอบ](docs/TONE-RECOVERY-PN2.14-2026-09-20.md)
+
+**ผลตรวจเชิงลึก: ยังไม่ใช่ประสิทธิภาพสูงสุด** พบข้อผิดพลาดปุ่มขวาของ TX
+ที่เปลี่ยนสถานะขาส่งแต่ไม่ล้างค่าจำสถานะพาหะ แก้ใน PN 2.14 แล้ว โดยคง
+รูปคลื่นและแรงขับเดิม ผ่านการทดสอบ TX 60 กลุ่ม ผลเครื่องจริงล่าสุดอยู่ใน
+[บันทึกจากเจ้าของ](docs/TONE-DEVICE-FEEDBACK-2026-09-20.md) โดยยืนยันคู่ RX PN 1.12 / TX PN 2.14 แล้ว
+
+ผลตรวจ RX เดิมพบว่า Digital อาจหลุดเมื่อ noise กระชากหรือความแรงเปลี่ยนเร็ว
+ส่วน Analog มีเพียงสามระดับเสียงและปรับเสียงค่อนข้างช้า จึงพัฒนา
+**RX PN 1.11** เพิ่มการตรวจรหัสแบบช่วงสั้นร่วมกับวิธีเดิม อัปเดตหลังรับใหม่
+16 samples ประมาณทุก 80 ms หลังการรับชุดแรก และวัดความแรงจากช่วงรหัสล่าสุด
+Analog ใช้บี๊บ 30 ms กับช่วงเงียบที่ไล่ระดับ พร้อมลดภาระคำนวณ DFT โดยผลเท่าเดิม
+
+**RX PN 1.12 รุ่นทดลองล่าสุด** เพิ่มการแก้กรณีพบรหัสในข้อมูลเก่า แต่ข้อมูล
+Digital ล่าสุด 16 จุดค้างขอบบน ADC ทั้งหมด โดยใช้เสียงแจ้งว่าความแรงไม่น่าเชื่อถือ
+บี๊บ 100 ms เว้น 160 ms แทนการบอกความแรงเก่า การกวาดผ่านช่วงสั้นและข้อมูล
+ที่เป็นศูนย์ยังใช้พฤติกรรมเดิม ดู [ไฟล์และผลทดสอบ PN 1.12](docs/TONE-OVERLOAD-PN1.12-PN2.14-2026-09-20.md)
+
+ตัวเลขการทดสอบซอฟต์แวร์มาจาก ADC จำลองที่ป้อนเข้าโค้ด ARM จริง ไม่ใช่ผลวัดระยะ
+เจ้าของรายงานว่า Digital/Analog รับได้ทั้งคู่ กวาดสายแม่นขึ้น และฟังก์ชันอื่นที่ทดลองก็ผ่าน
+แต่ผลติดตามพบว่า Digital ยังดังต่อประมาณ 1 วินาทีหลังย้ายโพรบออกหรือกด Pause ที่ TX
+ส่วน Analog ไม่มีอาการหน่วงนี้ ปัญหาเวลาหยุดเสียง Digital ยังอยู่ระหว่างตรวจสอบ
+เป็นผลตอบรับเชิงคุณภาพ
+โดยยังไม่มี Fluke สำหรับเทียบ
+ดู [ผลตรวจเดิม](docs/TONE-PERFORMANCE-AUDIT-2026-09-20.md),
+[การปรับปรุงและไฟล์ RX PN 1.11](docs/TONE-TRACKING-PN1.11-PN2.14-2026-09-20.md)
+และ [วิธีทดสอบเปรียบเทียบ](docs/TONE-PROBE-COMPARISON-PROTOCOL.md)
 
 ## Thai user interface (PN 2.0)
 

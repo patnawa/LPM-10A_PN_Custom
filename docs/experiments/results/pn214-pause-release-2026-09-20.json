@@ -1,0 +1,45 @@
+{
+  "sha256": "a7402de6f18e39df55bbe53f5641efd5135f0de4d81f9407515cf9d8710c5527",
+  "passed": true,
+  "cases": 812,
+  "scope": "ARM Pause handler, GPIO registers, and 32 subsequent TIM2 IRQs per phase",
+  "limits": "RTOS services are stubbed; instruction counts are not elapsed time. No jack waveform or analogue decay measurement.",
+  "results": [
+    {
+      "mode": 1,
+      "phases": 800,
+      "initial_pin_states": [
+        [
+          3,
+          3
+        ],
+        [
+          11,
+          11
+        ]
+      ],
+      "pause_instructions_range": [
+        369,
+        369
+      ]
+    },
+    {
+      "mode": 2,
+      "phases": 12,
+      "initial_pin_states": [
+        [
+          3,
+          3
+        ],
+        [
+          11,
+          11
+        ]
+      ],
+      "pause_instructions_range": [
+        369,
+        369
+      ]
+    }
+  ]
+}

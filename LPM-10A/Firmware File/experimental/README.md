@@ -1,6 +1,101 @@
 # Experimental builds
 
-**RX PN 1.8 pinpoint prerelease:** replaces PN 1.7's five broad digital
+**2026-09-20 archival prerelease:** these candidates and their research are
+preserved in the [development snapshot](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/tone-snapshot-2026-09-20).
+The owner is retaining the working device setup. RX update acceptance remains
+unresolved; live SRAM is incompatible with normal execution of the stored
+PN 1.13 image. Earlier RX version names below describe selected files and owner
+reports, not authenticated installed firmware. PN 1.13 and the lamp marker are
+research artifacts, not a confirmed Digital-tail fix or a recommended update.
+See [current status](../../../docs/releases/TONE-SNAPSHOT-2026-09-20.md).
+
+**Latest RX PN 1.13 audio-clock test candidate:** moves the shared pulse and
+quiet-gap countdown to the speaker timer. Detection and strength logic remain
+PN 1.12. The owner tried PN 1.13 and reports the symptom is unchanged; the
+physical issue remains unresolved. Retained test artifact:
+[RX PN 1.13](APP_LPM-10RX_PN1.13-audio-clock.bin) and keep the same
+[TX PN 2.14](LPM-10A-TX_PN2.14-tone-recovery.bin). See
+[device notes](TONE-AUDIO-CLOCK-PN1.13-PN2.14-README.txt),
+[checksums](TONE-AUDIO-CLOCK-SHA256SUMS.txt), and
+[verification](../../../docs/TONE-AUDIO-CLOCK-PN1.13-PN2.14-2026-09-20.md).
+
+The subsequent clip shows repeated roughly 50 ms pulses after TX Digital →
+Analog, rather than a continuous one-second pulse. See the
+[video diagnosis and unchanged filename-check result](../../../docs/TONE-CLIP-DIAGNOSIS-2026-09-20.md).
+A separate [startup lamp identity diagnostic](../../../docs/RX-IDENTITY-MARKER-PN1.13-2026-09-20.md)
+changes one byte of PN 1.13 to identify update uptake. It is not a tail fix or
+a replacement normal release.
+
+**Preserved RX PN 1.12 local candidate:** includes PN 1.11 tracking and replaces
+old normal strength with uncertainty when the newest Digital tail is fully at
+the ADC upper rail. Lower-zero and brief-contact behavior remain unchanged.
+Download [RX PN 1.12](APP_LPM-10RX_PN1.12-overload.bin), paired with the same
+[TX PN 2.14](LPM-10A-TX_PN2.14-tone-recovery.bin); see
+[device notes](TONE-OVERLOAD-PN1.12-PN2.14-README.txt),
+[checksums](TONE-OVERLOAD-SHA256SUMS.txt) and
+[verification](../../../docs/TONE-OVERLOAD-PN1.12-PN2.14-2026-09-20.md).
+Software tested. With owner-reported RX PN 1.12 / TX PN 2.14 files, both modes receive
+and sweeping is more accurate. Later feedback reports an open Digital release
+issue: sound continues about one second after moving away or pressing TX Pause.
+Analog has no such delay.
+See [owner feedback](../../../docs/TONE-DEVICE-FEEDBACK-2026-09-20.md).
+No comparator result is available.
+
+**RX PN 1.11 local tracking candidate:** robust Digital acquisition with the
+established fallback, overlapping updates and recent strength; finer short
+Analog feedback and exact integer DFT. Use with the two established TX modes.
+Download [RX PN 1.11](APP_LPM-10RX_PN1.11-tracking.bin); see
+[paired device notes](TONE-TRACKING-PN1.11-PN2.14-README.txt),
+[checksums](TONE-TRACKING-SHA256SUMS.txt), and
+[verification and remaining limits](../../../docs/TONE-TRACKING-PN1.11-PN2.14-2026-09-20.md).
+This RX candidate awaits device testing. No Fluke comparison is available.
+
+**TX PN 2.14 local two-mode candidate:** removes Sync32 and Pulse test from the
+menu at the owner's request after Sync32 was silent with RX PN 1.10 digital
+mode. Keeps `Digital 454 kHz` / `Analog 825 Hz`, using the unchanged PN 2.12
+waveforms, and repairs the RIGHT-key carrier-cache invalidation. Download
+[TX PN 2.14](LPM-10A-TX_PN2.14-tone-recovery.bin); see
+[device notes](TONE-RECOVERY-PN2.14-README.txt),
+[checksum](TONE-RECOVERY-SHA256SUMS.txt), and
+[verification report](../../../docs/TONE-RECOVERY-PN2.14-2026-09-20.md).
+The [detailed performance audit](../../../docs/TONE-PERFORMANCE-AUDIT-2026-09-20.md)
+documents the prior RX limits. The separate RX PN 1.11 candidate above addresses
+several of them; a TX-only update does not change the receiver algorithm.
+The owner's current RX remains usable with these two modes. This TX image
+has owner feedback linked above; the installed RX version is unconfirmed.
+The filename does not denote a bootloader recovery image.
+
+**Historical TX PN 2.13 / RX PN 1.10 Sync32 trial — reported failure:** the owner
+reports Sync32 silent while Digital/Analog work, despite RX PN 1.10 digital mode.
+Pulse test is for an oscilloscope and is expected to be rejected by the probe.
+PN 2.14 removes both menu options. The following files preserve the trial;
+they are not a recommended Sync32 upgrade. The trial added optional Sync32 tracing
+and a TX Pulse test mode while retaining existing Digital and analog waveforms.
+The tone labels are `Digital 454 kHz`, `Analog 825 Hz`, `Sync32 454 kHz` and
+`Pulse test`. Digital/Sync32 show carrier frequency; Analog shows tone rate.
+Download [TX PN 2.13](LPM-10A-TX_PN2.13-sync.bin) and
+[RX PN 1.10](APP_LPM-10RX_PN1.10-sync.bin); see
+[device notes](SCAN-SYNC-PN2.13-PN1.10-README.txt),
+[checksums](SCAN-SYNC-SHA256SUMS.txt), and the
+[paired report](../../../docs/SCAN-SYNC-PN2.13-PN1.10-2026-09-20.md).
+Sync32 is more sensitive to clock mismatch in the model. The owner has now
+tested this pair on hardware and reports the failure above; it is not published.
+
+**RX PN 1.9 robust local experimental candidate:** uses medians grouped by the
+expected digital code to improve cable-strength ranking in synthetic impulse
+tests. Existing digital detection and sampling remain unchanged. A valid code
+with an upper-rail-dominated or inseparable strength estimate gives distinct
+100 ms pulses with 160 ms quiet gaps; normal feedback retains 30 ms pulses.
+Build `python build.py --robust --write` and run
+`python -m unittest test_rx_robust test_robust_profile -v` in `rx-sdk`.
+The local candidate is [APP_LPM-10RX_PN1.9-robust.bin](APP_LPM-10RX_PN1.9-robust.bin);
+see [device notes](RX-PN1.9-ROBUST-README.txt),
+[checksum](RX-ROBUST-SHA256SUMS.txt), and
+[implementation report](../../../docs/RX-ROBUST-PN1.9-2026-09-20.md).
+It has not been published or flashed; hardware validation is pending.
+PN 1.8 remains the current owner-tested experimental prerelease.
+
+**Current owner-tested RX PN 1.8 pinpoint prerelease:** replaces PN 1.7's five broad digital
 grades with an interpolated beep interval across a wider strength range.
 Build `python build.py --pinpoint --write` and run
 `python -m unittest test_rx_pinpoint -v` in `rx-sdk`.

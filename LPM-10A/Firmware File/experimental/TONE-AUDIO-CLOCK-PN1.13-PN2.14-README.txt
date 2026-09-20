@@ -1,0 +1,43 @@
+LPM-10A RX PN 1.13 audio-clock test candidate - 2026-09-20
+
+ARCHIVAL PRERELEASE: retain the currently working RX. Later live SWD evidence
+does not match normal execution of this image; installation is unconfirmed.
+The Digital tail remains unresolved. This file is retained for research,
+not as a recommended update or a verified fix.
+
+RX probe: APP_LPM-10RX_PN1.13-audio-clock.bin
+TX main unit: keep LPM-10A-TX_PN2.14-tone-recovery.bin
+Checksums: TONE-AUDIO-CLOCK-SHA256SUMS.txt
+
+Purpose: investigate the owner's approximately one-second continuous Digital
+sound after moving away or pressing TX Pause, also reported for RX key feedback.
+The physical cause is not yet established. PN 1.13 is a test candidate, not a
+confirmed fix for the owner's hardware. The owner has tried PN 1.13 and reports
+the symptom is unchanged. This candidate has NOT resolved the device issue.
+
+Later video evidence shows a train of roughly 50 ms pulses continuing for
+0.8-1.0 seconds after TX Digital-to-Analog selection changes. The clip does
+not establish the earlier Pause/RX-key test. Installed-image identity remains
+unverified. See docs/TONE-CLIP-DIAGNOSIS-2026-09-20.md for measurements and the
+byte-identical PN1.13 copy using the stock basename, also reported unchanged. That copy is
+still PN1.13, not stock firmware; RX filename acceptance is not established.
+
+The shared BEEP and quiet-gap countdowns now run from TIM5, the timer already
+driving the speaker. TIM1 no longer decrements these two counters. Delayed TIM1
+delivery therefore cannot stretch an active pulse while TIM5 keeps running.
+One audio tick is nominally 1.000625 ms; normal tones are approximately 30 ms
+and uncertainty/key-confirmation tones approximately 100 ms.
+
+Digital detection, Analog detection, ADC sampling, sensitivity and strength
+mapping retain PN 1.12 behavior. This audio change affects all receiver modes
+and confirmation tones. RECENT, battery monitoring, key scanning and auto-off
+remain on TIM1. No new RAM or gain/drive adjustment is introduced.
+
+The earlier proposed device check covered Digital pause/move-away, RX key
+feedback, Analog release and ordinary sweeping. Further RX update trials are
+deferred until image compatibility and update acceptance can be verified.
+PN 1.12 remains archived for comparison, not as a proven rollback image.
+
+See docs/TONE-AUDIO-CLOCK-PN1.13-PN2.14-2026-09-20.md for software verification
+and limits. Software timing uses modeled timer delivery, not measured hardware
+latency or physical comparison with Fluke.

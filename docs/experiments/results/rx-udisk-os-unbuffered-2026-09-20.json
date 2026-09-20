@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-09-20T22:32:51.455490+07:00",
+  "method": "CreateFileW GENERIC_READ only, FILE_FLAG_NO_BUFFERING, page-aligned VirtualAlloc buffer; no device writes",
+  "reads": [
+    {
+      "label": "boot",
+      "offset": 0,
+      "length": 2048,
+      "path": "C:\\Users\\Alpha\\Desktop\\LPM-10RX-SWD-2026-09-20\\udisk-boot-os-unbuffered.bin",
+      "sha256": "28a86f2023b8eacdb7120b3d8693654309c3f173704392f8336f7a7f0ceca118",
+      "nonzero_bytes": 46
+    },
+    {
+      "label": "root",
+      "offset": 57344,
+      "length": 16384,
+      "path": "C:\\Users\\Alpha\\Desktop\\LPM-10RX-SWD-2026-09-20\\udisk-root-os-unbuffered.bin",
+      "sha256": "52d7bc9c38e7c1095674e74ad9287f946231b6de0629593ee079566155490f81",
+      "nonzero_bytes": 39,
+      "first_96_hex": "554e4b4f574e202054585420004b9c429238923800009d429238000000000000424f4f544c4f414445522008000000000000000000009d4292380000000000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "label": "data",
+      "offset": 73728,
+      "length": 16384,
+      "path": "C:\\Users\\Alpha\\Desktop\\LPM-10RX-SWD-2026-09-20\\udisk-data-os-unbuffered.bin",
+      "sha256": "4fe7b59af6de3b665b67788cc2f99892ab827efae3a467342b3bb4e3bc8e5bfe",
+      "nonzero_bytes": 0
+    }
+  ]
+}

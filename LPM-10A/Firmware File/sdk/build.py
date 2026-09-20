@@ -8,6 +8,8 @@ LPM-10A firmware build tool.
     python build.py --portflash --write    emit the PN 2.10 Port FLASH candidate
     python build.py --audit --write        emit the PN 2.11 full TX audit candidate
     python build.py --portflash-status --write  emit the PN 2.12 PHY-status candidate
+    python build.py --scan-sync --write    emit the PN 2.13 paired tracing candidate
+    python build.py --scan-recovery --write  emit PN 2.14 with the two established tone modes
     python build.py --with blind-zone-50cm --out ../experimental/x.bin --write
     python build.py --only a,b --write     build a specific set
     python build.py --all --write          include patches marked untested
@@ -35,6 +37,8 @@ ROADMAP_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.9-roadmap.bin
 PORTFLASH_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.10-portflash.bin")
 AUDIT_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.11-audit.bin")
 PORTFLASH_STATUS_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.12-portflash-status.bin")
+SCAN_SYNC_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.13-sync.bin")
+SCAN_RECOVERY_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.14-tone-recovery.bin")
 
 
 def disasm_region(data, payload_off, addr, n):
@@ -56,10 +60,16 @@ def main():
     ap.add_argument("--portflash", action="store_true", help="PN 2.10 Port FLASH candidate, including all roadmap features")
     ap.add_argument("--audit", action="store_true", help="PN 2.11 candidate: Port FLASH, battery monitoring and all settings-save paths")
     ap.add_argument("--portflash-status", action="store_true", help="PN 2.12 candidate: PN 2.11 plus direct PHY link status for FLASH")
+    ap.add_argument("--scan-sync", action="store_true", help="PN 2.13 candidate: PN 2.12 plus optional Sync32 and diagnostic pulse modes")
+    ap.add_argument("--scan-recovery", action="store_true", help="PN 2.14 candidate: PN 2.12 with frequency labels and only the two established tone modes")
     ap.add_argument("--only", help="comma-separated patch ids")
     ap.add_argument("--with", dest="extra", help="comma-separated non-default patch ids to add to the default set")
     ap.add_argument("--out")
     args = ap.parse_args()
+    if args.scan_recovery and (args.scan_sync or args.portflash_status or args.audit or args.portflash or args.roadmap or args.all or args.only is not None or args.extra is not None):
+        ap.error("--scan-recovery is a fixed profile; do not combine it with other profile/patch selectors")
+    if args.scan_sync and (args.portflash_status or args.audit or args.portflash or args.roadmap or args.all or args.only is not None or args.extra is not None):
+        ap.error("--scan-sync is a fixed profile; do not combine it with other profile/patch selectors")
     if args.portflash_status and (args.audit or args.portflash or args.roadmap or args.all or args.only is not None or args.extra is not None):
         ap.error("--portflash-status is a fixed profile; do not combine it with other profile/patch selectors")
     if args.audit and (args.portflash or args.roadmap or args.all or args.only is not None or args.extra is not None):
@@ -70,7 +80,8 @@ def main():
         ap.error("--roadmap is a fixed profile; do not combine it with --all, --only or --with")
     if args.only is not None and (args.all or args.extra is not None or args.roadmap):
         ap.error("--only cannot be combined with --all, --with or --roadmap")
-    args.out = args.out or (PORTFLASH_STATUS_OUT if args.portflash_status else AUDIT_OUT if args.audit else PORTFLASH_OUT if args.portflash else ROADMAP_OUT if args.roadmap else OUT)
+    explicit_out = args.out is not None
+    args.out = args.out or (SCAN_RECOVERY_OUT if args.scan_recovery else SCAN_SYNC_OUT if args.scan_sync else PORTFLASH_STATUS_OUT if args.portflash_status else AUDIT_OUT if args.audit else PORTFLASH_OUT if args.portflash else ROADMAP_OUT if args.roadmap else OUT)
 
     if args.list:
         print(f"{'id':22} {'risk':9} {'group':8} {'default':8} title (required patches)")
@@ -91,17 +102,23 @@ def main():
             return 2
     else:
         extra = {x.strip() for x in args.extra.split(",")} if args.extra else set()
-        if args.roadmap or args.portflash or args.audit or args.portflash_status:
+        if args.roadmap or args.portflash or args.audit or args.portflash_status or args.scan_sync or args.scan_recovery:
             from roadmap import PATCHES
             extra.update(PATCHES)
-        if args.portflash or args.audit or args.portflash_status:
+        if args.portflash or args.audit or args.portflash_status or args.scan_sync or args.scan_recovery:
             from portflash import PATCH_ID
             extra.add(PATCH_ID)
-        if args.audit or args.portflash_status:
+        if args.audit or args.portflash_status or args.scan_sync or args.scan_recovery:
             from audit_fixes import PATCHES
             extra.update(PATCHES)
-        if args.portflash_status:
+        if args.portflash_status or args.scan_sync or args.scan_recovery:
             from portflash_status import PATCH_ID
+            extra.add(PATCH_ID)
+        if args.scan_sync:
+            from scan_sync import PATCH_ID
+            extra.add(PATCH_ID)
+        if args.scan_recovery:
+            from scan_recovery import PATCH_ID
             extra.add(PATCH_ID)
         missing = extra - {p.pid for p in patches.REGISTRY}
         if missing:
@@ -110,6 +127,12 @@ def main():
         sel = [p for p in patches.REGISTRY if p.default or args.all or p.pid in extra]
 
     selected = {p.pid for p in sel}
+    if 'scan-sync' in selected and not args.scan_sync and not explicit_out:
+        ap.error("custom scan-sync selections require --out; use --scan-sync for PN 2.13")
+    if 'scan-recovery' in selected and not args.scan_recovery and not explicit_out:
+        ap.error("custom scan-recovery selections require --out; use --scan-recovery for PN 2.14")
+    if {'scan-sync', 'scan-recovery'} <= selected:
+        ap.error("scan-sync and scan-recovery are alternative profiles; select only one")
     for p in sel:
         missing = set(p.requires) - selected
         if missing:

@@ -1,0 +1,35 @@
+{
+  "started_at": "2026-09-20T22:38:19.703360+07:00",
+  "device": {
+    "DeviceID": "\\\\.\\PHYSICALDRIVE1",
+    "Model": "NATIONS SD Flash Disk USB Device",
+    "PNPDeviceID": "USBSTOR\\DISK&VEN_NATIONS&PROD_SD_FLASH_DISK&REV_1.0\\N32L40X&0"
+  },
+  "method": "SCSI DATA_IN: READ CAPACITY(10), then READ(10) across reported 100 MiB",
+  "device_data_writes": false,
+  "complete": true,
+  "bytes_read": 104857600,
+  "nonzero_bytes": 93,
+  "nonzero_chunks": [
+    {
+      "lba": 0,
+      "blocks": 8,
+      "path": "C:\\Users\\Alpha\\Desktop\\LPM-10RX-SWD-2026-09-20\\udisk-read-scan-20260920-223819\\lba-00000-blocks-8.bin",
+      "nonzero_bytes": 50,
+      "sha256": "e6f13b84cfef9cb7f6dfcabb0d48717d39b9ca47f782f814297f85a714839537"
+    },
+    {
+      "lba": 24,
+      "blocks": 8,
+      "path": "C:\\Users\\Alpha\\Desktop\\LPM-10RX-SWD-2026-09-20\\udisk-read-scan-20260920-223819\\lba-00024-blocks-8.bin",
+      "nonzero_bytes": 43,
+      "sha256": "1b64c37198d6b8b800bd1a559a1823d22dbb7331c96dc6384cf57aa4494126e4"
+    }
+  ],
+  "output_directory": "C:\\Users\\Alpha\\Desktop\\LPM-10RX-SWD-2026-09-20\\udisk-read-scan-20260920-223819",
+  "last_lba": 51199,
+  "bytes_per_sector": 2048,
+  "sha256_complete_stream": "1194d1e3b2f9994d2056a68523c3092beb38348e22dbb3a36375cbd63a5f9d2d",
+  "elapsed_s": 127.9915966999979,
+  "completed_at": "2026-09-20T22:40:27.726685+07:00"
+}

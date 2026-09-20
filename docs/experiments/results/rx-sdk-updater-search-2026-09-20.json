@@ -1,0 +1,67 @@
+{
+  "date": "2026-09-20",
+  "hardware_commands": false,
+  "archives": [
+    {
+      "label": "n32l40x-sdk",
+      "url": "https://nsing.com.sg/api/dowfilebefore?did=4971",
+      "bytes": 5654526,
+      "sha256": "1d43fb9c88458a08c666c4d768c2b04d4600743e420183649bf30accaade517b",
+      "member_count": 3310,
+      "relevant_members": [
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/EWARM/Mass_Stroage_DataFlash.ewd",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/EWARM/Mass_Stroage_DataFlash.ewp",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/EWARM/Mass_Stroage_DataFlash.eww",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/inc/disk_image.h",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/inc/hw_config.h",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/inc/main.h",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/inc/mass_mal.h",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/inc/memory.h",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/inc/n32l40x_it.h",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/inc/usb_bot.h",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/inc/usb_conf.h",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/inc/usb_desc.h",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/inc/usb_istr.h",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/inc/usb_prop.h",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/inc/usb_pwr.h",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/inc/usb_scsi.h",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/MDK-ARM/Mass_Stroage_DataFlash.uvoptx",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/MDK-ARM/Mass_Stroage_DataFlash.uvprojx",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/readme.txt",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/src/hw_config.c",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/src/main.c",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/src/mass_mal.c",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/src/memory.c",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/src/n32l40x_it.c",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/src/scsi_data.c",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/src/usb_bot.c",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/src/usb_desc.c",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/src/usb_endp.c",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/src/usb_istr.c",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/src/usb_prop.c",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/src/usb_pwr.c",
+        "Nations.N32L40x_Library.2.3.0/projects/n32l40x_EVAL/examples/USB/Mass_Stroage_DataFlash/src/usb_scsi.c"
+      ]
+    },
+    {
+      "label": "n32l40x-iap",
+      "url": "https://nsing.com.sg/api/dowfilebefore?did=4985",
+      "bytes": 2363183,
+      "sha256": "aed6d999a1128c856229788a177e9a2b97611b297f136369464ba330df31044d",
+      "member_count": 6,
+      "relevant_members": [
+        "AN_N32G43x_N32L43x_N32L40x_Series_two-level_BOOT_Application_Note_V1.0/CN_AN_Two-level_BOOT_scheme_based_on_CAN_interface_V1.0.pdf",
+        "AN_N32G43x_N32L43x_N32L40x_Series_two-level_BOOT_Application_Note_V1.0/CN_Two-level_BOOT_scheme_based_on_CAN_interface_V1.0_Test_Report.xlsx",
+        "AN_N32G43x_N32L43x_N32L40x_Series_two-level_BOOT_Application_Note_V1.0/EN_AN_Two-level_BOOT_scheme_based_on_CAN_interface_V1.0.pdf",
+        "AN_N32G43x_N32L43x_N32L40x_Series_two-level_BOOT_Application_Note_V1.0/EN_Two-level_BOOT_scheme_based_on_CAN_interface_V1.0_Test_Report.xlsx",
+        "AN_N32G43x_N32L43x_N32L40x_Series_two-level_BOOT_Application_Note_V1.0/Nations.N32G43x_Library.1.2.0.zip"
+      ]
+    }
+  ],
+  "findings": [
+    "SDK USB Mass_Stroage_DataFlash is a general internal-flash block-storage demonstration; not a recovered FNIRSI bootloader.",
+    "The official two-level BOOT archive targets a CAN-interface update scheme.",
+    "Neither package establishes RX filename validation or firmware acceptance."
+  ],
+  "scope": "Source inspection only. No SDK examples, binaries, programming tools, or hardware commands executed. No firmware or option-byte modifications."
+}

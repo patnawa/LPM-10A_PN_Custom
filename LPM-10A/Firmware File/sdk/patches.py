@@ -1996,3 +1996,9 @@ _register_audit(patch)
 
 from portflash_status import register as _register_portflash_status
 _register_portflash_status(patch)
+
+from scan_sync import register as _register_scan_sync
+_register_scan_sync(patch)
+
+from scan_recovery import register as _register_scan_recovery
+_register_scan_recovery(patch)

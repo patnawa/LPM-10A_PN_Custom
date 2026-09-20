@@ -1,0 +1,16 @@
+stock image : C:\Users\Alpha\Documents\GitHub\LPM-10A_FNIRSI_originals\APP_LPM-10RX_V3.0.0_260416.bin
+stock image : C:\Users\Alpha\Documents\GitHub\LPM-10A_FNIRSI_originals\APP_LPM-10RX_V3.0.0_260416.bin
+test_known_isolated_noise_window_can_also_produce_one_short_indication (test_rx_analog_transients.AnalogTransients.test_known_isolated_noise_window_can_also_produce_one_short_indication) ... ok
+test_weak_single_window_visit_is_detected_then_releases_without_repeating (test_rx_analog_transients.AnalogTransients.test_weak_single_window_visit_is_detected_then_releases_without_repeating) ... ok
+test_analysis_snapshot_and_all_dsp_stages_survive_next_window_completion (test_rx_tracking_streams.TrackingStreams.test_analysis_snapshot_and_all_dsp_stages_survive_next_window_completion) ... ok
+test_every_executed_dsp_instruction_boundary_preserves_snapshot_and_retention (test_rx_tracking_streams.TrackingStreams.test_every_executed_dsp_instruction_boundary_preserves_snapshot_and_retention) ... ok
+test_long_full_grid_streams_follow_raw_read_oracle_through_motion_and_dropout (test_rx_tracking_streams.TrackingStreams.test_long_full_grid_streams_follow_raw_read_oracle_through_motion_and_dropout) ... ok
+test_real_gate_and_key_events_discard_preempted_retention_then_take_full48 (test_rx_tracking_streams.TrackingStreams.test_real_gate_and_key_events_discard_preempted_retention_then_take_full48) ... ok
+stock image : C:\Users\Alpha\Documents\GitHub\LPM-10A_FNIRSI_originals\APP_LPM-10RX_V3.0.0_260416.bin
+test_exact_fallback_can_use_older_span_instead_of_newest_sixteen (test_rx_tracking_fragments.TrackingFragments.test_exact_fallback_can_use_older_span_instead_of_newest_sixteen) ... ok
+test_fragment_matrix_phase_fallback_bounds_and_estimator_arithmetic (test_rx_tracking_fragments.TrackingFragments.test_fragment_matrix_phase_fallback_bounds_and_estimator_arithmetic) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 40.300s
+
+OK

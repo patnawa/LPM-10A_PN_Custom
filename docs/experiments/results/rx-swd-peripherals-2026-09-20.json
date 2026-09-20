@@ -1,0 +1,106 @@
+{
+  "timestamp": "2026-09-20T22:11:37.371552+07:00",
+  "method": "Single-word live register reads; no target-memory writes/reset/halt; register map N32L40x manual",
+  "reads": {
+    "RCC_CTRL": {
+      "address": "0x40021000",
+      "value": "0x03006943"
+    },
+    "RCC_CFG": {
+      "address": "0x40021004",
+      "value": "0x0008240F"
+    },
+    "RCC_APB2EN": {
+      "address": "0x40021018",
+      "value": "0x0000283D"
+    },
+    "RCC_APB1EN": {
+      "address": "0x4002101C",
+      "value": "0x10000108"
+    },
+    "RCC_CTRLSTS": {
+      "address": "0x40021024",
+      "value": "0x0C0025EC"
+    },
+    "RCC_CFG2": {
+      "address": "0x4002102C",
+      "value": "0x00001000"
+    },
+    "RCC_PLLHSIPRE": {
+      "address": "0x40021040",
+      "value": "0x00000000"
+    },
+    "GPIOB_PID": {
+      "address": "0x40010C10",
+      "value": "0x00008016"
+    },
+    "GPIOB_POD": {
+      "address": "0x40010C14",
+      "value": "0x00008016"
+    },
+    "GPIOC_PID": {
+      "address": "0x40011010",
+      "value": "0x0000A000"
+    },
+    "GPIOD_PID": {
+      "address": "0x40011410",
+      "value": "0x0000C000"
+    },
+    "TIM1_CTRL1": {
+      "address": "0x40012C00",
+      "value": "0x00000000"
+    },
+    "TIM1_DINTEN": {
+      "address": "0x40012C0C",
+      "value": "0x00000000"
+    },
+    "TIM1_STS": {
+      "address": "0x40012C10",
+      "value": "0x00000000"
+    },
+    "TIM1_CNT": {
+      "address": "0x40012C24",
+      "value": "0x00000000"
+    },
+    "TIM1_PSC": {
+      "address": "0x40012C28",
+      "value": "0x00000000"
+    },
+    "TIM1_AR": {
+      "address": "0x40012C2C",
+      "value": "0x0000FFFF"
+    },
+    "TIM5_CTRL1": {
+      "address": "0x40000C00",
+      "value": "0x00000000"
+    },
+    "TIM5_DINTEN": {
+      "address": "0x40000C0C",
+      "value": "0x00000000"
+    },
+    "TIM5_STS": {
+      "address": "0x40000C10",
+      "value": "0x00000000"
+    },
+    "TIM5_CNT": {
+      "address": "0x40000C24",
+      "value": "0x00000000"
+    },
+    "TIM5_PSC": {
+      "address": "0x40000C28",
+      "value": "0x00000000"
+    },
+    "TIM5_AR": {
+      "address": "0x40000C2C",
+      "value": "0x0000FFFF"
+    },
+    "TIM1_REPCNT": {
+      "address": "0x40012C30",
+      "value": "0x00000000"
+    },
+    "TIM5_CCDAT4": {
+      "address": "0x40000C40",
+      "value": "0x00000000"
+    }
+  }
+}

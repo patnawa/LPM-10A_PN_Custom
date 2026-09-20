@@ -1,0 +1,48 @@
+ARCHIVED EXPERIMENT - 2026-09-20
+The owner is keeping the currently working RX. Live SWD observations do
+not match the stored RX image layout, and installed RX firmware is unknown.
+The Digital audio tail is unresolved. Instructions and version-based
+device reports below are historical; this snapshot does not recommend
+another RX update. See docs/releases/TONE-SNAPSHOT-2026-09-20.md.
+
+LPM-10A optional paired tracing candidates - 2026-09-20
+
+STATUS UPDATE: owner reports Sync32 silent with RX PN 1.10 digital mode while
+Digital/Analog work. Pulse test is expected to be rejected by the probe.
+Both new modes are removed from the PN 2.14 menu at the owner's request.
+These files preserve the failed trial for investigation; use the PN 2.14
+two-mode candidate for the requested menu. Physical Sync32 cause unconfirmed.
+
+TX / main unit: LPM-10A-TX_PN2.13-sync.bin
+RX / probe: APP_LPM-10RX_PN1.10-sync.bin
+Checksums: SCAN-SYNC-SHA256SUMS.txt
+
+Local experimental builds. CPU and synthetic-link tests passed, followed by
+the owner-reported hardware failure above. These images are not published.
+The published PN 2.12 TX and owner-tested PN 1.8 RX remain unchanged.
+
+TX SCAN mode key cycles:
+1. Digital 454 kHz - existing B6 digital waveform; earlier RX compatible.
+2. Analog 825 Hz - existing analog tone; use RX analog mode.
+3. Sync32 454 kHz - new longer code; requires RX PN 1.10 digital mode.
+4. Pulse test - diagnostic carrier, nominal 99.99 ms ON / 399.96 ms OFF.
+
+Digital/Sync32 labels show carrier frequency. Analog shows tone modulation
+frequency; it also uses the same approximately 454 kHz carrier. Values are
+rounded nominal settings, not measurements. Technical labels are shared by
+English and Thai UI modes. Carrier hardware and output power are unchanged.
+
+RX PN 1.10 automatically recognizes both digital codes in its existing
+digital mode. It includes PN 1.9 robust median-based strength feedback.
+TX starts in original Digital mode. Back pauses; a second Back exits.
+Pulse test is for envelope/settling measurements, not cable identification.
+
+Sync32 improves some modeled noisy conditions but is more sensitive to
+clock mismatch and has narrow clean sampling blind spots. Keep Digital
+available; select it if Sync32 is intermittent. No physical range or bundle
+selectivity improvement, or superiority to Fluke, has been measured.
+
+Build in sdk: python build.py --scan-sync --write
+Build in rx-sdk: python build.py --sync --write
+Detailed implementation, tests, limitations and hardware comparison plan:
+docs/SCAN-SYNC-PN2.13-PN1.10-2026-09-20.md in the repository root.

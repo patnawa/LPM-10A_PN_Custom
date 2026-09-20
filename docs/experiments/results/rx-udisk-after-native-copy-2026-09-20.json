@@ -1,0 +1,44 @@
+{
+  "observed_at": "2026-09-20T21:22:52.293684+07:00",
+  "stage": "after native file copy, before reboot",
+  "device_writes_in_this_inspection": 0,
+  "read_regions": {
+    "fat": {
+      "offset": 4096,
+      "length": 2048,
+      "sha256": "c0de997093b9089f9365f5a58f7cc333cf9110c0b31718b8b825a7dbc2ad388c",
+      "zero_bytes": 2044,
+      "ff_bytes": 3,
+      "first_64_hex": "f8ffffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "root": {
+      "offset": 57344,
+      "length": 2048,
+      "sha256": "cf674fadf723ddc983b8b788e8ac1014346549a284583813777f8c824d6a0dd5",
+      "zero_bytes": 2009,
+      "ff_bytes": 0,
+      "first_64_hex": "554e4b4f574e202054585420004b9c429238923800009d429238000000000000424f4f544c4f414445522008000000000000000000009d429238000000000000",
+      "entries": [
+        {
+          "raw_name": "UNKOWN  TXT",
+          "attributes": 32,
+          "size": 0
+        },
+        {
+          "raw_name": "BOOTLOADER ",
+          "attributes": 8,
+          "size": 0
+        }
+      ]
+    },
+    "first_data_clusters": {
+      "offset": 73728,
+      "length": 32768,
+      "sha256": "c35020473aed1b4642cd726cad727b63fff2824ad68cedd7ffb73c7cbd890479",
+      "zero_bytes": 32768,
+      "ff_bytes": 0,
+      "first_64_hex": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    }
+  },
+  "interpretation": "Raw volume reads are not MCU application-flash readback."
+}

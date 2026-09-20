@@ -1,0 +1,73 @@
+{
+  "purpose": "temporary identity diagnostic; no claim of fixing the Digital tail",
+  "tests": 6,
+  "passed": true,
+  "seconds": 0.147682,
+  "parent_sha256": "2cafd8a234a9b372a4d09c4969b28c8c35a45f05b72c57d2248d39f22cf7373b",
+  "candidate_sha256": "e68cbb7d2d3cea417fec0bd76bdcf11c7ddef84fc8f13711edc31171be6709ce",
+  "source_sha256": {
+    "identity_marker.py": "0ded3a41df9090e03b846d275a7c347a8fd86b4820db2bec3b570853c65b6e1d",
+    "test_identity_marker.py": "eb954aa168562550d4694f28a30d3840f1841367463fc9124e34f75b92ea1083"
+  },
+  "gpio_register_source": "https://www.nsing.com.sg/uploads/MCUProducts/N32L40x/Chip_Documentation/User_Manual/EN_UM_N32L40x_Series_User_Manual.pdf",
+  "model_limits": "One-byte identity marker guards and actual ARM GPIO/startup behavior.\n\nPeripheral model: plain registers with oscillator/PLL/clock ready flags, GPIO\ninputs high, and N32L40x PBSC/PBC writes reflected into POD. Delays, ADC bring-up,\nUID/license validation, boot-info/version checks are stubbed. No interrupt\narrivals are modeled. The reset, scatter-load, GPIO initialization, application\nstartup, lamp-key handler, GPIO helpers and power-off routine execute real ARM.\nThese tests establish code behavior, not physical lamp operation or USB uptake.\n",
+  "results": {
+    "boot": {
+      "parent_PA10_high": false,
+      "candidate_PA10_high": true,
+      "other_gpio_outputs_identical": true,
+      "app_globals_identical": true,
+      "parent_instructions": 87107,
+      "candidate_instructions": 87107,
+      "candidate_PA10_writes": [
+        {
+          "pc": "0x8007f54",
+          "register": "0x40010818",
+          "PA10_high": true
+        },
+        {
+          "pc": "0x8007f38",
+          "register": "0x40010828",
+          "PA10_high": false
+        },
+        {
+          "pc": "0x8007f38",
+          "register": "0x40010828",
+          "PA10_high": false
+        },
+        {
+          "pc": "0x8007f38",
+          "register": "0x40010828",
+          "PA10_high": false
+        },
+        {
+          "pc": "0x8008192",
+          "register": "0x40010818",
+          "PA10_high": true
+        }
+      ]
+    },
+    "key_and_shutdown": [
+      {
+        "image": "parent",
+        "startup_PA10_high": false,
+        "after_lamp_key_PA10_high": true,
+        "confirmation_ticks": 100,
+        "shutdown_PA10_high": false,
+        "shutdown_PB8_high": false
+      },
+      {
+        "image": "marker",
+        "startup_PA10_high": true,
+        "after_lamp_key_PA10_high": false,
+        "confirmation_ticks": 100,
+        "shutdown_PA10_high": false,
+        "shutdown_PB8_high": false
+      }
+    ],
+    "changed_addresses": [
+      "0x8007d56"
+    ]
+  },
+  "hardware_status": "Both authorized host transfer methods completed, but owner reports no startup lamp marker after either; manual lamp key works. Installed-image identity remains unverified."
+}

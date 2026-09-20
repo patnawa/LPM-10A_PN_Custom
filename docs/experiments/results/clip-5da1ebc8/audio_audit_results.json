@@ -1,0 +1,711 @@
+{
+  "source_path": "C:\\Users\\Alpha\\Desktop\\5da1ebc8-1c14-45a7-ae03-b1cc9fb00ba2.mp4",
+  "source_sha256": "c2f0006778004c8cc0f07197dbe5af3b6631460a7d2012dd2c2a41c246824925",
+  "source_bytes": 3770620,
+  "duration_s": 15.876667,
+  "audio_offset_video_s": 0.026,
+  "sample_rate_hz": 48000,
+  "channels": 2,
+  "decoded_samples": 760832,
+  "software": {
+    "python": "3.12.10",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1"
+  },
+  "analysis": {
+    "rms_bin_s": 0.002,
+    "filter": "zero-phase fourth-order Butterworth bandpass",
+    "group_threshold_rms": 0.001,
+    "group_close_gap_s": 0.03,
+    "pulse_threshold_rms": 0.005,
+    "pulse_close_gap_s": 0.014,
+    "chirp_threshold_rms": 0.0018,
+    "chirp_close_gap_s": 0.01
+  },
+  "dominant_main_hz": 2515.858,
+  "dominant_third_harmonic_hz": 7548.064,
+  "main_activity_groups": [
+    {
+      "start_s": 0.11,
+      "end_s": 2.382,
+      "duration_s": 2.272,
+      "dominant_hz": 2517.759
+    },
+    {
+      "start_s": 4.292,
+      "end_s": 9.262,
+      "duration_s": 4.97,
+      "dominant_hz": 2515.959
+    },
+    {
+      "start_s": 11.172,
+      "end_s": 15.468,
+      "duration_s": 4.296,
+      "dominant_hz": 2515.341
+    }
+  ],
+  "distinct_frequency_chirps": [
+    {
+      "start_s": 1.548,
+      "end_s": 1.654,
+      "duration_s": 0.106,
+      "dominant_hz": 2970.682
+    },
+    {
+      "start_s": 3.998,
+      "end_s": 4.102,
+      "duration_s": 0.104,
+      "dominant_hz": 2970.877
+    },
+    {
+      "start_s": 8.278,
+      "end_s": 8.382,
+      "duration_s": 0.104,
+      "dominant_hz": 2970.537
+    },
+    {
+      "start_s": 11.006,
+      "end_s": 11.112,
+      "duration_s": 0.106,
+      "dominant_hz": 2971.025
+    },
+    {
+      "start_s": 14.528,
+      "end_s": 14.632,
+      "duration_s": 0.104,
+      "dominant_hz": 2970.937
+    }
+  ],
+  "strong_envelope_intervals": [
+    {
+      "start_s": 0.126,
+      "end_s": 0.152,
+      "duration_s": 0.026
+    },
+    {
+      "start_s": 0.2,
+      "end_s": 0.312,
+      "duration_s": 0.112
+    },
+    {
+      "start_s": 0.338,
+      "end_s": 0.41,
+      "duration_s": 0.072
+    },
+    {
+      "start_s": 0.436,
+      "end_s": 0.65,
+      "duration_s": 0.214
+    },
+    {
+      "start_s": 0.674,
+      "end_s": 0.79,
+      "duration_s": 0.116
+    },
+    {
+      "start_s": 0.814,
+      "end_s": 0.888,
+      "duration_s": 0.074
+    },
+    {
+      "start_s": 0.912,
+      "end_s": 1.028,
+      "duration_s": 0.116
+    },
+    {
+      "start_s": 1.054,
+      "end_s": 1.128,
+      "duration_s": 0.074
+    },
+    {
+      "start_s": 1.152,
+      "end_s": 1.256,
+      "duration_s": 0.104
+    },
+    {
+      "start_s": 1.276,
+      "end_s": 1.368,
+      "duration_s": 0.092
+    },
+    {
+      "start_s": 1.39,
+      "end_s": 1.496,
+      "duration_s": 0.106
+    },
+    {
+      "start_s": 1.516,
+      "end_s": 1.604,
+      "duration_s": 0.088
+    },
+    {
+      "start_s": 1.62,
+      "end_s": 1.702,
+      "duration_s": 0.082
+    },
+    {
+      "start_s": 1.726,
+      "end_s": 1.898,
+      "duration_s": 0.172
+    },
+    {
+      "start_s": 1.924,
+      "end_s": 1.986,
+      "duration_s": 0.062
+    },
+    {
+      "start_s": 2.02,
+      "end_s": 2.096,
+      "duration_s": 0.076
+    },
+    {
+      "start_s": 2.12,
+      "end_s": 2.196,
+      "duration_s": 0.076
+    },
+    {
+      "start_s": 2.218,
+      "end_s": 2.292,
+      "duration_s": 0.074
+    },
+    {
+      "start_s": 4.294,
+      "end_s": 4.368,
+      "duration_s": 0.074
+    },
+    {
+      "start_s": 4.392,
+      "end_s": 4.466,
+      "duration_s": 0.074
+    },
+    {
+      "start_s": 4.49,
+      "end_s": 4.706,
+      "duration_s": 0.216
+    },
+    {
+      "start_s": 4.728,
+      "end_s": 4.846,
+      "duration_s": 0.118
+    },
+    {
+      "start_s": 4.868,
+      "end_s": 4.942,
+      "duration_s": 0.074
+    },
+    {
+      "start_s": 4.968,
+      "end_s": 5.084,
+      "duration_s": 0.116
+    },
+    {
+      "start_s": 5.108,
+      "end_s": 5.18,
+      "duration_s": 0.072
+    },
+    {
+      "start_s": 5.206,
+      "end_s": 5.326,
+      "duration_s": 0.12
+    },
+    {
+      "start_s": 5.346,
+      "end_s": 5.42,
+      "duration_s": 0.074
+    },
+    {
+      "start_s": 5.444,
+      "end_s": 5.564,
+      "duration_s": 0.12
+    },
+    {
+      "start_s": 5.584,
+      "end_s": 5.798,
+      "duration_s": 0.214
+    },
+    {
+      "start_s": 5.822,
+      "end_s": 5.896,
+      "duration_s": 0.074
+    },
+    {
+      "start_s": 5.922,
+      "end_s": 6.038,
+      "duration_s": 0.116
+    },
+    {
+      "start_s": 6.06,
+      "end_s": 6.136,
+      "duration_s": 0.076
+    },
+    {
+      "start_s": 6.158,
+      "end_s": 6.278,
+      "duration_s": 0.12
+    },
+    {
+      "start_s": 6.3,
+      "end_s": 6.374,
+      "duration_s": 0.074
+    },
+    {
+      "start_s": 6.398,
+      "end_s": 6.518,
+      "duration_s": 0.12
+    },
+    {
+      "start_s": 6.538,
+      "end_s": 6.612,
+      "duration_s": 0.074
+    },
+    {
+      "start_s": 6.636,
+      "end_s": 6.756,
+      "duration_s": 0.12
+    },
+    {
+      "start_s": 6.778,
+      "end_s": 6.854,
+      "duration_s": 0.076
+    },
+    {
+      "start_s": 6.876,
+      "end_s": 6.992,
+      "duration_s": 0.116
+    },
+    {
+      "start_s": 7.016,
+      "end_s": 7.09,
+      "duration_s": 0.074
+    },
+    {
+      "start_s": 7.114,
+      "end_s": 7.332,
+      "duration_s": 0.218
+    },
+    {
+      "start_s": 7.354,
+      "end_s": 7.472,
+      "duration_s": 0.118
+    },
+    {
+      "start_s": 7.492,
+      "end_s": 7.556,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 7.59,
+      "end_s": 7.696,
+      "duration_s": 0.106
+    },
+    {
+      "start_s": 7.732,
+      "end_s": 7.794,
+      "duration_s": 0.062
+    },
+    {
+      "start_s": 7.828,
+      "end_s": 7.934,
+      "duration_s": 0.106
+    },
+    {
+      "start_s": 7.972,
+      "end_s": 8.032,
+      "duration_s": 0.06
+    },
+    {
+      "start_s": 8.066,
+      "end_s": 8.174,
+      "duration_s": 0.108
+    },
+    {
+      "start_s": 8.208,
+      "end_s": 8.272,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 8.306,
+      "end_s": 8.412,
+      "duration_s": 0.106
+    },
+    {
+      "start_s": 8.446,
+      "end_s": 8.51,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 8.544,
+      "end_s": 8.61,
+      "duration_s": 0.066
+    },
+    {
+      "start_s": 8.642,
+      "end_s": 8.706,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 8.74,
+      "end_s": 8.804,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 8.842,
+      "end_s": 8.904,
+      "duration_s": 0.062
+    },
+    {
+      "start_s": 8.938,
+      "end_s": 9.002,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 9.036,
+      "end_s": 9.1,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 9.134,
+      "end_s": 9.198,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 11.212,
+      "end_s": 11.274,
+      "duration_s": 0.062
+    },
+    {
+      "start_s": 11.308,
+      "end_s": 11.372,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 11.406,
+      "end_s": 11.512,
+      "duration_s": 0.106
+    },
+    {
+      "start_s": 11.548,
+      "end_s": 11.612,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 11.644,
+      "end_s": 11.75,
+      "duration_s": 0.106
+    },
+    {
+      "start_s": 11.784,
+      "end_s": 11.85,
+      "duration_s": 0.066
+    },
+    {
+      "start_s": 11.882,
+      "end_s": 11.99,
+      "duration_s": 0.108
+    },
+    {
+      "start_s": 12.024,
+      "end_s": 12.088,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 12.12,
+      "end_s": 12.228,
+      "duration_s": 0.108
+    },
+    {
+      "start_s": 12.262,
+      "end_s": 12.326,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 12.358,
+      "end_s": 12.466,
+      "duration_s": 0.108
+    },
+    {
+      "start_s": 12.5,
+      "end_s": 12.572,
+      "duration_s": 0.072
+    },
+    {
+      "start_s": 12.598,
+      "end_s": 12.706,
+      "duration_s": 0.108
+    },
+    {
+      "start_s": 12.738,
+      "end_s": 12.802,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 12.838,
+      "end_s": 12.942,
+      "duration_s": 0.104
+    },
+    {
+      "start_s": 12.976,
+      "end_s": 13.042,
+      "duration_s": 0.066
+    },
+    {
+      "start_s": 13.078,
+      "end_s": 13.18,
+      "duration_s": 0.102
+    },
+    {
+      "start_s": 13.214,
+      "end_s": 13.28,
+      "duration_s": 0.066
+    },
+    {
+      "start_s": 13.312,
+      "end_s": 13.418,
+      "duration_s": 0.106
+    },
+    {
+      "start_s": 13.452,
+      "end_s": 13.518,
+      "duration_s": 0.066
+    },
+    {
+      "start_s": 13.55,
+      "end_s": 13.658,
+      "duration_s": 0.108
+    },
+    {
+      "start_s": 13.694,
+      "end_s": 13.756,
+      "duration_s": 0.062
+    },
+    {
+      "start_s": 13.792,
+      "end_s": 13.898,
+      "duration_s": 0.106
+    },
+    {
+      "start_s": 13.93,
+      "end_s": 13.996,
+      "duration_s": 0.066
+    },
+    {
+      "start_s": 14.032,
+      "end_s": 14.136,
+      "duration_s": 0.104
+    },
+    {
+      "start_s": 14.168,
+      "end_s": 14.234,
+      "duration_s": 0.066
+    },
+    {
+      "start_s": 14.27,
+      "end_s": 14.374,
+      "duration_s": 0.104
+    },
+    {
+      "start_s": 14.408,
+      "end_s": 14.472,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 14.506,
+      "end_s": 14.614,
+      "duration_s": 0.108
+    },
+    {
+      "start_s": 14.646,
+      "end_s": 14.71,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 14.744,
+      "end_s": 14.808,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 14.844,
+      "end_s": 14.908,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 14.942,
+      "end_s": 15.006,
+      "duration_s": 0.064
+    },
+    {
+      "start_s": 15.038,
+      "end_s": 15.104,
+      "duration_s": 0.066
+    },
+    {
+      "start_s": 15.136,
+      "end_s": 15.202,
+      "duration_s": 0.066
+    },
+    {
+      "start_s": 15.226,
+      "end_s": 15.3,
+      "duration_s": 0.074
+    },
+    {
+      "start_s": 15.334,
+      "end_s": 15.398,
+      "duration_s": 0.064
+    }
+  ],
+  "final_train_onset_intervals_s": [
+    0.098,
+    0.1,
+    0.098,
+    0.096,
+    0.098,
+    0.09,
+    0.108
+  ],
+  "final_train_median_onset_interval_s": 0.09799999999999898,
+  "manual_visual_alignment": {
+    "provenance": "Parent agent independently inspected MP4 frames and supplied transition brackets; audio analysis does not infer actions.",
+    "digital_to_analog_tails": [
+      {
+        "event": "TX selected mode Digital to Analog",
+        "visual_transition_bracket_video_s": [
+          1.4,
+          1.466
+        ],
+        "last_large_acoustic_falling_edge_video_s": 2.269854,
+        "ui_to_last_large_falling_edge_range_s": [
+          0.803854,
+          0.869854
+        ]
+      },
+      {
+        "event": "TX selected mode Digital to Analog",
+        "visual_transition_bracket_video_s": [
+          8.165,
+          8.199
+        ],
+        "last_large_acoustic_falling_edge_video_s": 9.186292,
+        "ui_to_last_large_falling_edge_range_s": [
+          0.987292,
+          1.021292
+        ]
+      },
+      {
+        "event": "TX selected mode Digital to Analog",
+        "visual_transition_bracket_video_s": [
+          14.364,
+          14.398
+        ],
+        "last_large_acoustic_falling_edge_video_s": 15.385,
+        "ui_to_last_large_falling_edge_range_s": [
+          0.987,
+          1.021
+        ]
+      }
+    ],
+    "scope": "Visible TX mode changes only; no TX Pause or RX keypress is established by this clip. The UI change may precede the electrical TX mode change."
+  },
+  "gating_transition_analysis": {
+    "method": "Complex demodulation at 2515.3 Hz; zero-phase 400 Hz fourth-order LPF; amplitude 150 Hz third-order LPF. Largest rising slope within -6/+20 ms of threshold onset; largest falling slope 25\u201370 ms later.",
+    "final_train_edge_pairs": [
+      {
+        "rise_video_s": 14.648792,
+        "fall_video_s": 14.69725,
+        "edge_separation_ms": 48.458
+      },
+      {
+        "rise_video_s": 14.746458,
+        "fall_video_s": 14.795917,
+        "edge_separation_ms": 49.458
+      },
+      {
+        "rise_video_s": 14.844771,
+        "fall_video_s": 14.894083,
+        "edge_separation_ms": 49.312
+      },
+      {
+        "rise_video_s": 14.942792,
+        "fall_video_s": 14.991875,
+        "edge_separation_ms": 49.083
+      },
+      {
+        "rise_video_s": 15.041271,
+        "fall_video_s": 15.090396,
+        "edge_separation_ms": 49.125
+      },
+      {
+        "rise_video_s": 15.139542,
+        "fall_video_s": 15.188854,
+        "edge_separation_ms": 49.312
+      },
+      {
+        "rise_video_s": 15.238229,
+        "fall_video_s": 15.287208,
+        "edge_separation_ms": 48.979
+      },
+      {
+        "rise_video_s": 15.336333,
+        "fall_video_s": 15.385,
+        "edge_separation_ms": 48.667
+      }
+    ],
+    "last_pulse_each_activity_group": [
+      {
+        "rise_video_s": 2.221229,
+        "fall_video_s": 2.269854,
+        "edge_separation_ms": 48.625
+      },
+      {
+        "rise_video_s": 9.138021,
+        "fall_video_s": 9.186292,
+        "edge_separation_ms": 48.271
+      },
+      {
+        "rise_video_s": 15.336333,
+        "fall_video_s": 15.385,
+        "edge_separation_ms": 48.667
+      }
+    ],
+    "median_edge_separation_ms": 49.104,
+    "independent_complex_derivative_autocorrelations": [
+      {
+        "video_interval_s": [
+          1.71,
+          2.3
+        ],
+        "most_negative_lag_25_70_ms": 50.0,
+        "normalized_correlation_at_minimum": -0.358406,
+        "normalized_correlation_at_30_ms": -0.079002,
+        "normalized_correlation_at_49_ms": -0.153799
+      },
+      {
+        "video_interval_s": [
+          8.43,
+          9.22
+        ],
+        "most_negative_lag_25_70_ms": 49.5,
+        "normalized_correlation_at_minimum": -0.40134,
+        "normalized_correlation_at_30_ms": -0.049972,
+        "normalized_correlation_at_49_ms": -0.251344
+      },
+      {
+        "video_interval_s": [
+          14.64,
+          15.43
+        ],
+        "most_negative_lag_25_70_ms": 49.0,
+        "normalized_correlation_at_minimum": -0.428347,
+        "normalized_correlation_at_30_ms": 0.059457,
+        "normalized_correlation_at_49_ms": -0.428347
+      }
+    ],
+    "interpretation": "Acoustic transitions are consistent with approximately 49\u201350 ms gating, followed by reverberation. They do not support a continuous 1 s pulse or a tenfold slower speaker oscillator. This is not an electrical measurement and cannot identify the installed binary."
+  },
+  "limits": [
+    "Only acoustic observations; no action or device identification is inferred from audio alone.",
+    "AAC compression, microphone processing, room reverberation and automatic gain affect acoustic envelope durations.",
+    "Threshold intervals are not exact electrical speaker-on times or MCU counter measurements.",
+    "2 ms RMS bins do not imply 2 ms action/video precision; video frames are approximately 33 ms apart.",
+    "Audio-only evidence cannot establish firmware revision, internal code path or physical cause."
+  ]
+}

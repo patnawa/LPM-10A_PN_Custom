@@ -1,0 +1,44 @@
+{
+  "tag": "tone-snapshot-2026-09-20",
+  "prerelease": true,
+  "latest": false,
+  "firmware_bytes_modified_for_release": false,
+  "existing_checksum_entries_verified": 10,
+  "assets": [
+    {
+      "name": "LPM-10A-TX_PN2.14-tone-recovery.bin",
+      "bytes": 393216,
+      "sha256": "a7402de6f18e39df55bbe53f5641efd5135f0de4d81f9407515cf9d8710c5527"
+    },
+    {
+      "name": "LPM-10A-tone-experiments-2026-09-20.zip",
+      "bytes": 309964,
+      "sha256": "e669918153d2b35e8c10c15b5f7d94766ed57bb88fd1046f4834310318c3ad10"
+    },
+    {
+      "name": "TONE-SNAPSHOT-2026-09-20.md",
+      "bytes": 5260,
+      "sha256": "4b8d6179043a92b8423d33411a0a3e558e144fbc05c40c0ea5f32e48e210e413"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "bytes": 305,
+      "sha256": "e3bd53e8f7c2365fc140705900239fbf85722cdc24a14fdbb39aed97566381cb"
+    }
+  ],
+  "tests": [
+    {
+      "device": "TX",
+      "groups": 60,
+      "passed": true,
+      "seconds": 20.608
+    },
+    {
+      "device": "RX",
+      "groups": 23,
+      "passed": true,
+      "seconds": 13.805
+    }
+  ],
+  "local_only": "Owner recording, extracted PNG/WAV media, and raw SWD captures"
+}

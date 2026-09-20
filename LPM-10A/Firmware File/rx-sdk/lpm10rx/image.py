@@ -3,9 +3,10 @@ LPM-10A receiver firmware image: a raw Cortex-M image, no container.
 
     file offset 0  <->  flash 0x08006800   (see symbols.APP_BASE)
 
-There is no header, no length field and no checksum: the bootloader writes
-the file as it is.  Patches therefore never change the file size; every
-edit is an in-place replacement of the same number of bytes.
+The distributed file is a raw application image. No in-file checksum field
+has been identified; the absent bootloader's acceptance requirements remain
+unverified. Patches preserve file size and replace bytes in place. A successful
+host file copy does not establish that the receiver accepted or runs the image.
 
 The Thumb assembler is shared with the transmitter SDK (../../sdk/lpm10a).
 """

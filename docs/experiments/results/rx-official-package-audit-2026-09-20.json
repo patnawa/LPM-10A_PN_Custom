@@ -1,0 +1,100 @@
+{
+  "audit_date": "2026-09-20",
+  "source_page": "https://www.fnirsi.com/pages/manuals-firmwares",
+  "scope": "Official catalog-listed LPM-10A packages and its LPM-10C sibling only. ZIP contents inventoried and hashed; no device access or firmware writes. No claim of exhaustive FNIRSI release history.",
+  "known_rx_baseline_sha256": "083f3825e8f8a38627417e26732e88fd13ee0dbe3c13ca1cd1cd9c4875c7c8c5",
+  "packages": [
+    {
+      "model": "LPM-10A",
+      "package": "v2.0.7",
+      "source_url": "https://cdn.shopify.com/s/files/1/0694/8310/2426/files/LPM-10A_Firmware_V2.0.7.zip?v=1782962470",
+      "archive_bytes": 114395,
+      "archive_sha256": "9eb4d55844fa195d4d63501a78aede2a22623eea863d8f98776a694721d8c96d",
+      "members": [
+        {
+          "member": "LPM-10A Firmware V2.0.7/CHANGELOG.txt",
+          "size": 1884,
+          "sha256": "ec755019dfb2469f7b8b3ffb1101564ab9596a1209f7e8c5fe19e80bacd928e0"
+        },
+        {
+          "member": "LPM-10A Firmware V2.0.7/Firmware File/APP_LPM-10RX_V3.0.0_260416.bin",
+          "size": 26152,
+          "sha256": "083f3825e8f8a38627417e26732e88fd13ee0dbe3c13ca1cd1cd9c4875c7c8c5"
+        },
+        {
+          "member": "LPM-10A Firmware V2.0.7/Firmware File/LPM-10A-TX_V2.0.7_260610.bin",
+          "size": 389120,
+          "sha256": "29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b"
+        },
+        {
+          "member": "LPM-10A Firmware V2.0.7/README.txt",
+          "size": 1855,
+          "sha256": "e8104870c9c9adceb402d6cc546c0146079cd8ed78ab79ab54a189eacb8e8739"
+        }
+      ],
+      "rx_binary_members": [
+        "LPM-10A Firmware V2.0.7/Firmware File/APP_LPM-10RX_V3.0.0_260416.bin"
+      ]
+    },
+    {
+      "model": "LPM-10A",
+      "package": "v2.0.3",
+      "source_url": "https://cdn.shopify.com/s/files/1/0694/8310/2426/files/LPM-10A_Firmware_V2.0.3.zip?v=1776932454",
+      "archive_bytes": 98731,
+      "archive_sha256": "949135179d2a24bb404c8756f858d6fff1d0f409c444538c206a6d7a57471cc2",
+      "members": [
+        {
+          "member": "LPM-10A Firmware V2.0.3/LPM-10A_V2.0.3_260306.bin",
+          "size": 389120,
+          "sha256": "6d15abcc73944ab43571c4cdd00addd571feb558652afdb56f72830682037375"
+        },
+        {
+          "member": "LPM-10A Firmware V2.0.3/Readme.txt",
+          "size": 760,
+          "sha256": "20e99ecd17ba4603c87abac1498ea51afe35f843db743b0409c590667b85fa25"
+        }
+      ],
+      "rx_binary_members": []
+    },
+    {
+      "model": "LPM-10A",
+      "package": "v1.0.1",
+      "source_url": "https://cdn.shopify.com/s/files/1/0694/8310/2426/files/LPM-10A_Firmware_V1.0.1.zip?v=1760666662",
+      "archive_bytes": 92961,
+      "archive_sha256": "be5c5d36d008eab507d359e98aff89fd84090d347f0c26644da873657ddf6677",
+      "members": [
+        {
+          "member": "LPM-10A Firmware V1.0.1/APP_LPM-10A_V1.0.1_20251009.bin",
+          "size": 376464,
+          "sha256": "51108651776953a3a0b8cd04cd56988d7c8e300fec447f187e71c53b2ad28b5b"
+        },
+        {
+          "member": "LPM-10A Firmware V1.0.1/Update Log.txt",
+          "size": 95,
+          "sha256": "d6083a50b72415b4217aa33b8b02d5c8683e1e5b3e86b6e1cf1d296340bd6865"
+        }
+      ],
+      "rx_binary_members": []
+    },
+    {
+      "model": "LPM-10C",
+      "package": "lpm10c-v1.1.2",
+      "source_url": "https://cdn.shopify.com/s/files/1/0694/8310/2426/files/LPM-10C_Firmware_V1.1.2.zip?v=1763799048",
+      "archive_bytes": 107451,
+      "archive_sha256": "26d483b9c67a74e9b92397e617771f41e8302c6440edc9653d084e15f898f950",
+      "members": [
+        {
+          "member": "LPM-10C Firmware V1.1.2/APP_LPM-10C_V1.1.2_251118.bin",
+          "size": 408948,
+          "sha256": "2f9b0012abfc277c70263935b0b8e319315d568c668b8eef348e79fd284ac2d5"
+        },
+        {
+          "member": "LPM-10C Firmware V1.1.2/Update Log.txt",
+          "size": 394,
+          "sha256": "87b3f8c3940b6f26c09fe909a15ae22b9be982661345ac1b75b15a17e41a381c"
+        }
+      ],
+      "rx_binary_members": []
+    }
+  ]
+}

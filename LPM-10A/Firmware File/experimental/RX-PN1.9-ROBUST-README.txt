@@ -1,0 +1,71 @@
+ARCHIVED EXPERIMENT - 2026-09-20
+The owner is keeping the currently working RX. Live SWD observations do
+not match the stored RX image layout, and installed RX firmware is unknown.
+The Digital audio tail is unresolved. Instructions and version-based
+device reports below are historical; this snapshot does not recommend
+another RX update. See docs/releases/TONE-SNAPSHOT-2026-09-20.md.
+
+LPM-10RX PN 1.9 - Robust code-based strength
+2026-09-20 - local experimental candidate; hardware validation pending
+
+Device: RX probe only
+File: APP_LPM-10RX_PN1.9-robust.bin
+Size: 26152 bytes (unchanged)
+SHA-256: 6128e0a4a0261f3da51bea232c8e431474033f0a09fd24283faa0a743b67fe3e
+Vendor-facing version remains 3.0.0. Identify this candidate by its hash.
+
+Use TX Digital with the existing RX digital mode. No new button combination.
+PN 1.8 remains the published owner-tested comparison build.
+
+Changes:
+- Measure the median difference between code-associated high and low samples,
+  instead of all signal variation. This corrects a reproduced example where
+  four impulses made a weaker code sound stronger than a clean stronger code.
+- Use all 48 samples when a bounded-error phase fits the window. Otherwise,
+  use the union of its exact 16-bit code matches, counting overlap once.
+  This retains graded feedback during supported clock/phase drift.
+- Preserve the PN 1.8 clean-signal scale, interpolation and 3 ms deadband.
+- Normal strength pulses remain 30 ms. A longer repeated 100 ms pulse with
+  a 160 ms quiet gap means code was found but comparison is unsuitable:
+  the high median is at ADC rail or the fitted amplitude is nonpositive.
+  Try lower physical sensitivity or greater distance and compare again.
+- Preserve detection eligibility, sampling timing, keys, signal freshness,
+  mode/gate guards, ADC/battery/watchdog behavior and binding.
+
+No new persistent RAM or image growth. Space is recovered by compacting the
+shared trimmed mean with tested equivalent arithmetic and using audited NOP
+padding after a DFT return. Existing binaries remain unchanged.
+
+The detector still collects about 240 ms per window. This build does not add
+automatic gain calibration, faster sampling or electrical cable confirmation.
+Neighboring cables can carry the same valid code through coupling. CPU tests
+are not measurements of cable selectivity, real timing or audible improvement.
+
+No new repeat starts at or after 300 ms without an accepted window. An active
+normal pulse finishes before 330 ms, or an uncertainty pulse before 400 ms,
+in the timer model. Key confirmation and current quiet intervals finish normally.
+
+142 test groups passed in two runs: 108 existing image/profile/RX groups and
+34 PN 1.9 groups. Separately, 3072 old/new ARM shared-mean comparisons passed.
+The 3624-window synthetic corpus retained all acceptance decisions: 1055
+ranked readings, 8 upper-rail warnings and 2561 rejections. All 591 accepted
+windows in its 640-window phase/drift/noise subset retained ranked feedback.
+The saved binary matches its deterministic rebuild; 485 bytes differ from
+PN 1.8 in four audited regions. Tested stack footprint remains 152 bytes,
+excluding caller/interrupt frames. Boot model reaches ADC initialization
+with unchanged clocks/timers. No physical device test has been performed.
+
+Build and verify from rx-sdk:
+  python build.py --robust --write
+  python -m unittest test_image test_robust_profile test_roadmap test_firmware_audit test_rx_followup test_rx_precision test_rx_pinpoint test_rx_robust -v
+  python compact_mean.py
+  python boot_emu.py ../experimental/APP_LPM-10RX_PN1.9-robust.bin
+
+Use the RX update procedure already established for your compatible probe.
+Retain PN 1.8 for comparison. Check known target and adjacent cables at the same
+sensitivity/position, weak/strong pickup, motion, signal removal/reacquisition,
+long-pulse recovery, keys/lamp, analog/mains, battery indication and power-off.
+TX and RX firmware files are not interchangeable.
+
+Implementation and evidence:
+  docs/RX-ROBUST-PN1.9-2026-09-20.md

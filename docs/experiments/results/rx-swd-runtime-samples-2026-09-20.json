@@ -1,0 +1,94 @@
+{
+  "timestamp": "2026-09-20T22:08:16.643482+07:00",
+  "method": "Live debug-status and SRAM reads; no target-memory writes or explicit halt/reset",
+  "samples": [
+    {
+      "elapsed_s": 1.2000018614344299e-06,
+      "dhcsr": "0x01010000",
+      "s_halt": false,
+      "s_sleep": false,
+      "s_lockup": false,
+      "s_retire_st": true,
+      "c_debugen": false,
+      "sram_0fc_103": "0000000000000000",
+      "sram_048_06f": "00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "elapsed_s": 0.16350450000027195,
+      "dhcsr": "0x01010000",
+      "s_halt": false,
+      "s_sleep": false,
+      "s_lockup": false,
+      "s_retire_st": true,
+      "c_debugen": false,
+      "sram_0fc_103": "0000000000000000",
+      "sram_048_06f": "00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "elapsed_s": 0.3271701000012399,
+      "dhcsr": "0x01010000",
+      "s_halt": false,
+      "s_sleep": false,
+      "s_lockup": false,
+      "s_retire_st": true,
+      "c_debugen": false,
+      "sram_0fc_103": "0000000000000000",
+      "sram_048_06f": "00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "elapsed_s": 0.4912934999993013,
+      "dhcsr": "0x01010000",
+      "s_halt": false,
+      "s_sleep": false,
+      "s_lockup": false,
+      "s_retire_st": true,
+      "c_debugen": false,
+      "sram_0fc_103": "0000000000000000",
+      "sram_048_06f": "00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "elapsed_s": 0.6549301999984891,
+      "dhcsr": "0x01010000",
+      "s_halt": false,
+      "s_sleep": false,
+      "s_lockup": false,
+      "s_retire_st": true,
+      "c_debugen": false,
+      "sram_0fc_103": "0000000000000000",
+      "sram_048_06f": "00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "elapsed_s": 0.8188703000014357,
+      "dhcsr": "0x01010000",
+      "s_halt": false,
+      "s_sleep": false,
+      "s_lockup": false,
+      "s_retire_st": true,
+      "c_debugen": false,
+      "sram_0fc_103": "0000000000000000",
+      "sram_048_06f": "00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "elapsed_s": 0.9824497000008705,
+      "dhcsr": "0x01010000",
+      "s_halt": false,
+      "s_sleep": false,
+      "s_lockup": false,
+      "s_retire_st": true,
+      "c_debugen": false,
+      "sram_0fc_103": "0000000000000000",
+      "sram_048_06f": "00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "elapsed_s": 1.146373899999162,
+      "dhcsr": "0x01010000",
+      "s_halt": false,
+      "s_sleep": false,
+      "s_lockup": false,
+      "s_retire_st": true,
+      "c_debugen": false,
+      "sram_0fc_103": "0000000000000000",
+      "sram_048_06f": "00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ]
+}

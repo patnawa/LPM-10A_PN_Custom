@@ -1,6 +1,10 @@
 __pycache__/
 *.pyc
 
+# Owner-provided recording and extracted frames remain local; publish analysis only.
+docs/experiments/results/clip-*/*.wav
+docs/experiments/results/clip-*/*.png
+
 # FNIRSI's original files are never committed: obtain the matching firmware package
 # from https://www.fnirsi.com and place the stock image next to the mod.
 LPM-10A/Firmware File/LPM-10A-TX_V2.0.7_260610.bin

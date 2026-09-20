@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-09-20T22:06:23.017234+07:00",
+  "method": "Direct STLink memory reads only; no target-memory write, halt, reset, erase, unlock",
+  "reads": {
+    "dbg_id": {
+      "address": "0xE0042000",
+      "value": "0x22644017"
+    },
+    "cpuid": {
+      "address": "0xE000ED00",
+      "value": "0x410FC241"
+    },
+    "vtor": {
+      "address": "0xE000ED08",
+      "value": "0x08006800"
+    },
+    "flash_ob": {
+      "address": "0x4002201C",
+      "value": "0x03FFFFFE"
+    },
+    "rdp1_options": {
+      "address": "0x1FFFF800",
+      "value": "0x00FFFF00"
+    },
+    "rdp2_options": {
+      "address": "0x1FFFF810",
+      "value": "0xFFFFFFFF"
+    }
+  },
+  "chip_decode": {
+    "series_nibble": 2,
+    "model_hex_digits": "406",
+    "sram_kib": 24,
+    "flash_kib": 128,
+    "revision": "0x17"
+  }
+}

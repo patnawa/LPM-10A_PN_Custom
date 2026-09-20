@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-09-20T22:02:23.991757+07:00",
+  "method": "Direct STLink memory reads; no target-memory write, reset, halt, erase, or unlock",
+  "reads": {
+    "cpuid_before": {
+      "address": "0xE000ED00",
+      "bytes_hex": "41c20f41"
+    },
+    "application_vectors": {
+      "address": "0x08006800",
+      "error": "TransferFaultError: Memory transfer fault (read) @ 0x08006800-0x0800681f"
+    },
+    "version_page": {
+      "address": "0x0801F000",
+      "error": "TransferFaultError: Memory transfer fault (read) @ 0x0801f000-0x0801f00f"
+    },
+    "sram_first_word": {
+      "address": "0x20000000",
+      "bytes_hex": "00000000"
+    },
+    "cpuid_after": {
+      "address": "0xE000ED00",
+      "bytes_hex": "41c20f41"
+    }
+  }
+}

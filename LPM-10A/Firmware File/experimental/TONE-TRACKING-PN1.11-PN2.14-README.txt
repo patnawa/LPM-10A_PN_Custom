@@ -1,0 +1,59 @@
+ARCHIVED EXPERIMENT - 2026-09-20
+The owner is keeping the currently working RX. Live SWD observations do
+not match the stored RX image layout, and installed RX firmware is unknown.
+The Digital audio tail is unresolved. Instructions and version-based
+device reports below are historical; this snapshot does not recommend
+another RX update. See docs/releases/TONE-SNAPSHOT-2026-09-20.md.
+
+LPM-10A Tone tracking candidate - RX PN 1.11 / TX PN 2.14 - 2026-09-20
+
+RX probe: APP_LPM-10RX_PN1.11-tracking.bin
+TX main unit: LPM-10A-TX_PN2.14-tone-recovery.bin
+Checksums: TONE-TRACKING-SHA256SUMS.txt
+
+Use the file for the correct device. RX and TX files are not interchangeable.
+These are local test candidates, not a published release or Fluke comparison pass.
+
+TX menu: Digital 454 kHz / Analog 825 Hz only. Select matching RX mode.
+454 kHz is the common carrier; 825 Hz is Analog modulation, not the RX beep pitch.
+TX PN 2.14 retains the established waveform and repairs RIGHT-key gate caching.
+
+RX PN 1.11 changes:
+- Digital retains a full 48-sample observation, updating after 16 new samples
+  once the first complete window is captured. Startup still needs about 240 ms.
+- Robust local code qualification plus the established clock/phase fallback.
+- Code-grouped recent 16-sample strength for faster cable comparison; exact
+  fallback can use an older latest-matching span.
+- Analog uses normal 30 ms pulses and finer 20-160 ms quiet intervals.
+- Stronger Analog results can shorten the pending gap without cutting off
+  current tones or key beeps. Repeats require fresh results within 100 ms.
+- An accepted Analog signal with at least 8/64 upper-rail ADC readings gives
+  100 ms pulses / 160 ms quiet gaps: unsuitable for fine strength comparison.
+- DFT magnitudes remain bit-exact; complete Analog analysis needs about 74%
+  fewer instructions in the profiled emulator cases. Not measured CPU timing.
+
+No new Sync32 or Pulse test mode. No new drive, gain, ADC clock or persistent RAM.
+The raw RX file remains 26152 bytes and derives from the exact PN 1.9 profile.
+Prior firmware files remain available unchanged.
+
+Validation: 256 RX groups passed in the full discovery run, plus 2 subsequent
+fragment/bounds groups. A later focused run passed 8 groups: 6 new Analog
+transient/continuous Digital groups and the same 2 fragment groups. Discovery
+includes historical/component profiles; the 41 integrated groups are included,
+not additional. Artifact matches an independent rebuild. TX PN 2.14 retains
+its preceding 60-group validation. None of these are device comparison results.
+
+Device validation still required:
+1. Confirm Digital and Analog both respond on a known disconnected cable.
+2. Compare target and neighboring cables while moving the probe; move away
+   and check that strong indication does not stick.
+3. Test RX mode keys/lamp and TX pause/resume/RIGHT; listen for stuck silence,
+   truncated confirmation beeps, unexpected resets or continuous false tone.
+4. Compare against RX PN 1.10/1.9 on the same setup and retain observations.
+
+The owner has no Fluke available. No physical comparative result is claimed.
+No range or correct-cable guarantee follows from an accepted digital code.
+
+Build: python build.py --tracking --write (inside rx-sdk)
+Report: docs/TONE-TRACKING-PN1.11-PN2.14-2026-09-20.md
+Comparison protocol: docs/TONE-PROBE-COMPARISON-PROTOCOL.md

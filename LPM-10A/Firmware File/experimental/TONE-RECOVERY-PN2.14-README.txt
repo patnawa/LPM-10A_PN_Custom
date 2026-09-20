@@ -1,0 +1,48 @@
+LPM-10A TX PN 2.14 - two established tone modes - 2026-09-20
+
+TX / main unit: LPM-10A-TX_PN2.14-tone-recovery.bin
+Checksum: TONE-RECOVERY-SHA256SUMS.txt
+
+Only two modes are available:
+  Digital 454 kHz -> use RX Digital
+  Analog 825 Hz  -> use RX Analog
+
+Sync32 and Pulse test have been removed from the TX menu at the owner's
+request. The owner reports Digital/Analog work with RX PN 1.10, but Sync32
+is silent even in Digital receive mode. Pulse test was an oscilloscope
+waveform without a code or 825 Hz tone for the probe to recognize.
+
+PN 2.14 starts from exact PN 2.12 and updates the labels, button width,
+and version display. It also fixes the RIGHT-key carrier-cache invalidation:
+the original GPIO operation is retained and the next timer request restores
+the appropriate state. The old Digital fixture could wait 10.1 ms for this.
+The original signal generation, carrier configuration, timer settings,
+mode switching, pause/resume, and other functions are retained.
+Digital/Analog waveforms are also identical to those working in PN 2.13.
+
+454 kHz is the carrier frequency. 825 Hz is the analog modulation rate;
+Analog also uses the same carrier. Neither is the receiver feedback-beep
+frequency. Values are nominal, not measurements from the owner's device.
+
+The owner's currently working RX may remain in use. No RX update is required for
+this TX menu change. Use the matching receiver mode listed above.
+
+The owner reports both modes receive and sweeping is more accurate with selected
+RX PN 1.12 (APP_LPM-10RX_PN1.12-overload.bin) / TX PN 2.14 files.
+Later live SWD evidence does not match the stored RX image layout; the actual
+installed RX version remains unconfirmed. These files are now archived in the
+2026-09-20 prerelease while the owner retains the working device setup.
+Later feedback identifies an open Digital issue: sound continues about one
+second after moving away or pressing TX Pause; Analog has no such delay.
+The owner also reports other tested functions passed, without an itemized list.
+See docs/TONE-DEVICE-FEEDBACK-2026-09-20.md for the scope of that feedback.
+The physical cause of
+Sync32 failure is unconfirmed; this candidate removes those unnecessary
+options rather than claiming Sync32 has been repaired. It is a normal TX
+application update, not a bootloader recovery image.
+
+Build in sdk: python build.py --scan-recovery --write
+Report: docs/TONE-RECOVERY-PN2.14-2026-09-20.md in the repository root.
+Detailed audit: docs/TONE-PERFORMANCE-AUDIT-2026-09-20.md.
+Verification: 60 TX test groups passed; the artifact matches an independent rebuild.
+RX performance improvements in the audit are proposals, not changes in this TX file.

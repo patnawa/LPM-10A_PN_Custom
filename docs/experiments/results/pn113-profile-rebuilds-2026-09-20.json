@@ -1,0 +1,93 @@
+{
+  "passed": true,
+  "profiles": [
+    {
+      "profile": [
+        "default"
+      ],
+      "file": "APP_LPM-10RX_PN1.0.bin",
+      "sha256": "419c52a04a0e9a840b405669fc51aa785659e41bda3296caac62f37ebc7d1244",
+      "byte_identical": true
+    },
+    {
+      "profile": [
+        "--roadmap"
+      ],
+      "file": "experimental/APP_LPM-10RX_PN1.4-roadmap.bin",
+      "sha256": "f2faee8220231ff6b4b80d9c916307c801d246ecaae438677d2929734442430c",
+      "byte_identical": true
+    },
+    {
+      "profile": [
+        "--audit"
+      ],
+      "file": "experimental/APP_LPM-10RX_PN1.5-audit.bin",
+      "sha256": "6874d65549e3c67b3ad1020495effc93645e325e104eaa7697737a44c11fb0cd",
+      "byte_identical": true
+    },
+    {
+      "profile": [
+        "--followup"
+      ],
+      "file": "experimental/APP_LPM-10RX_PN1.6-followup.bin",
+      "sha256": "159bd15f50e3329fd866bdd7e1ebdac2900569dbd2686e2956d82585280457dc",
+      "byte_identical": true
+    },
+    {
+      "profile": [
+        "--precision"
+      ],
+      "file": "experimental/APP_LPM-10RX_PN1.7-precision.bin",
+      "sha256": "5ccd7990043507911aeb357d83b0bc6fd054208ff6d253b7feea718e963d38e6",
+      "byte_identical": true
+    },
+    {
+      "profile": [
+        "--pinpoint"
+      ],
+      "file": "experimental/APP_LPM-10RX_PN1.8-pinpoint.bin",
+      "sha256": "a588af8e0883fca119b9ed00e30761502ec0c4e0d2b6fee16a67c8b7cacc615d",
+      "byte_identical": true
+    },
+    {
+      "profile": [
+        "--robust"
+      ],
+      "file": "experimental/APP_LPM-10RX_PN1.9-robust.bin",
+      "sha256": "6128e0a4a0261f3da51bea232c8e431474033f0a09fd24283faa0a743b67fe3e",
+      "byte_identical": true
+    },
+    {
+      "profile": [
+        "--sync"
+      ],
+      "file": "experimental/APP_LPM-10RX_PN1.10-sync.bin",
+      "sha256": "6570f521054d77ee97c1a0e37e5a9da0a975d41d452e5f14e63aadb68a9f6e21",
+      "byte_identical": true
+    },
+    {
+      "profile": [
+        "--tracking"
+      ],
+      "file": "experimental/APP_LPM-10RX_PN1.11-tracking.bin",
+      "sha256": "3e39ae56832cf92881ffdc46564e293278d6c3f1b55a9832b7a9a8350f031828",
+      "byte_identical": true
+    },
+    {
+      "profile": [
+        "--overload"
+      ],
+      "file": "experimental/APP_LPM-10RX_PN1.12-overload.bin",
+      "sha256": "4ea18c52bde25353a9a38dbf46775425860f7859bc2c10e3c908a7bff4044403",
+      "byte_identical": true
+    },
+    {
+      "profile": [
+        "--audio-clock"
+      ],
+      "file": "experimental/APP_LPM-10RX_PN1.13-audio-clock.bin",
+      "sha256": "2cafd8a234a9b372a4d09c4969b28c8c35a45f05b72c57d2248d39f22cf7373b",
+      "byte_identical": true
+    }
+  ]
+}

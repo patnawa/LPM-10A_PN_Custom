@@ -1,5 +1,34 @@
 # LPM-10A firmware SDK
 
+**PN 2.14 local two-mode candidate:** `python build.py --scan-recovery --write`
+uses the exact PN 2.12 parent with `Digital 454 kHz` / `Analog 825 Hz` labels in
+both languages. It retains only the two established tone modes, their original
+key cycle and waveforms, with no new tone state. It also repairs the RIGHT-key
+carrier-cache invalidation while retaining the original GPIO operation.
+The earlier RX PN 1.10 report established that those modes work while Sync32
+was silent. Following the latest pair test request, the owner reports both
+modes receive and sweeping is more accurate on confirmed RX PN 1.12 / TX PN 2.14.
+Later feedback reports an open Digital issue: sound continues about one second
+after moving away or pressing TX Pause; Analog has no such delay. See
+[owner feedback](../../../docs/TONE-DEVICE-FEEDBACK-2026-09-20.md), the
+[two-mode report](../../../docs/TONE-RECOVERY-PN2.14-2026-09-20.md) and
+[detailed performance audit](../../../docs/TONE-PERFORMANCE-AUDIT-2026-09-20.md).
+
+**PN 2.13 historical failed Sync32 trial:** the owner reports Sync32 silent even
+with RX PN 1.10 in digital mode. Pulse test is a scope waveform, not a probe
+tracing mode. These options were removed from the PN 2.14 menu at the owner's
+request. The old binary/build profile is retained for reproducing the audit.
+`python build.py --scan-sync --write`
+adds optional Sync32 and Pulse test modes. The tone screen shows `Digital 454 kHz`,
+`Analog 825 Hz`, `Sync32 454 kHz`, and `Pulse test` in both UI languages.
+Digital/Sync32 display carrier frequency; Analog displays modulation frequency.
+The existing generators and output hardware are preserved. Sync32 needs the
+PN 1.10 RX digital mode. Run
+`python -m unittest test_scan_sync.ScanSync test_sync_profile test_portflash_status -q`.
+See the [paired implementation and limitations](../../../docs/SCAN-SYNC-PN2.13-PN1.10-2026-09-20.md).
+Its CPU tests did not establish operation through the real analog path.
+Existing named/default profiles remain available.
+
 **PN 2.12 Port FLASH release:** `python build.py --portflash-status --write`
 includes PN 2.11 plus direct PHY link reads and an indicator using the same
 controller state. This follows the owner's intermittent long-on report with

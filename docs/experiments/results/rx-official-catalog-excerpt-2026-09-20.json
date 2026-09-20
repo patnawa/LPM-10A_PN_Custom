@@ -1,0 +1,50 @@
+{
+  "audit_date": "2026-09-20",
+  "source_page": "https://www.fnirsi.com/pages/manuals-firmwares",
+  "catalog_endpoint": "https://fnirsi-product-data-feishu-api.fnirsi001.workers.dev/api/download",
+  "note": "Selected official product entries only; full catalog retained outside repository. Absence of a receiver-level version in this package catalog does not prove it does not exist.",
+  "products": [
+    {
+      "productName": "FNIRSI® LPM-10A Multifunctional Network Cable Tracker",
+      "model": "LPM-10A",
+      "url": "/products/lpm-10a",
+      "firmwares": [
+        {
+          "sequentialId": "3",
+          "name": "LPM-10A Firmware V2.0.7.zip (This version supports V2.x.x hardware only)",
+          "url": "https://cdn.shopify.com/s/files/1/0694/8310/2426/files/LPM-10A_Firmware_V2.0.7.zip?v=1782962470",
+          "btnText": "Download"
+        },
+        {
+          "sequentialId": "2",
+          "name": "LPM-10A Firmware V2.0.3.zip (This version supports V2.x.x hardware only)",
+          "url": "https://cdn.shopify.com/s/files/1/0694/8310/2426/files/LPM-10A_Firmware_V2.0.3.zip?v=1776932454",
+          "btnText": "Download"
+        },
+        {
+          "sequentialId": "1",
+          "name": "LPM-10A Firmware V1.0.1.zip",
+          "url": "https://cdn.shopify.com/s/files/1/0694/8310/2426/files/LPM-10A_Firmware_V1.0.1.zip?v=1760666662",
+          "btnText": "Download"
+        }
+      ],
+      "updateTool": [],
+      "updateTutorial": []
+    },
+    {
+      "productName": "FNIRSI® LPM-10C Multifunctional Network Cable Tracker",
+      "model": "LPM-10C",
+      "url": "/products/lpm-10c",
+      "firmwares": [
+        {
+          "sequentialId": "1",
+          "name": "LPM-10C Firmware V1.1.2.zip",
+          "url": "https://cdn.shopify.com/s/files/1/0694/8310/2426/files/LPM-10C_Firmware_V1.1.2.zip?v=1763799048",
+          "btnText": "Download"
+        }
+      ],
+      "updateTool": [],
+      "updateTutorial": []
+    }
+  ]
+}

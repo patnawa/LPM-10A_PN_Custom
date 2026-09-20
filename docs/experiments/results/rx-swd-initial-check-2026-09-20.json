@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-09-20T22:01:05.917400+07:00",
+  "method": "STLink direct protocol; no target class, flash algorithm, reset, halt, erase, unlock, or target-memory write",
+  "requested_swd_hz": 100000,
+  "reads": {
+    "cpuid": {
+      "address": "0xE000ED00",
+      "error": "TypeError: STLink.read_mem32() missing 1 required positional argument: 'csw'"
+    }
+  },
+  "probe_firmware": "V2J31M7",
+  "reported_target_voltage": 3.165194805194805,
+  "swd_entered": true,
+  "dpidr": "0x2BA01477"
+}

@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-09-20T22:04:15.443637+07:00",
+  "method": "Direct STLink read_mem32; no target-memory writes, reset, halt, erase, or unlock",
+  "chip_marking": "Owner reports marking has been removed",
+  "register_map_basis": "Nations N32L40x UM section 2.2.4.2.8; family inferred from prior USB descriptor and firmware, exact model unconfirmed",
+  "reads": {
+    "cpuid_before": {
+      "address": "0xE000ED00",
+      "value": "0x410FC241"
+    },
+    "flash_ob": {
+      "address": "0x4002201C",
+      "value": "0x03FFFFFE"
+    },
+    "cpuid_after": {
+      "address": "0xE000ED00",
+      "value": "0x410FC241"
+    }
+  },
+  "n32l40x_interpretation": {
+    "RDPRT2_L2": false,
+    "RDPRT1_L1": true,
+    "OBERR": false
+  }
+}

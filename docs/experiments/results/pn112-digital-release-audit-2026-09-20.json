@@ -1,0 +1,5109 @@
+{
+  "sha256": "4ea18c52bde25353a9a38dbf46775425860f7859bc2c10e3c908a7bff4044403",
+  "passed": true,
+  "tests": 7,
+  "results": {
+    "clean_loss": {
+      "cases": 96,
+      "timer_irqs": 4720224,
+      "first_reject_ms_range": [
+        21.01001562500005,
+        201.012515625
+      ],
+      "last_sound_end_ms_range": [
+        0,
+        223.11412499999994
+      ],
+      "max_extra_pulses": 4,
+      "worst_sound": {
+        "phase": 0.5,
+        "amplitude": 300,
+        "after": 0,
+        "loss_ms": 600,
+        "post_ms": 600,
+        "stall": null,
+        "gate_close": false,
+        "first_reject_ms": 201.012515625,
+        "last_accepted_ms": 121.01126562499996,
+        "last_sound_end_ms": 223.11412499999994,
+        "post_loss_starts_ms": [
+          84.02724999999998,
+          193.095375
+        ],
+        "accepted_after_loss": [
+          {
+            "ms": 641.010015625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 640.9003125,
+            "age_ms": 0.10970312500001,
+            "estimate_start": 24,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 721.011265625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 720.9503125,
+            "age_ms": 0.06095312499996908,
+            "estimate_start": 8,
+            "tail_flat": true,
+            "tail_value": 1000
+          }
+        ],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 87,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 23,
+            "tail_flat": false,
+            "tail_value": 1100
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 561.008765625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 560.8503125,
+            "age_ms": 0.15845312500005093,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 641.010015625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 640.9003125,
+            "age_ms": 0.10970312500001,
+            "estimate_start": 24,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 721.011265625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 720.9503125,
+            "age_ms": 0.06095312499996908,
+            "estimate_start": 8,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 801.012515625,
+            "grade": 0,
+            "recent": 720,
+            "newest_adc_ms": 801.0003125,
+            "age_ms": 0.012203125000041837,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 882.01378125,
+            "grade": 0,
+            "recent": 639,
+            "newest_adc_ms": 881.0503125,
+            "age_ms": 0.9634687499999472,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 962.01503125,
+            "grade": 0,
+            "recent": 559,
+            "newest_adc_ms": 961.600625,
+            "age_ms": 0.41440624999995634,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1042.01628125,
+            "grade": 0,
+            "recent": 479,
+            "newest_adc_ms": 1041.650625,
+            "age_ms": 0.3656562500000291,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1122.01753125,
+            "grade": 0,
+            "recent": 399,
+            "newest_adc_ms": 1121.700625,
+            "age_ms": 0.31690625000010186,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            271.169375,
+            false
+          ],
+          [
+            357.023,
+            true
+          ],
+          [
+            387.04175,
+            false
+          ],
+          [
+            466.091125,
+            true
+          ],
+          [
+            496.109875,
+            false
+          ],
+          [
+            575.15925,
+            true
+          ],
+          [
+            605.178,
+            false
+          ],
+          [
+            684.02725,
+            true
+          ],
+          [
+            714.046,
+            false
+          ],
+          [
+            793.095375,
+            true
+          ],
+          [
+            823.114125,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 0,
+        "final_recent": 321,
+        "final_sound": false,
+        "timer_irqs": 47970,
+        "adc_reads": 1196
+      },
+      "worst_reject": {
+        "phase": 0.5,
+        "amplitude": 60,
+        "after": 0,
+        "loss_ms": 600,
+        "post_ms": 600,
+        "stall": null,
+        "gate_close": false,
+        "first_reject_ms": 201.012515625,
+        "last_accepted_ms": 121.01126562499996,
+        "last_sound_end_ms": 130.05600000000004,
+        "post_loss_starts_ms": [
+          100.03724999999997
+        ],
+        "accepted_after_loss": [
+          {
+            "ms": 641.010015625,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 640.9003125,
+            "age_ms": 0.10970312500001,
+            "estimate_start": 24,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 721.011265625,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 720.9503125,
+            "age_ms": 0.06095312499996908,
+            "estimate_start": 8,
+            "tail_flat": true,
+            "tail_value": 1000
+          }
+        ],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 126,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 23,
+            "tail_flat": false,
+            "tail_value": 1020
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 561.008765625,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 560.8503125,
+            "age_ms": 0.15845312500005093,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 641.010015625,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 640.9003125,
+            "age_ms": 0.10970312500001,
+            "estimate_start": 24,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 721.011265625,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 720.9503125,
+            "age_ms": 0.06095312499996908,
+            "estimate_start": 8,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 801.012515625,
+            "grade": 0,
+            "recent": 720,
+            "newest_adc_ms": 801.0003125,
+            "age_ms": 0.012203125000041837,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 882.01378125,
+            "grade": 0,
+            "recent": 639,
+            "newest_adc_ms": 881.0503125,
+            "age_ms": 0.9634687499999472,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 962.01503125,
+            "grade": 0,
+            "recent": 559,
+            "newest_adc_ms": 961.600625,
+            "age_ms": 0.41440624999995634,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1042.01628125,
+            "grade": 0,
+            "recent": 479,
+            "newest_adc_ms": 1041.650625,
+            "age_ms": 0.3656562500000291,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1122.01753125,
+            "grade": 0,
+            "recent": 399,
+            "newest_adc_ms": 1121.700625,
+            "age_ms": 0.31690625000010186,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            271.169375,
+            false
+          ],
+          [
+            396.047375,
+            true
+          ],
+          [
+            426.066125,
+            false
+          ],
+          [
+            548.142375,
+            true
+          ],
+          [
+            578.161125,
+            false
+          ],
+          [
+            700.03725,
+            true
+          ],
+          [
+            730.056,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 0,
+        "final_recent": 321,
+        "final_sound": false,
+        "timer_irqs": 47970,
+        "adc_reads": 1196
+      }
+    },
+    "stale_completed_buffer": {
+      "phase": 0,
+      "amplitude": 3000,
+      "after": 0,
+      "loss_ms": 650,
+      "post_ms": 1700,
+      "stall": [
+        610,
+        1850
+      ],
+      "gate_close": false,
+      "first_reject_ms": 1360.03140625,
+      "last_accepted_ms": 1280.03015625,
+      "last_sound_end_ms": 1348.048,
+      "post_loss_starts_ms": [
+        20.018500000000017,
+        87.06037500000002,
+        154.10225000000003,
+        1200.155625,
+        1259.1925,
+        1318.229375
+      ],
+      "accepted_after_loss": [
+        {
+          "ms": 1850.02890625,
+          "grade": 30,
+          "recent": 800,
+          "newest_adc_ms": 640.9003125,
+          "age_ms": 1209.1285937500002,
+          "estimate_start": 25,
+          "tail_flat": false,
+          "tail_value": 4000
+        },
+        {
+          "ms": 1930.03015625,
+          "grade": 30,
+          "recent": 800,
+          "newest_adc_ms": 1929.7053125,
+          "age_ms": 0.32484374999989996,
+          "estimate_start": 17,
+          "tail_flat": true,
+          "tail_value": 1000
+        }
+      ],
+      "publications": [
+        {
+          "ms": 241.003765625,
+          "grade": 30,
+          "recent": 800,
+          "newest_adc_ms": 240.6503125,
+          "age_ms": 0.35345312499998727,
+          "estimate_start": 32,
+          "tail_flat": false,
+          "tail_value": 1000
+        },
+        {
+          "ms": 321.005015625,
+          "grade": 30,
+          "recent": 800,
+          "newest_adc_ms": 320.7003125,
+          "age_ms": 0.3047031250000032,
+          "estimate_start": 32,
+          "tail_flat": false,
+          "tail_value": 1000
+        },
+        {
+          "ms": 401.006265625,
+          "grade": 30,
+          "recent": 800,
+          "newest_adc_ms": 400.7503125,
+          "age_ms": 0.2559531250000191,
+          "estimate_start": 32,
+          "tail_flat": false,
+          "tail_value": 1000
+        },
+        {
+          "ms": 481.007515625,
+          "grade": 38,
+          "recent": 800,
+          "newest_adc_ms": 480.8003125,
+          "age_ms": 0.20720312499997817,
+          "estimate_start": 32,
+          "tail_flat": false,
+          "tail_value": 2000
+        },
+        {
+          "ms": 561.008765625,
+          "grade": 38,
+          "recent": 800,
+          "newest_adc_ms": 560.8503125,
+          "age_ms": 0.15845312500005093,
+          "estimate_start": 16,
+          "tail_flat": false,
+          "tail_value": 4000
+        },
+        {
+          "ms": 1850.02890625,
+          "grade": 30,
+          "recent": 800,
+          "newest_adc_ms": 640.9003125,
+          "age_ms": 1209.1285937500002,
+          "estimate_start": 25,
+          "tail_flat": false,
+          "tail_value": 4000
+        },
+        {
+          "ms": 1930.03015625,
+          "grade": 30,
+          "recent": 800,
+          "newest_adc_ms": 1929.7053125,
+          "age_ms": 0.32484374999989996,
+          "estimate_start": 17,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 2010.03140625,
+          "grade": 0,
+          "recent": 720,
+          "newest_adc_ms": 2009.7553125,
+          "age_ms": 0.2760937499999727,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 2090.03265625,
+          "grade": 0,
+          "recent": 640,
+          "newest_adc_ms": 2089.8053125,
+          "age_ms": 0.2273437499998181,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 2170.03390625,
+          "grade": 0,
+          "recent": 560,
+          "newest_adc_ms": 2169.8553125,
+          "age_ms": 0.1785937500003456,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 2250.03515625,
+          "grade": 0,
+          "recent": 480,
+          "newest_adc_ms": 2249.9053125,
+          "age_ms": 0.12984374999996362,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 2330.03640625,
+          "grade": 0,
+          "recent": 400,
+          "newest_adc_ms": 2329.9553125,
+          "age_ms": 0.08109374999958163,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        }
+      ],
+      "pwm_edges": [
+        [
+          241.150625,
+          true
+        ],
+        [
+          271.169375,
+          false
+        ],
+        [
+          300.1875,
+          true
+        ],
+        [
+          330.006125,
+          false
+        ],
+        [
+          359.02425,
+          true
+        ],
+        [
+          389.043,
+          false
+        ],
+        [
+          418.061125,
+          true
+        ],
+        [
+          448.079875,
+          false
+        ],
+        [
+          477.098,
+          true
+        ],
+        [
+          507.11675,
+          false
+        ],
+        [
+          536.134875,
+          true
+        ],
+        [
+          566.153625,
+          false
+        ],
+        [
+          603.17675,
+          true
+        ],
+        [
+          633.1955,
+          false
+        ],
+        [
+          670.0185,
+          true
+        ],
+        [
+          700.03725,
+          false
+        ],
+        [
+          737.060375,
+          true
+        ],
+        [
+          767.079125,
+          false
+        ],
+        [
+          804.10225,
+          true
+        ],
+        [
+          834.121,
+          false
+        ],
+        [
+          1850.155625,
+          true
+        ],
+        [
+          1880.174375,
+          false
+        ],
+        [
+          1909.1925,
+          true
+        ],
+        [
+          1939.21125,
+          false
+        ],
+        [
+          1968.229375,
+          true
+        ],
+        [
+          1998.048,
+          false
+        ]
+      ],
+      "final_beep": 0,
+      "final_grade": 0,
+      "final_recent": 380,
+      "final_sound": false,
+      "timer_irqs": 93941,
+      "adc_reads": 1140
+    },
+    "main_absent_expiry": {
+      "phase": 0,
+      "amplitude": 3000,
+      "after": 0,
+      "loss_ms": 600,
+      "post_ms": 900,
+      "stall": [
+        600,
+        2000
+      ],
+      "gate_close": false,
+      "first_reject_ms": null,
+      "last_accepted_ms": null,
+      "last_sound_end_ms": 234.12099999999998,
+      "post_loss_starts_ms": [
+        3.17674999999997,
+        70.01850000000002,
+        137.06037500000002,
+        204.10225000000003
+      ],
+      "accepted_after_loss": [],
+      "publications": [
+        {
+          "ms": 241.003765625,
+          "grade": 30,
+          "recent": 800,
+          "newest_adc_ms": 240.6503125,
+          "age_ms": 0.35345312499998727,
+          "estimate_start": 32,
+          "tail_flat": false,
+          "tail_value": 1000
+        },
+        {
+          "ms": 321.005015625,
+          "grade": 30,
+          "recent": 800,
+          "newest_adc_ms": 320.7003125,
+          "age_ms": 0.3047031250000032,
+          "estimate_start": 32,
+          "tail_flat": false,
+          "tail_value": 1000
+        },
+        {
+          "ms": 401.006265625,
+          "grade": 30,
+          "recent": 800,
+          "newest_adc_ms": 400.7503125,
+          "age_ms": 0.2559531250000191,
+          "estimate_start": 32,
+          "tail_flat": false,
+          "tail_value": 1000
+        },
+        {
+          "ms": 481.007515625,
+          "grade": 38,
+          "recent": 800,
+          "newest_adc_ms": 480.8003125,
+          "age_ms": 0.20720312499997817,
+          "estimate_start": 32,
+          "tail_flat": false,
+          "tail_value": 2000
+        },
+        {
+          "ms": 561.008765625,
+          "grade": 38,
+          "recent": 800,
+          "newest_adc_ms": 560.8503125,
+          "age_ms": 0.15845312500005093,
+          "estimate_start": 16,
+          "tail_flat": false,
+          "tail_value": 4000
+        }
+      ],
+      "pwm_edges": [
+        [
+          241.150625,
+          true
+        ],
+        [
+          271.169375,
+          false
+        ],
+        [
+          300.1875,
+          true
+        ],
+        [
+          330.006125,
+          false
+        ],
+        [
+          359.02425,
+          true
+        ],
+        [
+          389.043,
+          false
+        ],
+        [
+          418.061125,
+          true
+        ],
+        [
+          448.079875,
+          false
+        ],
+        [
+          477.098,
+          true
+        ],
+        [
+          507.11675,
+          false
+        ],
+        [
+          536.134875,
+          true
+        ],
+        [
+          566.153625,
+          false
+        ],
+        [
+          603.17675,
+          true
+        ],
+        [
+          633.1955,
+          false
+        ],
+        [
+          670.0185,
+          true
+        ],
+        [
+          700.03725,
+          false
+        ],
+        [
+          737.060375,
+          true
+        ],
+        [
+          767.079125,
+          false
+        ],
+        [
+          804.10225,
+          true
+        ],
+        [
+          834.121,
+          false
+        ]
+      ],
+      "final_beep": 0,
+      "final_grade": 38,
+      "final_recent": 0,
+      "final_sound": false,
+      "timer_irqs": 59962,
+      "adc_reads": 640
+    },
+    "gate_close": [
+      {
+        "phase": 0,
+        "amplitude": 300,
+        "after": 0,
+        "loss_ms": 600,
+        "post_ms": 600,
+        "stall": null,
+        "gate_close": true,
+        "first_reject_ms": null,
+        "last_accepted_ms": null,
+        "last_sound_end_ms": 0,
+        "post_loss_starts_ms": [],
+        "accepted_after_loss": [],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 94,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1100
+          },
+          {
+            "ms": 561.008765625,
+            "grade": 94,
+            "recent": 800,
+            "newest_adc_ms": 560.8503125,
+            "age_ms": 0.15845312500005093,
+            "estimate_start": 16,
+            "tail_flat": false,
+            "tail_value": 1300
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            271.169375,
+            false
+          ],
+          [
+            350.018625,
+            true
+          ],
+          [
+            380.037375,
+            false
+          ],
+          [
+            459.08675,
+            true
+          ],
+          [
+            489.1055,
+            false
+          ],
+          [
+            568.154875,
+            true
+          ],
+          [
+            598.173625,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 0,
+        "final_recent": 0,
+        "final_sound": false,
+        "timer_irqs": 47970,
+        "adc_reads": 598
+      },
+      {
+        "phase": 0,
+        "amplitude": 300,
+        "after": 0,
+        "loss_ms": 620,
+        "post_ms": 600,
+        "stall": null,
+        "gate_close": true,
+        "first_reject_ms": null,
+        "last_accepted_ms": null,
+        "last_sound_end_ms": 0,
+        "post_loss_starts_ms": [],
+        "accepted_after_loss": [],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 94,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1100
+          },
+          {
+            "ms": 561.008765625,
+            "grade": 94,
+            "recent": 800,
+            "newest_adc_ms": 560.8503125,
+            "age_ms": 0.15845312500005093,
+            "estimate_start": 16,
+            "tail_flat": false,
+            "tail_value": 1300
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            271.169375,
+            false
+          ],
+          [
+            350.018625,
+            true
+          ],
+          [
+            380.037375,
+            false
+          ],
+          [
+            459.08675,
+            true
+          ],
+          [
+            489.1055,
+            false
+          ],
+          [
+            568.154875,
+            true
+          ],
+          [
+            598.173625,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 0,
+        "final_recent": 0,
+        "final_sound": false,
+        "timer_irqs": 48769,
+        "adc_reads": 618
+      },
+      {
+        "phase": 0,
+        "amplitude": 300,
+        "after": 0,
+        "loss_ms": 640,
+        "post_ms": 600,
+        "stall": null,
+        "gate_close": true,
+        "first_reject_ms": null,
+        "last_accepted_ms": null,
+        "last_sound_end_ms": 0,
+        "post_loss_starts_ms": [],
+        "accepted_after_loss": [],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 94,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1100
+          },
+          {
+            "ms": 561.008765625,
+            "grade": 94,
+            "recent": 800,
+            "newest_adc_ms": 560.8503125,
+            "age_ms": 0.15845312500005093,
+            "estimate_start": 16,
+            "tail_flat": false,
+            "tail_value": 1300
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            271.169375,
+            false
+          ],
+          [
+            350.018625,
+            true
+          ],
+          [
+            380.037375,
+            false
+          ],
+          [
+            459.08675,
+            true
+          ],
+          [
+            489.1055,
+            false
+          ],
+          [
+            568.154875,
+            true
+          ],
+          [
+            598.173625,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 0,
+        "final_recent": 0,
+        "final_sound": false,
+        "timer_irqs": 49569,
+        "adc_reads": 638
+      },
+      {
+        "phase": 0,
+        "amplitude": 300,
+        "after": 0,
+        "loss_ms": 660,
+        "post_ms": 600,
+        "stall": null,
+        "gate_close": true,
+        "first_reject_ms": null,
+        "last_accepted_ms": null,
+        "last_sound_end_ms": 0,
+        "post_loss_starts_ms": [],
+        "accepted_after_loss": [],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 94,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1100
+          },
+          {
+            "ms": 561.008765625,
+            "grade": 94,
+            "recent": 800,
+            "newest_adc_ms": 560.8503125,
+            "age_ms": 0.15845312500005093,
+            "estimate_start": 16,
+            "tail_flat": false,
+            "tail_value": 1300
+          },
+          {
+            "ms": 641.010015625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 640.9003125,
+            "age_ms": 0.10970312500001,
+            "estimate_start": 25,
+            "tail_flat": false,
+            "tail_value": 1300
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            271.169375,
+            false
+          ],
+          [
+            350.018625,
+            true
+          ],
+          [
+            380.037375,
+            false
+          ],
+          [
+            459.08675,
+            true
+          ],
+          [
+            489.1055,
+            false
+          ],
+          [
+            568.154875,
+            true
+          ],
+          [
+            598.173625,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 0,
+        "final_recent": 0,
+        "final_sound": false,
+        "timer_irqs": 50368,
+        "adc_reads": 658
+      },
+      {
+        "phase": 0,
+        "amplitude": 3095,
+        "after": 0,
+        "loss_ms": 600,
+        "post_ms": 600,
+        "stall": null,
+        "gate_close": true,
+        "first_reject_ms": null,
+        "last_accepted_ms": null,
+        "last_sound_end_ms": 0.17487500000004275,
+        "post_loss_starts_ms": [],
+        "accepted_after_loss": [],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 2031
+          },
+          {
+            "ms": 561.008765625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 560.8503125,
+            "age_ms": 0.15845312500005093,
+            "estimate_start": 16,
+            "tail_flat": false,
+            "tail_value": 4095
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            341.013,
+            false
+          ],
+          [
+            500.112375,
+            true
+          ],
+          [
+            600.174875,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 0,
+        "final_recent": 0,
+        "final_sound": false,
+        "timer_irqs": 47970,
+        "adc_reads": 598
+      },
+      {
+        "phase": 0,
+        "amplitude": 3095,
+        "after": 0,
+        "loss_ms": 620,
+        "post_ms": 600,
+        "stall": null,
+        "gate_close": true,
+        "first_reject_ms": null,
+        "last_accepted_ms": null,
+        "last_sound_end_ms": 0,
+        "post_loss_starts_ms": [],
+        "accepted_after_loss": [],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 2031
+          },
+          {
+            "ms": 561.008765625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 560.8503125,
+            "age_ms": 0.15845312500005093,
+            "estimate_start": 16,
+            "tail_flat": false,
+            "tail_value": 4095
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            341.013,
+            false
+          ],
+          [
+            500.112375,
+            true
+          ],
+          [
+            600.174875,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 0,
+        "final_recent": 0,
+        "final_sound": false,
+        "timer_irqs": 48769,
+        "adc_reads": 618
+      },
+      {
+        "phase": 0,
+        "amplitude": 3095,
+        "after": 0,
+        "loss_ms": 640,
+        "post_ms": 600,
+        "stall": null,
+        "gate_close": true,
+        "first_reject_ms": null,
+        "last_accepted_ms": null,
+        "last_sound_end_ms": 0,
+        "post_loss_starts_ms": [],
+        "accepted_after_loss": [],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 2031
+          },
+          {
+            "ms": 561.008765625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 560.8503125,
+            "age_ms": 0.15845312500005093,
+            "estimate_start": 16,
+            "tail_flat": false,
+            "tail_value": 4095
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            341.013,
+            false
+          ],
+          [
+            500.112375,
+            true
+          ],
+          [
+            600.174875,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 0,
+        "final_recent": 0,
+        "final_sound": false,
+        "timer_irqs": 49569,
+        "adc_reads": 638
+      },
+      {
+        "phase": 0,
+        "amplitude": 3095,
+        "after": 0,
+        "loss_ms": 660,
+        "post_ms": 600,
+        "stall": null,
+        "gate_close": true,
+        "first_reject_ms": null,
+        "last_accepted_ms": null,
+        "last_sound_end_ms": 0,
+        "post_loss_starts_ms": [],
+        "accepted_after_loss": [],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 2031
+          },
+          {
+            "ms": 561.008765625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 560.8503125,
+            "age_ms": 0.15845312500005093,
+            "estimate_start": 16,
+            "tail_flat": false,
+            "tail_value": 4095
+          },
+          {
+            "ms": 641.010015625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 640.9003125,
+            "age_ms": 0.10970312500001,
+            "estimate_start": 25,
+            "tail_flat": false,
+            "tail_value": 4095
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            341.013,
+            false
+          ],
+          [
+            500.112375,
+            true
+          ],
+          [
+            600.174875,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 0,
+        "final_recent": 0,
+        "final_sound": false,
+        "timer_irqs": 50368,
+        "adc_reads": 658
+      },
+      {
+        "phase": 0,
+        "amplitude": 300,
+        "after": 0,
+        "loss_ms": 580,
+        "post_ms": 600,
+        "stall": null,
+        "gate_close": true,
+        "first_reject_ms": null,
+        "last_accepted_ms": null,
+        "last_sound_end_ms": 18.173625000000015,
+        "post_loss_starts_ms": [],
+        "accepted_after_loss": [],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 80,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 94,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1100
+          },
+          {
+            "ms": 561.008765625,
+            "grade": 94,
+            "recent": 800,
+            "newest_adc_ms": 560.8503125,
+            "age_ms": 0.15845312500005093,
+            "estimate_start": 16,
+            "tail_flat": false,
+            "tail_value": 1300
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            271.169375,
+            false
+          ],
+          [
+            350.018625,
+            true
+          ],
+          [
+            380.037375,
+            false
+          ],
+          [
+            459.08675,
+            true
+          ],
+          [
+            489.1055,
+            false
+          ],
+          [
+            568.154875,
+            true
+          ],
+          [
+            598.173625,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 0,
+        "final_recent": 0,
+        "final_sound": false,
+        "timer_irqs": 47170,
+        "adc_reads": 578
+      },
+      {
+        "phase": 0,
+        "amplitude": 3095,
+        "after": 0,
+        "loss_ms": 520,
+        "post_ms": 600,
+        "stall": null,
+        "gate_close": true,
+        "first_reject_ms": null,
+        "last_accepted_ms": null,
+        "last_sound_end_ms": 80.17487500000004,
+        "post_loss_starts_ms": [],
+        "accepted_after_loss": [],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 1,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 2031
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            341.013,
+            false
+          ],
+          [
+            500.112375,
+            true
+          ],
+          [
+            600.174875,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 0,
+        "final_recent": 0,
+        "final_sound": false,
+        "timer_irqs": 44772,
+        "adc_reads": 518
+      }
+    ],
+    "coherent_residual": [
+      {
+        "phase": 0,
+        "amplitude": 3000,
+        "after": 0,
+        "loss_ms": 600,
+        "post_ms": 1600,
+        "stall": null,
+        "gate_close": false,
+        "first_reject_ms": 121.01126562499996,
+        "last_accepted_ms": 41.01001562500005,
+        "last_sound_end_ms": 100.03724999999997,
+        "post_loss_starts_ms": [
+          3.17674999999997,
+          70.01850000000002
+        ],
+        "accepted_after_loss": [
+          {
+            "ms": 641.010015625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 640.9003125,
+            "age_ms": 0.10970312500001,
+            "estimate_start": 25,
+            "tail_flat": false,
+            "tail_value": 1000
+          }
+        ],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 38,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 2000
+          },
+          {
+            "ms": 561.008765625,
+            "grade": 38,
+            "recent": 800,
+            "newest_adc_ms": 560.8503125,
+            "age_ms": 0.15845312500005093,
+            "estimate_start": 16,
+            "tail_flat": false,
+            "tail_value": 4000
+          },
+          {
+            "ms": 641.010015625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 640.9003125,
+            "age_ms": 0.10970312500001,
+            "estimate_start": 25,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 721.011265625,
+            "grade": 0,
+            "recent": 720,
+            "newest_adc_ms": 720.9503125,
+            "age_ms": 0.06095312499996908,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 801.012515625,
+            "grade": 0,
+            "recent": 640,
+            "newest_adc_ms": 801.0003125,
+            "age_ms": 0.012203125000041837,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 882.01378125,
+            "grade": 0,
+            "recent": 559,
+            "newest_adc_ms": 881.0503125,
+            "age_ms": 0.9634687499999472,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 962.01503125,
+            "grade": 0,
+            "recent": 479,
+            "newest_adc_ms": 961.600625,
+            "age_ms": 0.41440624999995634,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1042.01628125,
+            "grade": 0,
+            "recent": 399,
+            "newest_adc_ms": 1041.650625,
+            "age_ms": 0.3656562500000291,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1122.01753125,
+            "grade": 0,
+            "recent": 319,
+            "newest_adc_ms": 1121.700625,
+            "age_ms": 0.31690625000010186,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1202.01878125,
+            "grade": 0,
+            "recent": 239,
+            "newest_adc_ms": 1201.750625,
+            "age_ms": 0.2681562500001746,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1282.02003125,
+            "grade": 0,
+            "recent": 159,
+            "newest_adc_ms": 1281.800625,
+            "age_ms": 0.21940625000002,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1362.02128125,
+            "grade": 0,
+            "recent": 79,
+            "newest_adc_ms": 1361.850625,
+            "age_ms": 0.1706562499998654,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1442.02253125,
+            "grade": 0,
+            "recent": 0,
+            "newest_adc_ms": 1441.900625,
+            "age_ms": 0.12190624999993815,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1522.02378125,
+            "grade": 0,
+            "recent": 0,
+            "newest_adc_ms": 1521.950625,
+            "age_ms": 0.07315625000001091,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1602.02503125,
+            "grade": 0,
+            "recent": 0,
+            "newest_adc_ms": 1602.000625,
+            "age_ms": 0.024406250000083674,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1683.026296875,
+            "grade": 0,
+            "recent": 0,
+            "newest_adc_ms": 1682.050625,
+            "age_ms": 0.9756718749999891,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1763.027546875,
+            "grade": 0,
+            "recent": 0,
+            "newest_adc_ms": 1762.6009375,
+            "age_ms": 0.4266093749999982,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1843.028796875,
+            "grade": 0,
+            "recent": 0,
+            "newest_adc_ms": 1842.6509375,
+            "age_ms": 0.37785937499984357,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1923.030046875,
+            "grade": 0,
+            "recent": 0,
+            "newest_adc_ms": 1922.7009375,
+            "age_ms": 0.3291093749999163,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2003.031296875,
+            "grade": 0,
+            "recent": 0,
+            "newest_adc_ms": 2002.7509375,
+            "age_ms": 0.2803593749999891,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2083.032546875,
+            "grade": 0,
+            "recent": 0,
+            "newest_adc_ms": 2082.8009375,
+            "age_ms": 0.23160937500006185,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2163.033796875,
+            "grade": 0,
+            "recent": 0,
+            "newest_adc_ms": 2162.8509375,
+            "age_ms": 0.1828593750001346,
+            "estimate_start": null,
+            "tail_flat": true,
+            "tail_value": 1000
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            271.169375,
+            false
+          ],
+          [
+            300.1875,
+            true
+          ],
+          [
+            330.006125,
+            false
+          ],
+          [
+            359.02425,
+            true
+          ],
+          [
+            389.043,
+            false
+          ],
+          [
+            418.061125,
+            true
+          ],
+          [
+            448.079875,
+            false
+          ],
+          [
+            477.098,
+            true
+          ],
+          [
+            507.11675,
+            false
+          ],
+          [
+            536.134875,
+            true
+          ],
+          [
+            566.153625,
+            false
+          ],
+          [
+            603.17675,
+            true
+          ],
+          [
+            633.1955,
+            false
+          ],
+          [
+            670.0185,
+            true
+          ],
+          [
+            700.03725,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 0,
+        "final_recent": 0,
+        "final_sound": false,
+        "timer_irqs": 87945,
+        "adc_reads": 2195
+      },
+      {
+        "phase": 0,
+        "amplitude": 3000,
+        "after": 9,
+        "loss_ms": 600,
+        "post_ms": 1600,
+        "stall": null,
+        "gate_close": false,
+        "first_reject_ms": 522.01753125,
+        "last_accepted_ms": 1563.033796875,
+        "last_sound_end_ms": 1535.133625,
+        "post_loss_starts_ms": [
+          3.17674999999997,
+          70.01850000000002,
+          129.05537500000003,
+          311.169125,
+          493.08275000000003,
+          762.0507500000001,
+          944.1645000000001,
+          1323.20125,
+          1505.1148750000002
+        ],
+        "accepted_after_loss": [
+          {
+            "ms": 641.010015625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 640.9003125,
+            "age_ms": 0.10970312500001,
+            "estimate_start": 25,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 721.011265625,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 720.9503125,
+            "age_ms": 0.06095312499996908,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 801.012515625,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 801.0003125,
+            "age_ms": 0.012203125000041837,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 882.01378125,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 881.0503125,
+            "age_ms": 0.9634687499999472,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 962.01503125,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 961.600625,
+            "age_ms": 0.41440624999995634,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 1042.01628125,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 1041.650625,
+            "age_ms": 0.3656562500000291,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 1362.02128125,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 1361.850625,
+            "age_ms": 0.1706562499998654,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 1442.02253125,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 1441.900625,
+            "age_ms": 0.12190624999993815,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 1522.02378125,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 1521.950625,
+            "age_ms": 0.07315625000001091,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 1602.02503125,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 1602.000625,
+            "age_ms": 0.024406250000083674,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1006
+          },
+          {
+            "ms": 1923.030046875,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 1922.7009375,
+            "age_ms": 0.3291093749999163,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2003.031296875,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 2002.7509375,
+            "age_ms": 0.2803593749999891,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2083.032546875,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 2082.8009375,
+            "age_ms": 0.23160937500006185,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2163.033796875,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 2162.8509375,
+            "age_ms": 0.1828593750001346,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1003
+          }
+        ],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 38,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 2000
+          },
+          {
+            "ms": 561.008765625,
+            "grade": 38,
+            "recent": 800,
+            "newest_adc_ms": 560.8503125,
+            "age_ms": 0.15845312500005093,
+            "estimate_start": 16,
+            "tail_flat": false,
+            "tail_value": 4000
+          },
+          {
+            "ms": 641.010015625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 640.9003125,
+            "age_ms": 0.10970312500001,
+            "estimate_start": 25,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 721.011265625,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 720.9503125,
+            "age_ms": 0.06095312499996908,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 801.012515625,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 801.0003125,
+            "age_ms": 0.012203125000041837,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 882.01378125,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 881.0503125,
+            "age_ms": 0.9634687499999472,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 962.01503125,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 961.600625,
+            "age_ms": 0.41440624999995634,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 1042.01628125,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 1041.650625,
+            "age_ms": 0.3656562500000291,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 1122.01753125,
+            "grade": 0,
+            "recent": 720,
+            "newest_adc_ms": 1121.700625,
+            "age_ms": 0.31690625000010186,
+            "estimate_start": null,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 1202.01878125,
+            "grade": 0,
+            "recent": 640,
+            "newest_adc_ms": 1201.750625,
+            "age_ms": 0.2681562500001746,
+            "estimate_start": null,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 1282.02003125,
+            "grade": 0,
+            "recent": 560,
+            "newest_adc_ms": 1281.800625,
+            "age_ms": 0.21940625000002,
+            "estimate_start": null,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 1362.02128125,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 1361.850625,
+            "age_ms": 0.1706562499998654,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 1442.02253125,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 1441.900625,
+            "age_ms": 0.12190624999993815,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 1522.02378125,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 1521.950625,
+            "age_ms": 0.07315625000001091,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1009
+          },
+          {
+            "ms": 1602.02503125,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 1602.000625,
+            "age_ms": 0.024406250000083674,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1006
+          },
+          {
+            "ms": 1683.026296875,
+            "grade": 0,
+            "recent": 719,
+            "newest_adc_ms": 1682.050625,
+            "age_ms": 0.9756718749999891,
+            "estimate_start": null,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1763.027546875,
+            "grade": 0,
+            "recent": 639,
+            "newest_adc_ms": 1762.6009375,
+            "age_ms": 0.4266093749999982,
+            "estimate_start": null,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1843.028796875,
+            "grade": 0,
+            "recent": 559,
+            "newest_adc_ms": 1842.6509375,
+            "age_ms": 0.37785937499984357,
+            "estimate_start": null,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1923.030046875,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 1922.7009375,
+            "age_ms": 0.3291093749999163,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2003.031296875,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 2002.7509375,
+            "age_ms": 0.2803593749999891,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2083.032546875,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 2082.8009375,
+            "age_ms": 0.23160937500006185,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2163.033796875,
+            "grade": 153,
+            "recent": 800,
+            "newest_adc_ms": 2162.8509375,
+            "age_ms": 0.1828593750001346,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1003
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            271.169375,
+            false
+          ],
+          [
+            300.1875,
+            true
+          ],
+          [
+            330.006125,
+            false
+          ],
+          [
+            359.02425,
+            true
+          ],
+          [
+            389.043,
+            false
+          ],
+          [
+            418.061125,
+            true
+          ],
+          [
+            448.079875,
+            false
+          ],
+          [
+            477.098,
+            true
+          ],
+          [
+            507.11675,
+            false
+          ],
+          [
+            536.134875,
+            true
+          ],
+          [
+            566.153625,
+            false
+          ],
+          [
+            603.17675,
+            true
+          ],
+          [
+            633.1955,
+            false
+          ],
+          [
+            670.0185,
+            true
+          ],
+          [
+            700.03725,
+            false
+          ],
+          [
+            729.055375,
+            true
+          ],
+          [
+            759.074125,
+            false
+          ],
+          [
+            911.169125,
+            true
+          ],
+          [
+            941.187875,
+            false
+          ],
+          [
+            1093.08275,
+            true
+          ],
+          [
+            1123.1015,
+            false
+          ],
+          [
+            1362.05075,
+            true
+          ],
+          [
+            1392.0695,
+            false
+          ],
+          [
+            1544.1645,
+            true
+          ],
+          [
+            1574.18325,
+            false
+          ],
+          [
+            1923.20125,
+            true
+          ],
+          [
+            1953.22,
+            false
+          ],
+          [
+            2105.114875,
+            true
+          ],
+          [
+            2135.133625,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 153,
+        "final_recent": 763,
+        "final_sound": false,
+        "timer_irqs": 87945,
+        "adc_reads": 2195
+      },
+      {
+        "phase": 0,
+        "amplitude": 3000,
+        "after": 12,
+        "loss_ms": 600,
+        "post_ms": 1600,
+        "stall": null,
+        "gate_close": false,
+        "first_reject_ms": 1163.027546875,
+        "last_accepted_ms": 1563.033796875,
+        "last_sound_end_ms": 1453.082375,
+        "post_loss_starts_ms": [
+          3.17674999999997,
+          70.01850000000002,
+          129.05537500000003,
+          309.167875,
+          489.08025,
+          669.1927499999999,
+          849.105125,
+          1029.217625,
+          1243.15125,
+          1423.063625
+        ],
+        "accepted_after_loss": [
+          {
+            "ms": 641.010015625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 640.9003125,
+            "age_ms": 0.10970312500001,
+            "estimate_start": 25,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 721.011265625,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 720.9503125,
+            "age_ms": 0.06095312499996908,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 801.012515625,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 801.0003125,
+            "age_ms": 0.012203125000041837,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 882.01378125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 881.0503125,
+            "age_ms": 0.9634687499999472,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 962.01503125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 961.600625,
+            "age_ms": 0.41440624999995634,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 1042.01628125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1041.650625,
+            "age_ms": 0.3656562500000291,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 1122.01753125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1121.700625,
+            "age_ms": 0.31690625000010186,
+            "estimate_start": 17,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 1202.01878125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1201.750625,
+            "age_ms": 0.2681562500001746,
+            "estimate_start": 26,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 1282.02003125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1281.800625,
+            "age_ms": 0.21940625000002,
+            "estimate_start": 26,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 1362.02128125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1361.850625,
+            "age_ms": 0.1706562499998654,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 1442.02253125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1441.900625,
+            "age_ms": 0.12190624999993815,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 1522.02378125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1521.950625,
+            "age_ms": 0.07315625000001091,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 1602.02503125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1602.000625,
+            "age_ms": 0.024406250000083674,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1008
+          },
+          {
+            "ms": 1683.026296875,
+            "grade": 154,
+            "recent": 800,
+            "newest_adc_ms": 1682.050625,
+            "age_ms": 0.9756718749999891,
+            "estimate_start": 18,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1843.028796875,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1842.6509375,
+            "age_ms": 0.37785937499984357,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1923.030046875,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1922.7009375,
+            "age_ms": 0.3291093749999163,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2003.031296875,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 2002.7509375,
+            "age_ms": 0.2803593749999891,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2083.032546875,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 2082.8009375,
+            "age_ms": 0.23160937500006185,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2163.033796875,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 2162.8509375,
+            "age_ms": 0.1828593750001346,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1004
+          }
+        ],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 38,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 2000
+          },
+          {
+            "ms": 561.008765625,
+            "grade": 38,
+            "recent": 800,
+            "newest_adc_ms": 560.8503125,
+            "age_ms": 0.15845312500005093,
+            "estimate_start": 16,
+            "tail_flat": false,
+            "tail_value": 4000
+          },
+          {
+            "ms": 641.010015625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 640.9003125,
+            "age_ms": 0.10970312500001,
+            "estimate_start": 25,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 721.011265625,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 720.9503125,
+            "age_ms": 0.06095312499996908,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 801.012515625,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 801.0003125,
+            "age_ms": 0.012203125000041837,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 882.01378125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 881.0503125,
+            "age_ms": 0.9634687499999472,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 962.01503125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 961.600625,
+            "age_ms": 0.41440624999995634,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 1042.01628125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1041.650625,
+            "age_ms": 0.3656562500000291,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 1122.01753125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1121.700625,
+            "age_ms": 0.31690625000010186,
+            "estimate_start": 17,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 1202.01878125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1201.750625,
+            "age_ms": 0.2681562500001746,
+            "estimate_start": 26,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 1282.02003125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1281.800625,
+            "age_ms": 0.21940625000002,
+            "estimate_start": 26,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 1362.02128125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1361.850625,
+            "age_ms": 0.1706562499998654,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 1442.02253125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1441.900625,
+            "age_ms": 0.12190624999993815,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 1522.02378125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1521.950625,
+            "age_ms": 0.07315625000001091,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1012
+          },
+          {
+            "ms": 1602.02503125,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1602.000625,
+            "age_ms": 0.024406250000083674,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1008
+          },
+          {
+            "ms": 1683.026296875,
+            "grade": 154,
+            "recent": 800,
+            "newest_adc_ms": 1682.050625,
+            "age_ms": 0.9756718749999891,
+            "estimate_start": 18,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1763.027546875,
+            "grade": 0,
+            "recent": 720,
+            "newest_adc_ms": 1762.6009375,
+            "age_ms": 0.4266093749999982,
+            "estimate_start": null,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1843.028796875,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1842.6509375,
+            "age_ms": 0.37785937499984357,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1923.030046875,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 1922.7009375,
+            "age_ms": 0.3291093749999163,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2003.031296875,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 2002.7509375,
+            "age_ms": 0.2803593749999891,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2083.032546875,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 2082.8009375,
+            "age_ms": 0.23160937500006185,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2163.033796875,
+            "grade": 151,
+            "recent": 800,
+            "newest_adc_ms": 2162.8509375,
+            "age_ms": 0.1828593750001346,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1004
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            271.169375,
+            false
+          ],
+          [
+            300.1875,
+            true
+          ],
+          [
+            330.006125,
+            false
+          ],
+          [
+            359.02425,
+            true
+          ],
+          [
+            389.043,
+            false
+          ],
+          [
+            418.061125,
+            true
+          ],
+          [
+            448.079875,
+            false
+          ],
+          [
+            477.098,
+            true
+          ],
+          [
+            507.11675,
+            false
+          ],
+          [
+            536.134875,
+            true
+          ],
+          [
+            566.153625,
+            false
+          ],
+          [
+            603.17675,
+            true
+          ],
+          [
+            633.1955,
+            false
+          ],
+          [
+            670.0185,
+            true
+          ],
+          [
+            700.03725,
+            false
+          ],
+          [
+            729.055375,
+            true
+          ],
+          [
+            759.074125,
+            false
+          ],
+          [
+            909.167875,
+            true
+          ],
+          [
+            939.186625,
+            false
+          ],
+          [
+            1089.08025,
+            true
+          ],
+          [
+            1119.099,
+            false
+          ],
+          [
+            1269.19275,
+            true
+          ],
+          [
+            1299.2115,
+            false
+          ],
+          [
+            1449.105125,
+            true
+          ],
+          [
+            1479.123875,
+            false
+          ],
+          [
+            1629.217625,
+            true
+          ],
+          [
+            1659.03625,
+            false
+          ],
+          [
+            1843.15125,
+            true
+          ],
+          [
+            1873.17,
+            false
+          ],
+          [
+            2023.063625,
+            true
+          ],
+          [
+            2053.082375,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 151,
+        "final_recent": 763,
+        "final_sound": false,
+        "timer_irqs": 87945,
+        "adc_reads": 2195
+      },
+      {
+        "phase": 0,
+        "amplitude": 3000,
+        "after": 25,
+        "loss_ms": 600,
+        "post_ms": 1600,
+        "stall": null,
+        "gate_close": false,
+        "first_reject_ms": null,
+        "last_accepted_ms": 1563.033796875,
+        "last_sound_end_ms": 1522.1255,
+        "post_loss_starts_ms": [
+          3.17674999999997,
+          70.01850000000002,
+          129.05537500000003,
+          298.16099999999994,
+          467.0664999999999,
+          636.172125,
+          809.080125,
+          978.1857500000001,
+          1147.09125,
+          1323.20125,
+          1492.10675
+        ],
+        "accepted_after_loss": [
+          {
+            "ms": 641.010015625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 640.9003125,
+            "age_ms": 0.10970312500001,
+            "estimate_start": 25,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 721.011265625,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 720.9503125,
+            "age_ms": 0.06095312499996908,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 801.012515625,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 801.0003125,
+            "age_ms": 0.012203125000041837,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 882.01378125,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 881.0503125,
+            "age_ms": 0.9634687499999472,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 962.01503125,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 961.600625,
+            "age_ms": 0.41440624999995634,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 1042.01628125,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 1041.650625,
+            "age_ms": 0.3656562500000291,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 1122.01753125,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 1121.700625,
+            "age_ms": 0.31690625000010186,
+            "estimate_start": 17,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 1202.01878125,
+            "grade": 144,
+            "recent": 800,
+            "newest_adc_ms": 1201.750625,
+            "age_ms": 0.2681562500001746,
+            "estimate_start": 26,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 1282.02003125,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 1281.800625,
+            "age_ms": 0.21940625000002,
+            "estimate_start": 26,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 1362.02128125,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 1361.850625,
+            "age_ms": 0.1706562499998654,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 1442.02253125,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 1441.900625,
+            "age_ms": 0.12190624999993815,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 1522.02378125,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 1521.950625,
+            "age_ms": 0.07315625000001091,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 1602.02503125,
+            "grade": 144,
+            "recent": 800,
+            "newest_adc_ms": 1602.000625,
+            "age_ms": 0.024406250000083674,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1016
+          },
+          {
+            "ms": 1683.026296875,
+            "grade": 147,
+            "recent": 800,
+            "newest_adc_ms": 1682.050625,
+            "age_ms": 0.9756718749999891,
+            "estimate_start": 18,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1763.027546875,
+            "grade": 147,
+            "recent": 800,
+            "newest_adc_ms": 1762.6009375,
+            "age_ms": 0.4266093749999982,
+            "estimate_start": 27,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1843.028796875,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 1842.6509375,
+            "age_ms": 0.37785937499984357,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1923.030046875,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 1922.7009375,
+            "age_ms": 0.3291093749999163,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2003.031296875,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 2002.7509375,
+            "age_ms": 0.2803593749999891,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2083.032546875,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 2082.8009375,
+            "age_ms": 0.23160937500006185,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2163.033796875,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 2162.8509375,
+            "age_ms": 0.1828593750001346,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1008
+          }
+        ],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 38,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 2000
+          },
+          {
+            "ms": 561.008765625,
+            "grade": 38,
+            "recent": 800,
+            "newest_adc_ms": 560.8503125,
+            "age_ms": 0.15845312500005093,
+            "estimate_start": 16,
+            "tail_flat": false,
+            "tail_value": 4000
+          },
+          {
+            "ms": 641.010015625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 640.9003125,
+            "age_ms": 0.10970312500001,
+            "estimate_start": 25,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 721.011265625,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 720.9503125,
+            "age_ms": 0.06095312499996908,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 801.012515625,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 801.0003125,
+            "age_ms": 0.012203125000041837,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 882.01378125,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 881.0503125,
+            "age_ms": 0.9634687499999472,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 962.01503125,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 961.600625,
+            "age_ms": 0.41440624999995634,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 1042.01628125,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 1041.650625,
+            "age_ms": 0.3656562500000291,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 1122.01753125,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 1121.700625,
+            "age_ms": 0.31690625000010186,
+            "estimate_start": 17,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 1202.01878125,
+            "grade": 144,
+            "recent": 800,
+            "newest_adc_ms": 1201.750625,
+            "age_ms": 0.2681562500001746,
+            "estimate_start": 26,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 1282.02003125,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 1281.800625,
+            "age_ms": 0.21940625000002,
+            "estimate_start": 26,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 1362.02128125,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 1361.850625,
+            "age_ms": 0.1706562499998654,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 1442.02253125,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 1441.900625,
+            "age_ms": 0.12190624999993815,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 1522.02378125,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 1521.950625,
+            "age_ms": 0.07315625000001091,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1025
+          },
+          {
+            "ms": 1602.02503125,
+            "grade": 144,
+            "recent": 800,
+            "newest_adc_ms": 1602.000625,
+            "age_ms": 0.024406250000083674,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1016
+          },
+          {
+            "ms": 1683.026296875,
+            "grade": 147,
+            "recent": 800,
+            "newest_adc_ms": 1682.050625,
+            "age_ms": 0.9756718749999891,
+            "estimate_start": 18,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1763.027546875,
+            "grade": 147,
+            "recent": 800,
+            "newest_adc_ms": 1762.6009375,
+            "age_ms": 0.4266093749999982,
+            "estimate_start": 27,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1843.028796875,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 1842.6509375,
+            "age_ms": 0.37785937499984357,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1923.030046875,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 1922.7009375,
+            "age_ms": 0.3291093749999163,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2003.031296875,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 2002.7509375,
+            "age_ms": 0.2803593749999891,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2083.032546875,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 2082.8009375,
+            "age_ms": 0.23160937500006185,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2163.033796875,
+            "grade": 140,
+            "recent": 800,
+            "newest_adc_ms": 2162.8509375,
+            "age_ms": 0.1828593750001346,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1008
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            271.169375,
+            false
+          ],
+          [
+            300.1875,
+            true
+          ],
+          [
+            330.006125,
+            false
+          ],
+          [
+            359.02425,
+            true
+          ],
+          [
+            389.043,
+            false
+          ],
+          [
+            418.061125,
+            true
+          ],
+          [
+            448.079875,
+            false
+          ],
+          [
+            477.098,
+            true
+          ],
+          [
+            507.11675,
+            false
+          ],
+          [
+            536.134875,
+            true
+          ],
+          [
+            566.153625,
+            false
+          ],
+          [
+            603.17675,
+            true
+          ],
+          [
+            633.1955,
+            false
+          ],
+          [
+            670.0185,
+            true
+          ],
+          [
+            700.03725,
+            false
+          ],
+          [
+            729.055375,
+            true
+          ],
+          [
+            759.074125,
+            false
+          ],
+          [
+            898.161,
+            true
+          ],
+          [
+            928.17975,
+            false
+          ],
+          [
+            1067.0665,
+            true
+          ],
+          [
+            1097.08525,
+            false
+          ],
+          [
+            1236.172125,
+            true
+          ],
+          [
+            1266.190875,
+            false
+          ],
+          [
+            1409.080125,
+            true
+          ],
+          [
+            1439.098875,
+            false
+          ],
+          [
+            1578.18575,
+            true
+          ],
+          [
+            1608.2045,
+            false
+          ],
+          [
+            1747.09125,
+            true
+          ],
+          [
+            1777.11,
+            false
+          ],
+          [
+            1923.20125,
+            true
+          ],
+          [
+            1953.22,
+            false
+          ],
+          [
+            2092.10675,
+            true
+          ],
+          [
+            2122.1255,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 140,
+        "final_recent": 763,
+        "final_sound": false,
+        "timer_irqs": 87945,
+        "adc_reads": 2195
+      },
+      {
+        "phase": 0,
+        "amplitude": 3000,
+        "after": 60,
+        "loss_ms": 600,
+        "post_ms": 1600,
+        "stall": null,
+        "gate_close": false,
+        "first_reject_ms": null,
+        "last_accepted_ms": 1563.033796875,
+        "last_sound_end_ms": 1537.1348750000002,
+        "post_loss_starts_ms": [
+          3.17674999999997,
+          70.01850000000002,
+          129.05537500000003,
+          281.15037500000005,
+          433.0452499999999,
+          585.1402499999999,
+          737.0351250000001,
+          889.1301249999999,
+          1041.225125,
+          1196.121875,
+          1355.22125,
+          1507.116125
+        ],
+        "accepted_after_loss": [
+          {
+            "ms": 641.010015625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 640.9003125,
+            "age_ms": 0.10970312500001,
+            "estimate_start": 25,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 721.011265625,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 720.9503125,
+            "age_ms": 0.06095312499996908,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 801.012515625,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 801.0003125,
+            "age_ms": 0.012203125000041837,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 882.01378125,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 881.0503125,
+            "age_ms": 0.9634687499999472,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 962.01503125,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 961.600625,
+            "age_ms": 0.41440624999995634,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 1042.01628125,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 1041.650625,
+            "age_ms": 0.3656562500000291,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 1122.01753125,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 1121.700625,
+            "age_ms": 0.31690625000010186,
+            "estimate_start": 17,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 1202.01878125,
+            "grade": 126,
+            "recent": 800,
+            "newest_adc_ms": 1201.750625,
+            "age_ms": 0.2681562500001746,
+            "estimate_start": 26,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 1282.02003125,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 1281.800625,
+            "age_ms": 0.21940625000002,
+            "estimate_start": 26,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 1362.02128125,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 1361.850625,
+            "age_ms": 0.1706562499998654,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 1442.02253125,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 1441.900625,
+            "age_ms": 0.12190624999993815,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 1522.02378125,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 1521.950625,
+            "age_ms": 0.07315625000001091,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 1602.02503125,
+            "grade": 126,
+            "recent": 800,
+            "newest_adc_ms": 1602.000625,
+            "age_ms": 0.024406250000083674,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1040
+          },
+          {
+            "ms": 1683.026296875,
+            "grade": 130,
+            "recent": 800,
+            "newest_adc_ms": 1682.050625,
+            "age_ms": 0.9756718749999891,
+            "estimate_start": 18,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1763.027546875,
+            "grade": 130,
+            "recent": 800,
+            "newest_adc_ms": 1762.6009375,
+            "age_ms": 0.4266093749999982,
+            "estimate_start": 27,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1843.028796875,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 1842.6509375,
+            "age_ms": 0.37785937499984357,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1923.030046875,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 1922.7009375,
+            "age_ms": 0.3291093749999163,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2003.031296875,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 2002.7509375,
+            "age_ms": 0.2803593749999891,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2083.032546875,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 2082.8009375,
+            "age_ms": 0.23160937500006185,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2163.033796875,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 2162.8509375,
+            "age_ms": 0.1828593750001346,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1020
+          }
+        ],
+        "publications": [
+          {
+            "ms": 241.003765625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 240.6503125,
+            "age_ms": 0.35345312499998727,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 321.005015625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 320.7003125,
+            "age_ms": 0.3047031250000032,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 401.006265625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 400.7503125,
+            "age_ms": 0.2559531250000191,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 481.007515625,
+            "grade": 38,
+            "recent": 800,
+            "newest_adc_ms": 480.8003125,
+            "age_ms": 0.20720312499997817,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 2000
+          },
+          {
+            "ms": 561.008765625,
+            "grade": 38,
+            "recent": 800,
+            "newest_adc_ms": 560.8503125,
+            "age_ms": 0.15845312500005093,
+            "estimate_start": 16,
+            "tail_flat": false,
+            "tail_value": 4000
+          },
+          {
+            "ms": 641.010015625,
+            "grade": 30,
+            "recent": 800,
+            "newest_adc_ms": 640.9003125,
+            "age_ms": 0.10970312500001,
+            "estimate_start": 25,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 721.011265625,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 720.9503125,
+            "age_ms": 0.06095312499996908,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 801.012515625,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 801.0003125,
+            "age_ms": 0.012203125000041837,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 882.01378125,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 881.0503125,
+            "age_ms": 0.9634687499999472,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 962.01503125,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 961.600625,
+            "age_ms": 0.41440624999995634,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 1042.01628125,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 1041.650625,
+            "age_ms": 0.3656562500000291,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 1122.01753125,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 1121.700625,
+            "age_ms": 0.31690625000010186,
+            "estimate_start": 17,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 1202.01878125,
+            "grade": 126,
+            "recent": 800,
+            "newest_adc_ms": 1201.750625,
+            "age_ms": 0.2681562500001746,
+            "estimate_start": 26,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 1282.02003125,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 1281.800625,
+            "age_ms": 0.21940625000002,
+            "estimate_start": 26,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 1362.02128125,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 1361.850625,
+            "age_ms": 0.1706562499998654,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 1442.02253125,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 1441.900625,
+            "age_ms": 0.12190624999993815,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 1522.02378125,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 1521.950625,
+            "age_ms": 0.07315625000001091,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1060
+          },
+          {
+            "ms": 1602.02503125,
+            "grade": 126,
+            "recent": 800,
+            "newest_adc_ms": 1602.000625,
+            "age_ms": 0.024406250000083674,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1040
+          },
+          {
+            "ms": 1683.026296875,
+            "grade": 130,
+            "recent": 800,
+            "newest_adc_ms": 1682.050625,
+            "age_ms": 0.9756718749999891,
+            "estimate_start": 18,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1763.027546875,
+            "grade": 130,
+            "recent": 800,
+            "newest_adc_ms": 1762.6009375,
+            "age_ms": 0.4266093749999982,
+            "estimate_start": 27,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1843.028796875,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 1842.6509375,
+            "age_ms": 0.37785937499984357,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 1923.030046875,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 1922.7009375,
+            "age_ms": 0.3291093749999163,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2003.031296875,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 2002.7509375,
+            "age_ms": 0.2803593749999891,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2083.032546875,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 2082.8009375,
+            "age_ms": 0.23160937500006185,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1000
+          },
+          {
+            "ms": 2163.033796875,
+            "grade": 123,
+            "recent": 800,
+            "newest_adc_ms": 2162.8509375,
+            "age_ms": 0.1828593750001346,
+            "estimate_start": 32,
+            "tail_flat": false,
+            "tail_value": 1020
+          }
+        ],
+        "pwm_edges": [
+          [
+            241.150625,
+            true
+          ],
+          [
+            271.169375,
+            false
+          ],
+          [
+            300.1875,
+            true
+          ],
+          [
+            330.006125,
+            false
+          ],
+          [
+            359.02425,
+            true
+          ],
+          [
+            389.043,
+            false
+          ],
+          [
+            418.061125,
+            true
+          ],
+          [
+            448.079875,
+            false
+          ],
+          [
+            477.098,
+            true
+          ],
+          [
+            507.11675,
+            false
+          ],
+          [
+            536.134875,
+            true
+          ],
+          [
+            566.153625,
+            false
+          ],
+          [
+            603.17675,
+            true
+          ],
+          [
+            633.1955,
+            false
+          ],
+          [
+            670.0185,
+            true
+          ],
+          [
+            700.03725,
+            false
+          ],
+          [
+            729.055375,
+            true
+          ],
+          [
+            759.074125,
+            false
+          ],
+          [
+            881.150375,
+            true
+          ],
+          [
+            911.169125,
+            false
+          ],
+          [
+            1033.04525,
+            true
+          ],
+          [
+            1063.064,
+            false
+          ],
+          [
+            1185.14025,
+            true
+          ],
+          [
+            1215.159,
+            false
+          ],
+          [
+            1337.035125,
+            true
+          ],
+          [
+            1367.053875,
+            false
+          ],
+          [
+            1489.130125,
+            true
+          ],
+          [
+            1519.148875,
+            false
+          ],
+          [
+            1641.225125,
+            true
+          ],
+          [
+            1671.04375,
+            false
+          ],
+          [
+            1796.121875,
+            true
+          ],
+          [
+            1826.140625,
+            false
+          ],
+          [
+            1955.22125,
+            true
+          ],
+          [
+            1985.039875,
+            false
+          ],
+          [
+            2107.116125,
+            true
+          ],
+          [
+            2137.134875,
+            false
+          ]
+        ],
+        "final_beep": 0,
+        "final_grade": 123,
+        "final_recent": 763,
+        "final_sound": false,
+        "timer_irqs": 87945,
+        "adc_reads": 2195
+      }
+    ],
+    "mask_audit": {
+      "analysis": [
+        {
+          "path": "digital_normal",
+          "instructions": 3726,
+          "max_contiguous_masked": 15,
+          "masked_total": 15
+        },
+        {
+          "path": "digital_uncertain",
+          "instructions": 3684,
+          "max_contiguous_masked": 15,
+          "masked_total": 15
+        },
+        {
+          "path": "digital_reject",
+          "instructions": 3640,
+          "max_contiguous_masked": 13,
+          "masked_total": 13
+        },
+        {
+          "path": "digital_noise",
+          "instructions": 6205,
+          "max_contiguous_masked": 13,
+          "masked_total": 13
+        },
+        {
+          "path": "digital_exact_fallback",
+          "instructions": 6094,
+          "max_contiguous_masked": 15,
+          "masked_total": 15
+        },
+        {
+          "path": "digital_upper_tail",
+          "instructions": 5572,
+          "max_contiguous_masked": 15,
+          "masked_total": 15
+        },
+        {
+          "path": "analog_normal",
+          "instructions": 60647,
+          "max_contiguous_masked": 16,
+          "masked_total": 31
+        },
+        {
+          "path": "analog_reject",
+          "instructions": 59847,
+          "max_contiguous_masked": 13,
+          "masked_total": 13
+        },
+        {
+          "path": "analog_clipped",
+          "instructions": 60734,
+          "max_contiguous_masked": 17,
+          "masked_total": 32
+        }
+      ],
+      "adc": [
+        {
+          "completion_delay_in_instructions": 0,
+          "instructions": 112,
+          "max_contiguous_masked": 107,
+          "reset_requested": false
+        },
+        {
+          "completion_delay_in_instructions": 100,
+          "instructions": 207,
+          "max_contiguous_masked": 202,
+          "reset_requested": false
+        },
+        {
+          "completion_delay_in_instructions": 500,
+          "instructions": 607,
+          "max_contiguous_masked": 602,
+          "reset_requested": false
+        },
+        {
+          "completion_delay_in_instructions": 2000,
+          "instructions": 2107,
+          "max_contiguous_masked": 2102,
+          "reset_requested": false
+        },
+        {
+          "completion_delay_in_instructions": null,
+          "instructions": 2601,
+          "max_contiguous_masked": 2597,
+          "reset_requested": true
+        }
+      ],
+      "limitation": "Executed instructions, not hardware cycles; no NVIC timing model."
+    },
+    "withheld_tim1_fault_injection": {
+      "phase": 0.5,
+      "amplitude": 300,
+      "after": 0,
+      "loss_ms": 700,
+      "post_ms": 1500,
+      "stall": null,
+      "gate_close": false,
+      "timer1_stall": [
+        700,
+        1700
+      ],
+      "first_reject_ms": 182.01378124999997,
+      "last_accepted_ms": 101.01251562499999,
+      "last_sound_end_ms": 1014.0706250000001,
+      "post_loss_starts_ms": [],
+      "accepted_after_loss": [
+        {
+          "ms": 721.011265625,
+          "grade": 80,
+          "recent": 800,
+          "newest_adc_ms": 720.9503125,
+          "age_ms": 0.06095312499996908,
+          "estimate_start": 32,
+          "tail_flat": false,
+          "tail_value": 1000
+        },
+        {
+          "ms": 801.012515625,
+          "grade": 80,
+          "recent": 800,
+          "newest_adc_ms": 801.0003125,
+          "age_ms": 0.012203125000041837,
+          "estimate_start": 8,
+          "tail_flat": true,
+          "tail_value": 1000
+        }
+      ],
+      "publications": [
+        {
+          "ms": 241.003765625,
+          "grade": 87,
+          "recent": 800,
+          "newest_adc_ms": 240.6503125,
+          "age_ms": 0.35345312499998727,
+          "estimate_start": 23,
+          "tail_flat": false,
+          "tail_value": 1100
+        },
+        {
+          "ms": 321.005015625,
+          "grade": 80,
+          "recent": 800,
+          "newest_adc_ms": 320.7003125,
+          "age_ms": 0.3047031250000032,
+          "estimate_start": 32,
+          "tail_flat": false,
+          "tail_value": 1000
+        },
+        {
+          "ms": 401.006265625,
+          "grade": 80,
+          "recent": 800,
+          "newest_adc_ms": 400.7503125,
+          "age_ms": 0.2559531250000191,
+          "estimate_start": 32,
+          "tail_flat": false,
+          "tail_value": 1000
+        },
+        {
+          "ms": 481.007515625,
+          "grade": 80,
+          "recent": 800,
+          "newest_adc_ms": 480.8003125,
+          "age_ms": 0.20720312499997817,
+          "estimate_start": 32,
+          "tail_flat": false,
+          "tail_value": 1000
+        },
+        {
+          "ms": 561.008765625,
+          "grade": 80,
+          "recent": 800,
+          "newest_adc_ms": 560.8503125,
+          "age_ms": 0.15845312500005093,
+          "estimate_start": 32,
+          "tail_flat": false,
+          "tail_value": 1000
+        },
+        {
+          "ms": 641.010015625,
+          "grade": 80,
+          "recent": 800,
+          "newest_adc_ms": 640.9003125,
+          "age_ms": 0.10970312500001,
+          "estimate_start": 32,
+          "tail_flat": false,
+          "tail_value": 1000
+        },
+        {
+          "ms": 721.011265625,
+          "grade": 80,
+          "recent": 800,
+          "newest_adc_ms": 720.9503125,
+          "age_ms": 0.06095312499996908,
+          "estimate_start": 32,
+          "tail_flat": false,
+          "tail_value": 1000
+        },
+        {
+          "ms": 801.012515625,
+          "grade": 80,
+          "recent": 800,
+          "newest_adc_ms": 801.0003125,
+          "age_ms": 0.012203125000041837,
+          "estimate_start": 8,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 882.01378125,
+          "grade": 0,
+          "recent": 800,
+          "newest_adc_ms": 881.0503125,
+          "age_ms": 0.9634687499999472,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 962.01503125,
+          "grade": 0,
+          "recent": 800,
+          "newest_adc_ms": 961.600625,
+          "age_ms": 0.41440624999995634,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 1042.01628125,
+          "grade": 0,
+          "recent": 800,
+          "newest_adc_ms": 1041.650625,
+          "age_ms": 0.3656562500000291,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 1122.01753125,
+          "grade": 0,
+          "recent": 800,
+          "newest_adc_ms": 1121.700625,
+          "age_ms": 0.31690625000010186,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 1202.01878125,
+          "grade": 0,
+          "recent": 800,
+          "newest_adc_ms": 1201.750625,
+          "age_ms": 0.2681562500001746,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 1282.02003125,
+          "grade": 0,
+          "recent": 800,
+          "newest_adc_ms": 1281.800625,
+          "age_ms": 0.21940625000002,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 1362.02128125,
+          "grade": 0,
+          "recent": 800,
+          "newest_adc_ms": 1361.850625,
+          "age_ms": 0.1706562499998654,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 1442.02253125,
+          "grade": 0,
+          "recent": 800,
+          "newest_adc_ms": 1441.900625,
+          "age_ms": 0.12190624999993815,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 1522.02378125,
+          "grade": 0,
+          "recent": 800,
+          "newest_adc_ms": 1521.950625,
+          "age_ms": 0.07315625000001091,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 1602.02503125,
+          "grade": 0,
+          "recent": 800,
+          "newest_adc_ms": 1602.000625,
+          "age_ms": 0.024406250000083674,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 1683.026296875,
+          "grade": 0,
+          "recent": 800,
+          "newest_adc_ms": 1682.050625,
+          "age_ms": 0.9756718749999891,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 1763.027546875,
+          "grade": 0,
+          "recent": 736,
+          "newest_adc_ms": 1762.6009375,
+          "age_ms": 0.4266093749999982,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 1843.028796875,
+          "grade": 0,
+          "recent": 656,
+          "newest_adc_ms": 1842.6509375,
+          "age_ms": 0.37785937499984357,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 1923.030046875,
+          "grade": 0,
+          "recent": 576,
+          "newest_adc_ms": 1922.7009375,
+          "age_ms": 0.3291093749999163,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 2003.031296875,
+          "grade": 0,
+          "recent": 496,
+          "newest_adc_ms": 2002.7509375,
+          "age_ms": 0.2803593749999891,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 2083.032546875,
+          "grade": 0,
+          "recent": 416,
+          "newest_adc_ms": 2082.8009375,
+          "age_ms": 0.23160937500006185,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        },
+        {
+          "ms": 2163.033796875,
+          "grade": 0,
+          "recent": 336,
+          "newest_adc_ms": 2162.8509375,
+          "age_ms": 0.1828593750001346,
+          "estimate_start": null,
+          "tail_flat": true,
+          "tail_value": 1000
+        }
+      ],
+      "pwm_edges": [
+        [
+          241.150625,
+          true
+        ],
+        [
+          271.169375,
+          false
+        ],
+        [
+          357.023,
+          true
+        ],
+        [
+          387.04175,
+          false
+        ],
+        [
+          466.091125,
+          true
+        ],
+        [
+          496.109875,
+          false
+        ],
+        [
+          575.15925,
+          true
+        ],
+        [
+          605.178,
+          false
+        ],
+        [
+          684.02725,
+          true
+        ],
+        [
+          1714.070625,
+          false
+        ]
+      ],
+      "final_beep": 0,
+      "final_grade": 0,
+      "final_recent": 299,
+      "final_sound": false,
+      "timer_irqs": 87945,
+      "adc_reads": 2195
+    },
+    "nominal_continuous_pulse_bounds": {
+      "maximum_observed_normal_pulse_ms": 30.018750000000182,
+      "maximum_observed_uncertainty_pulse_ms": 100.06250000000006,
+      "scope": "Complete PWM pulse edges retained in reported non-fault fixtures; broad clean-loss sweep retains worst fixtures only."
+    }
+  },
+  "owner_symptom": "Latest clarification: Digital alone has one continuous approximately1second sound after TX UI showsPause; Analog stops promptly.",
+  "verification_runs": [
+    {
+      "command": "python test_rx_digital_release_audit.py --json \"$env:TEMP/lpm12-digital-release-audit.json\"",
+      "tests": 5,
+      "elapsed_seconds": 61.961,
+      "result": "OK",
+      "scope": "original five groups before later masked-path/fault additions"
+    },
+    {
+      "command": "unittest.TextTestRunner: ReleaseAudit.test_real_gate_close_prevents_new_pulses_but_current_pulse_finishes",
+      "tests": 1,
+      "elapsed_seconds": 5.022,
+      "result": "OK",
+      "scope": "rerun gate group after adding cuts inside30/100tick pulses"
+    },
+    {
+      "command": "unittest.TextTestRunner: ReleaseAudit.test_digital_analog_and_real_adc_masked_paths_are_bounded",
+      "tests": 1,
+      "elapsed_seconds": 0.236,
+      "result": "OK"
+    },
+    {
+      "command": "unittest.TextTestRunner: ReleaseAudit.test_withheld_tim1_is_a_distinct_continuous_tone_failure_model",
+      "tests": 1,
+      "elapsed_seconds": 0.919,
+      "result": "OK"
+    }
+  ],
+  "verification_note": "Seven distinct groups passed across the original five-group run and the named focused subsequent runs; not a single combined seven-group run.",
+  "isolated_tim1_initialization": {
+    "entry": "0x0800A908",
+    "scope": "Actual pinned-image init executed from reset-like MMIO; not a physical register read or complete-boot assertion.",
+    "registers": {
+      "CR1": 1,
+      "CR2": 0,
+      "SMCR": 0,
+      "DIER": 1,
+      "PSC": 0,
+      "ARR": 64000,
+      "RCR": 0
+    },
+    "explicit_RCR_store": {
+      "address": "0x40012C30",
+      "value": 0
+    },
+    "software_countdown_divider": 1
+  }
+}

@@ -1,0 +1,303 @@
+{
+  "source_path": "C:\\Users\\Alpha\\Desktop\\LPM-10RX-SWD-2026-09-20\\digital-pause-20260920-221932.jsonl",
+  "source_sha256": "b925f22b2a3d0c368e97c2296b763bb66329ec478ac04383d66ea9bd5ad686b3",
+  "rows": 2348,
+  "duration_s": 40.00655840000036,
+  "method": "Offline raw SRAM decoding; sequential, unhalted, non-atomic reads",
+  "timing_basis": "State read occurs between begin_s/state_end_s; tail/counters read between state_end_s/end_s",
+  "tx_pause_timestamp_recorded": false,
+  "installed_firmware_authenticated": false,
+  "sample_spacing_s": {
+    "min": 0.016581500000029337,
+    "median": 0.017054100000677863,
+    "max": 0.017838000003393972
+  },
+  "counter_rates": {
+    "elapsed_s": 39.991931399999885,
+    "delta_tim1": 40289,
+    "delta_tim5": 1610426,
+    "endpoint_tim1_hz": 1007.4282133820652,
+    "endpoint_tim5_hz": 40268.77281550859,
+    "linear_fit_tim1_hz": 1007.4122217902243,
+    "linear_fit_tim5_hz": 40268.47972109664,
+    "ratio": 39.97185335947777
+  },
+  "ranges": {
+    "mode_raw": [
+      0,
+      0
+    ],
+    "gap_05c": [
+      0,
+      50
+    ],
+    "index_05d": [
+      0,
+      47
+    ],
+    "gate_06a": [
+      1293,
+      1297
+    ],
+    "step_06c": [
+      2,
+      2
+    ],
+    "recent_06e": [
+      0,
+      800
+    ],
+    "substep_0f0": [
+      0,
+      10
+    ],
+    "beep_raw": [
+      0,
+      50
+    ]
+  },
+  "gain_alignment": {
+    "trimmed_mean_matches": 2348,
+    "divide580_matches": 2348
+  },
+  "index_wraps": 168,
+  "index_wrap_interval_median_s": 0.23854360000041197,
+  "recent_refreshes": 126,
+  "recent_refresh_interval_median_s": 0.238575999999739,
+  "beep_observations": {
+    "maximum": 50,
+    "already_positive_at_capture_start": true,
+    "zero_to_positive_transitions": 260,
+    "rises_while_already_positive": 126,
+    "positive_reloads_within_one_row_of_recent_refresh": 126,
+    "positive_to_zero_transitions": 261
+  },
+  "final_release": {
+    "last_recent_refresh_row": 1763,
+    "last_recent_refresh_bracket_s": [
+      30.03039490000083,
+      30.05472860000009
+    ],
+    "first_final_recent_zero_row": 1810,
+    "recent_plus_tim1_constant_range": [
+      314984,
+      314986
+    ],
+    "last_beep_clear_row": 1812,
+    "last_beep_clear_bracket_s": [
+      30.87120020000293,
+      30.89516089999961
+    ],
+    "last_refresh_to_last_beep_clear_bracket_s": [
+      0.816471600002842,
+      0.8647659999987809
+    ],
+    "new_pulses_after_final_refresh": 8,
+    "tail_pulses": [
+      {
+        "first_row": 1768,
+        "first_zero_row": 1771,
+        "first_seen_recent": 705,
+        "first_seen_beep": 46,
+        "tim1_plus_beep_range": [
+          314326,
+          314327
+        ],
+        "tim1_plus_beep_median": 314327
+      },
+      {
+        "first_row": 1774,
+        "first_zero_row": 1777,
+        "first_seen_recent": 602,
+        "first_seen_beep": 42,
+        "tim1_plus_beep_range": [
+          314425,
+          314426
+        ],
+        "tim1_plus_beep_median": 314425
+      },
+      {
+        "first_row": 1780,
+        "first_zero_row": 1783,
+        "first_seen_recent": 499,
+        "first_seen_beep": 38,
+        "tim1_plus_beep_range": [
+          314524,
+          314525
+        ],
+        "tim1_plus_beep_median": 314525
+      },
+      {
+        "first_row": 1786,
+        "first_zero_row": 1788,
+        "first_seen_recent": 395,
+        "first_seen_beep": 34,
+        "tim1_plus_beep_range": [
+          314623,
+          314624
+        ],
+        "tim1_plus_beep_median": 314623.5
+      },
+      {
+        "first_row": 1791,
+        "first_zero_row": 1794,
+        "first_seen_recent": 309,
+        "first_seen_beep": 47,
+        "tim1_plus_beep_range": [
+          314722,
+          314723
+        ],
+        "tim1_plus_beep_median": 314722
+      },
+      {
+        "first_row": 1797,
+        "first_zero_row": 1800,
+        "first_seen_recent": 207,
+        "first_seen_beep": 44,
+        "tim1_plus_beep_range": [
+          314822,
+          314822
+        ],
+        "tim1_plus_beep_median": 314822
+      },
+      {
+        "first_row": 1803,
+        "first_zero_row": 1806,
+        "first_seen_recent": 105,
+        "first_seen_beep": 41,
+        "tim1_plus_beep_range": [
+          314921,
+          314921
+        ],
+        "tim1_plus_beep_median": 314921
+      },
+      {
+        "first_row": 1809,
+        "first_zero_row": 1812,
+        "first_seen_recent": 2,
+        "first_seen_beep": 37,
+        "tim1_plus_beep_range": [
+          315019,
+          315020
+        ],
+        "tim1_plus_beep_median": 315020
+      }
+    ],
+    "tail_cycle_ticks_median": 99,
+    "no_more_positive_beep_through_s": 40.00677970000106
+  },
+  "input_proxy": {
+    "method": "Offline trimmed mean of five live raw subsamples, not a captured atomic firmware analysis window",
+    "threshold_adc_counts": 25,
+    "last_above_threshold_row": 1756,
+    "drop_bracket_s": [
+      29.935799300001236,
+      29.959917700001824
+    ],
+    "remaining_trimmed_max": 18,
+    "drop_to_last_beep_clear_bracket_s": [
+      0.9112825000011071,
+      0.959361599998374
+    ],
+    "isolated_postdrop_raw_outliers": [
+      {
+        "row": 1781,
+        "end_s": 30.36836519999997,
+        "raw5": [
+          9,
+          1295,
+          22,
+          10,
+          13
+        ],
+        "gate": 1294,
+        "tim1_mod500": 4,
+        "trimmed_raw5": 15
+      },
+      {
+        "row": 1956,
+        "end_s": 33.346227300000464,
+        "raw5": [
+          11,
+          14,
+          10,
+          9,
+          1295
+        ],
+        "gate": 1294,
+        "tim1_mod500": 4,
+        "trimmed_raw5": 11
+      },
+      {
+        "row": 1985,
+        "end_s": 33.842178000002605,
+        "raw5": [
+          5,
+          3,
+          4,
+          6,
+          1294
+        ],
+        "gate": 1294,
+        "tim1_mod500": 3,
+        "trimmed_raw5": 5
+      },
+      {
+        "row": 2131,
+        "end_s": 36.328240700000606,
+        "raw5": [
+          1,
+          5,
+          4,
+          6,
+          1294
+        ],
+        "gate": 1295,
+        "tim1_mod500": 8,
+        "trimmed_raw5": 5
+      },
+      {
+        "row": 2160,
+        "end_s": 36.82265349999943,
+        "raw5": [
+          1296,
+          6,
+          6,
+          6,
+          20
+        ],
+        "gate": 1295,
+        "tim1_mod500": 6,
+        "trimmed_raw5": 10
+      },
+      {
+        "row": 2189,
+        "end_s": 37.316802900000766,
+        "raw5": [
+          7,
+          1293,
+          3,
+          4,
+          7
+        ],
+        "gate": 1295,
+        "tim1_mod500": 4,
+        "trimmed_raw5": 6
+      },
+      {
+        "row": 2218,
+        "end_s": 37.81266420000247,
+        "raw5": [
+          7,
+          10,
+          1294,
+          4,
+          3
+        ],
+        "gate": 1294,
+        "tim1_mod500": 3,
+        "trimmed_raw5": 7
+      }
+    ]
+  }
+}

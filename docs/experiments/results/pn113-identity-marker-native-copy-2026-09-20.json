@@ -1,0 +1,17 @@
+{
+  "authorization": "Previously approved exact diagnostic; owner reconnected for native Windows copy retry",
+  "started_at": "2026-09-20T21:22:00.7348829+07:00",
+  "completed_at": "2026-09-20T21:22:00.8166906+07:00",
+  "method": "System.IO.File.Copy using native Windows file copy; overwrite disabled",
+  "source": "C:\\Users\\Alpha\\Documents\\GitHub\\LPM-10A_Firmware\\LPM-10A\\Firmware File\\experimental\\APP_LPM-10RX_PN1.13-id-lamp.bin",
+  "source_sha256": "e68cbb7d2d3cea417fec0bd76bdcf11c7ddef84fc8f13711edc31171be6709ce",
+  "destination": "D:\\APP_LPM-10RX_V3.0.0_260416.bin",
+  "length": 26152,
+  "host_result": "completed without OS error",
+  "device_flash_readback": "not available",
+  "startup_marker_result": "Owner reports flashlight not on automatically after power-on (ไฟฉายไม่ติด). Second transfer also failed visible identity check; manual lamp key previously confirmed working.",
+  "files_deleted": 0,
+  "raw_sector_writes": 0,
+  "volume_flush_completed_at": "2026-09-20T21:23:30.2948423+07:00",
+  "volume_flush_result": "FlushFileBuffers requested through FileStream.Flush(true), completed without OS error; no raw bytes written by this operation"
+}

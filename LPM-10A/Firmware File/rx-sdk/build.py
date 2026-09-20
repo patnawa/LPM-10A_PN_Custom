@@ -9,6 +9,11 @@ LPM-10A receiver firmware build tool.
     python build.py --followup --write     emit the PN 1.6 sampling/feedback candidate
     python build.py --precision --write    emit the PN 1.7 cable pinpointing candidate
     python build.py --pinpoint --write     emit the PN 1.8 interpolated feedback candidate
+    python build.py --robust --write       emit the PN 1.9 robust strength candidate
+    python build.py --sync --write         emit the PN 1.10 dual-protocol candidate
+    python build.py --tracking --write     emit the PN 1.11 Digital/Analog tracking candidate
+    python build.py --overload --write     emit the PN 1.12 Digital upper-rail candidate
+    python build.py --audio-clock --write  emit the PN 1.13 independent audio-clock test candidate
     python build.py --only a,b --write     build a specific set
     python build.py --all --write          include patches marked untested
 
@@ -31,6 +36,11 @@ from audit_fixes import PATCHES as AUDIT_PATCHES            # noqa: E402
 from followup_fixes import PATCHES as FOLLOWUP_PATCHES      # noqa: E402
 from precision_fixes import PATCHES as PRECISION_PATCHES    # noqa: E402
 from pinpoint_fixes import PATCHES as PINPOINT_PATCHES      # noqa: E402
+from robust_fixes import PATCHES as ROBUST_PATCHES          # noqa: E402
+from sync_fixes import PATCHES as SYNC_PATCHES              # noqa: E402
+from tracking_fixes import PATCHES as TRACKING_PATCHES      # noqa: E402
+from overload_fixes import PATCHES as OVERLOAD_PATCHES      # noqa: E402
+from audio_clock_fixes import PATCHES as AUDIO_CLOCK_PATCHES  # noqa: E402
 
 FW_DIR = os.path.dirname(HERE)
 STOCK = os.path.join(FW_DIR, STOCK_NAME)
@@ -55,9 +65,27 @@ def main():
     ap.add_argument("--followup", action="store_true", help="build PN 1.6 with fresh sample ownership and stable beep timing")
     ap.add_argument("--precision", action="store_true", help="build PN 1.7 with finer digital strength feedback and faster release")
     ap.add_argument("--pinpoint", action="store_true", help="build PN 1.8 with interpolated digital feedback across a wider strength range")
+    ap.add_argument("--robust", action="store_true", help="build PN 1.9 with robust code-based digital strength feedback")
+    ap.add_argument("--sync", action="store_true", help="build PN 1.10 with legacy Digital and Sync32 recognition")
+    ap.add_argument("--tracking", action="store_true", help="build PN 1.11 with faster Digital tracking and finer Analog feedback")
+    ap.add_argument("--overload", action="store_true", help="build PN 1.12 with Digital upper-rail fallback uncertainty")
+    ap.add_argument("--audio-clock", action="store_true", help="build PN 1.13 test candidate with audio countdown on the speaker timer")
     ap.add_argument("--only", help="comma-separated patch ids")
     ap.add_argument("--out", help="output path (experimental builds use a distinct filename)")
     args = ap.parse_args()
+    if args.audio_clock and (args.overload or args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
+        ap.error("--audio-clock is a fixed profile; do not combine it with other profile/patch selectors")
+    # PN 1.13 inherits the complete fixed PN 1.12 selection before its own patch.
+    # Keep the existing ancestry and custom-output guards on that same path.
+    args.overload = args.overload or args.audio_clock
+    if args.overload and (args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
+        ap.error("--overload is a fixed profile; do not combine it with other profile/patch selectors")
+    if args.tracking and (args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
+        ap.error("--tracking is a fixed profile; do not combine it with other profile/patch selectors")
+    if args.sync and (args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
+        ap.error("--sync is a fixed profile; do not combine it with other profile/patch selectors")
+    if args.robust and (args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
+        ap.error("--robust is a fixed profile; do not combine it with --pinpoint, --precision, --followup, --audit, --roadmap, --all or --only")
     if args.pinpoint and (args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
         ap.error("--pinpoint is a fixed profile; do not combine it with --precision, --followup, --audit, --roadmap, --all or --only")
     if args.precision and (args.followup or args.audit or args.roadmap or args.all or args.only is not None):
@@ -87,24 +115,41 @@ def main():
             return 2
     else:
         sel = [p for p in patches.REGISTRY if p.default or args.all or
-               ((args.roadmap or args.audit or args.followup or args.precision or args.pinpoint) and p.pid in patches.ROADMAP_PATCHES) or
-               ((args.audit or args.followup or args.precision or args.pinpoint) and p.pid in AUDIT_PATCHES) or
-               ((args.followup or args.precision or args.pinpoint) and p.pid in FOLLOWUP_PATCHES) or
-               ((args.precision or args.pinpoint) and p.pid in PRECISION_PATCHES) or
-               (args.pinpoint and p.pid in PINPOINT_PATCHES)]
+               ((args.roadmap or args.audit or args.followup or args.precision or args.pinpoint or args.robust or args.sync or args.tracking or args.overload) and p.pid in patches.ROADMAP_PATCHES) or
+               ((args.audit or args.followup or args.precision or args.pinpoint or args.robust or args.sync or args.tracking or args.overload) and p.pid in AUDIT_PATCHES) or
+               ((args.followup or args.precision or args.pinpoint or args.robust or args.sync or args.tracking or args.overload) and p.pid in FOLLOWUP_PATCHES) or
+               ((args.precision or args.pinpoint or args.robust or args.sync or args.tracking or args.overload) and p.pid in PRECISION_PATCHES) or
+               ((args.pinpoint or args.robust or args.sync or args.tracking or args.overload) and p.pid in PINPOINT_PATCHES) or
+               ((args.robust or args.sync or args.tracking or args.overload) and p.pid in ROBUST_PATCHES) or
+               (args.sync and p.pid in SYNC_PATCHES) or
+               ((args.tracking or args.overload) and p.pid in TRACKING_PATCHES) or
+               (args.overload and p.pid in OVERLOAD_PATCHES) or
+               (args.audio_clock and p.pid in AUDIO_CLOCK_PATCHES)]
 
-    if not args.pinpoint and any(p.pid in PINPOINT_PATCHES for p in sel) and not args.out:
+    if any(p.pid in SYNC_PATCHES for p in sel) and any(p.pid in TRACKING_PATCHES | OVERLOAD_PATCHES | AUDIO_CLOCK_PATCHES for p in sel):
+        ap.error("rx-sync cannot be combined with rx-tracking, rx-overload or rx-audio-clock")
+    if not args.audio_clock and any(p.pid in AUDIO_CLOCK_PATCHES for p in sel) and not args.out:
+        ap.error("custom audio-clock patch selections require --out; use --audio-clock for PN 1.13")
+    if not args.overload and any(p.pid in OVERLOAD_PATCHES for p in sel) and not args.out:
+        ap.error("custom overload patch selections require --out; use --overload for PN 1.12")
+    if not args.tracking and not args.overload and any(p.pid in TRACKING_PATCHES for p in sel) and not args.out:
+        ap.error("custom tracking patch selections require --out; use --tracking for PN 1.11")
+    if not args.sync and any(p.pid in SYNC_PATCHES for p in sel) and not args.out:
+        ap.error("custom sync patch selections require --out; use --sync for PN 1.10")
+    if not args.robust and not args.sync and not args.tracking and not args.overload and any(p.pid in ROBUST_PATCHES for p in sel) and not args.out:
+        ap.error("custom robust patch selections require --out; use --robust for PN 1.9")
+    if not args.pinpoint and not args.robust and not args.sync and not args.tracking and not args.overload and any(p.pid in PINPOINT_PATCHES for p in sel) and not args.out:
         ap.error("custom pinpoint patch selections require --out; use --pinpoint for PN 1.8")
-    if not args.precision and not args.pinpoint and any(p.pid in PRECISION_PATCHES for p in sel) and not args.out:
+    if not args.precision and not args.pinpoint and not args.robust and not args.sync and not args.tracking and not args.overload and any(p.pid in PRECISION_PATCHES for p in sel) and not args.out:
         ap.error("custom precision patch selections require --out; use --precision for PN 1.7")
-    if not args.followup and not args.precision and not args.pinpoint and any(p.pid in FOLLOWUP_PATCHES for p in sel) and not args.out:
+    if not args.followup and not args.precision and not args.pinpoint and not args.robust and not args.sync and not args.tracking and not args.overload and any(p.pid in FOLLOWUP_PATCHES for p in sel) and not args.out:
         ap.error("custom followup patch selections require --out; use --followup for PN 1.6")
-    if not args.audit and not args.followup and not args.precision and not args.pinpoint and any(p.pid in AUDIT_PATCHES for p in sel) and not args.out:
+    if not args.audit and not args.followup and not args.precision and not args.pinpoint and not args.robust and not args.sync and not args.tracking and not args.overload and any(p.pid in AUDIT_PATCHES for p in sel) and not args.out:
         ap.error("custom audit patch selections require --out; use --audit for PN 1.5")
     reliability = any(p.pid == "activity-before-autooff" for p in sel)
     experimental = reliability or any(p.pid == "digital-correlation" for p in sel)
     # A nonstandard subset must have an explicit name, not impersonate PN 1.2.
-    if reliability and not args.roadmap and not args.audit and not args.followup and not args.precision and not args.pinpoint and {p.pid for p in sel} != {"batt-critical-recover", "activity-before-autooff", "digital-correlation"} and not args.out:
+    if reliability and not args.roadmap and not args.audit and not args.followup and not args.precision and not args.pinpoint and not args.robust and not args.sync and not args.tracking and not args.overload and {p.pid for p in sel} != {"batt-critical-recover", "activity-before-autooff", "digital-correlation"} and not args.out:
         ap.error("the PN 1.2 candidate needs all three patches; give --out for a custom subset")
     name = patches.RELIABILITY_EXPERIMENT if reliability else patches.DIGITAL_EXPERIMENT
     if args.roadmap:
@@ -120,6 +165,21 @@ def main():
         name = OUTPUT
     if args.pinpoint:
         from pinpoint_fixes import OUTPUT
+        name = OUTPUT
+    if args.robust:
+        from robust_fixes import OUTPUT
+        name = OUTPUT
+    if args.sync:
+        from sync_fixes import OUTPUT
+        name = OUTPUT
+    if args.tracking:
+        from tracking_fixes import OUTPUT
+        name = OUTPUT
+    if args.overload:
+        from overload_fixes import OUTPUT
+        name = OUTPUT
+    if args.audio_clock:
+        from audio_clock_fixes import OUTPUT
         name = OUTPUT
     out = args.out or (os.path.join(FW_DIR, name) if experimental else OUT)
     if experimental:

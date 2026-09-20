@@ -1,0 +1,35 @@
+{
+  "candidate_sha256": "2cafd8a234a9b372a4d09c4969b28c8c35a45f05b72c57d2248d39f22cf7373b",
+  "source_sha256": {
+    "audio_clock_fixes.py": "7b952ccbda760612a80c84c96a714e384ca33767e90db4eed7562dcc660b8caa",
+    "test_audio_clock_patch.py": "2782fc9a78215dbe08abf58fdbcfb5bc1a0e18f3dad08c8a01eae8b5df9b4be4",
+    "test_audio_clock_profile.py": "d97407d4f0c3de1e82bef3bd36a03ed42d281471c639bcbccb8d4d279a598c6b",
+    "test_audio_clock_integration.py": "7763486838ec4ae095374ed21de2c0aeb6acb15bb7a96349eea9f0d9dc9ad191",
+    "build.py": "5e70ff4ef15144413f760678c67bbc3464a8a9fdad40be8944705fb851199157",
+    "rx_patches.py": "24f63296c8b967b10960302ba5b70a95d4ce7f608703045e0232bca76ed585f1"
+  },
+  "runs": [
+    {
+      "command": "python -m unittest test_audio_clock_profile test_overload_profile test_tracking_profile test_sync_profile test_robust_profile -q",
+      "tests": 25,
+      "seconds": 0.062,
+      "passed": true,
+      "scope": "5 new-profile groups plus 20 preceding-profile selector groups"
+    },
+    {
+      "command": "python -m unittest test_audio_clock_patch.AudioClockPatch -v",
+      "tests": 4,
+      "seconds": 0.256,
+      "passed": true
+    },
+    {
+      "command": "python test_audio_clock_integration.py --json ../../../docs/experiments/results/pn113-audio-clock-integration-2026-09-20.json",
+      "tests": 8,
+      "seconds": 13.429,
+      "passed": true
+    }
+  ],
+  "earlier_module_discovery_note": "An initial patch-test module run also discovered 28 imported PN1.6 Followup tests (32 groups total including the four patch groups), all passed in55.608s. Those older/repeated groups are excluded from the 37 distinct groups above. The import was changed to module form and the four patch groups rerun explicitly.",
+  "rebuilds": "pn113-profile-rebuilds-2026-09-20.json",
+  "hardware_status": "Owner reports PN1.13 Digital tail unchanged and RX key-confirmation still about1second. Physical issue remains unresolved."
+}

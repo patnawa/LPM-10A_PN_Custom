@@ -1,0 +1,48 @@
+test_clean_noisy_weak_sampler_and_known_retained_limits (test_rx_overload_oracle.OverloadOracle.test_clean_noisy_weak_sampler_and_known_retained_limits) ... ok
+test_existing_audit_movement_and_strength_counterexamples (test_rx_overload_oracle.OverloadOracle.test_existing_audit_movement_and_strength_counterexamples) ... ok
+test_old_uncertainty_lower_zero_interior_and_upper_tail_matrix (test_rx_overload_oracle.OverloadOracle.test_old_uncertainty_lower_zero_interior_and_upper_tail_matrix) ... ok
+test_real_five_read_brief_bursts_preserve_all_publications (test_rx_overload_oracle.OverloadOracle.test_real_five_read_brief_bursts_preserve_all_publications) ... ok
+test_structured_random_prefix_and_rail_edge_cases (test_rx_overload_oracle.OverloadOracle.test_structured_random_prefix_and_rail_edge_cases) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 23.527s
+
+OK
+stock image : C:\Users\Alpha\Documents\GitHub\LPM-10A_FNIRSI_originals\APP_LPM-10RX_V3.0.0_260416.bin
+{
+  "sha256": "4ea18c52bde25353a9a38dbf46775425860f7859bc2c10e3c908a7bff4044403",
+  "tests_run": 5,
+  "success": true,
+  "cases": {
+    "sampler_and_known_limits": {
+      "arm_windows": 1923,
+      "accepted": 1357,
+      "normal_to_uncertain": 0,
+      "prior_uncertainty_preserved": 0
+    },
+    "previous_audit": {
+      "arm_windows": 2490,
+      "accepted": 2482,
+      "normal_to_uncertain": 0,
+      "prior_uncertainty_preserved": 0
+    },
+    "tail_matrix": {
+      "arm_windows": 672,
+      "accepted": 288,
+      "normal_to_uncertain": 27,
+      "prior_uncertainty_preserved": 116
+    },
+    "brief_contact_publications": {
+      "arm_windows": 8064,
+      "accepted": 527,
+      "normal_to_uncertain": 0,
+      "prior_uncertainty_preserved": 0
+    },
+    "structured_random": {
+      "arm_windows": 5000,
+      "accepted": 1247,
+      "normal_to_uncertain": 150,
+      "prior_uncertainty_preserved": 29
+    }
+  }
+}
