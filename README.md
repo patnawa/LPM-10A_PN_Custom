@@ -7,7 +7,7 @@ Built by patching the shipped binaries — no vendor source — and verified by 
 
 ![tester](https://img.shields.io/badge/TX-PN%202.14-blue) ![receiver](https://img.shields.io/badge/RX-PN%201.23-blue) ![licence](https://img.shields.io/badge/licence-MIT-green)
 
-<img src="docs/img/length_screen.png" alt="Length screen: stock (whole metres) vs PN Custom (one decimal, Zero and NVP calibration)" width="1000">
+<img src="docs/img/hero.png" alt="LPM-10A PN Custom Firmware: TX PN 2.14, RX PN 1.23 — Length, PoE and tone screens rendered from the firmware's own draw code" width="1000">
 
 </div>
 
@@ -91,6 +91,8 @@ explained: what stock does, what PN does, how it works and how it was checked.
 
 <details>
 <summary><b>Length: one decimal, m / cm / ft, unit remembered</b></summary>
+
+<img src="docs/img/length_screen.png" alt="Length screen: stock (whole metres) vs PN Custom (one decimal, Zero and NVP calibration)" width="1000">
 
 *Stock* shows whole metres (`cm/100`, rounded), offers inches (`cm / 2.54`, truncated) rather than feet,
 and forces the unit back to cm every time the screen is opened.
