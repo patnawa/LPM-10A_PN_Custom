@@ -1,0 +1,86 @@
+LPM-10A TX PN 2.21 - seven functions on top of PN 2.14 - 2026-09-21
+
+TX / main unit: LPM-10A-TX_PN2.21-cable-values.bin (393216 bytes)
+Checksum:       SHA256SUMS.txt (23fbc3b4...)
+Pair with:      RX PN 1.23 (APP_LPM-10RX_PN1.23-mains-tone-update.bin); no RX change needed.
+
+On the owner's unit 2026-09-21: PN 2.19 passes every function, PN 2.20 fixes
+the one report (a stale "Not connected" line), PN 2.21 adds the readings on the
+wires the owner asked for after seeing the diag build.  The image is the exact
+PN 2.14 release plus one patch per version:
+
+PN 2.15  Length: while the four-run average runs, the Testing line counts the
+         runs at its right end, 1/4 .. 4/4.  The measurement is unchanged.
+
+PN 2.16  About: one line under Factory Reset, both languages:
+             BATT 3874mV  NVP 68%  ZERO 0.4m
+         (pack voltage from the gauge's ADC helper; the Length calibration as
+         stored, NVP 0 = factory 69 %).
+
+PN 2.17  SPEED: a third row, Switch / สวิตช์, with the speeds the link partner
+         advertises (IEEE registers 5 and 10): 10/100/1000, 10/100, ..., or
+         "No autoneg".  A 100 Mbps link on a 10/100/1000 port means the cable
+         lost pairs 4-5 / 7-8; on a 10/100 port it is the port.  Empty on
+         "Error!!".
+
+PN 2.18  Length: hold OK about a second to move the white value:
+         NVP -> ZERO -> REF -> NVP.  REF (offered only with a result on the
+         screen) starts at the measured length; UP / DOWN dial it to the
+         cable's true length and every step solves
+             NVP = 69 x REF / (raw - 10 x Zero)      (rounded, 50..99 %)
+         from the mean of the timed pairs, shows it in grey on the right and
+         redraws the readings.  Set Zero on a short cable first, then REF on
+         the longest cable you can measure.  NVP is saved on leaving the
+         screen as before.
+
+PN 2.19  Cable Test: on a cable not plugged into anything the wire map used
+         to show random open / crossed wires (one ADC sample per pin against
+         a threshold 77 mV under the rail, mains hum on the floating wires).
+         Now every sensed pin is read eleven times 1 ms apart and the median
+         decides (the highest of the eleven for the far-end open test);
+         Switch mode counts a pin connected only through a real short
+         (<= 1240 of 4095, the far-end routine's own short value); when all
+         eight signal pins are open the screen says Not connected /
+         ไม่พบปลายสาย; the second mode is named RX unit / เครื่องรับ instead of
+         Far end / ปลายสาย.  A test takes about 0.9 s instead of 0.15 s.  G
+         (the shield) shows open on an unshielded cable or a switch every
+         time; it is not counted, neither for the LED nor for the message.
+
+PN 2.20  Cable Test: the text line under the wires is wiped before every
+         test, so a message belongs to the result above it.  (A Test Retry
+         from the result screen redraws the frame and the wires but never
+         redrew that line; stock's own "Result error!!" had the same hole.)
+
+PN 2.21  Cable Test: every wire ends with the reading that decided it, in
+         the wire's colour (red open, yellow short):
+           Switch mode   2   60   the pin it reaches through the switch and
+                                  the reading; a good cable reads 2 1 6 5 4 3 8 7
+                                  down the rows, a single swapped wire shows the
+                                  wrong letter where stock only draws green;
+                         - 4037   no partner (nothing at or below 1240): open,
+                                  or a floating wire's near-rail value
+           RX unit mode  1655     the reading = the remote pin (1655 pin 1,
+                                  1975, 2319, 2607, 2935, 3183, 3391, 3679 pin 8,
+                                  3900 shield); a crossover cable shows its
+                                  crossing lines and the swapped values
+         A floating wire reading well under 4095 (say 3800) is leakage or
+         moisture; a switch partner well above 60 (say 300) a poor contact.
+         No decision changes; a crossover cable reads like a straight one in
+         Switch mode, as in stock (the switch joins whole pairs).
+
+Everything else is PN 2.14: two tone modes (Digital 454 kHz / Analog 825 Hz),
+PHY-link-driven Port FLASH, live PoE voltage, calibrated length with the
+four-run average, Thai / English UI, battery and Auto Off fixes, service task
+and watchdog.
+
+Passed on the unit (2026-09-21): About PN 2.21; Cable Test in both modes
+with the cable unplugged, in a switch and in the RX unit, including Test
+Retry between them; the readings on the wires.
+
+Install: tester off -> hold M + Power until the update screen -> plug USB-C ->
+copy the file onto the drive -> long-press Power, power on.
+Rollback: experimental/LPM-10A-TX_PN2.14-tone-recovery.bin, same procedure;
+the settings layout is unchanged in both directions.
+Build:    sdk/  python build.py --write   (PN 2.21 is the latest profile;
+          profiles.py lists every version, test_profiles.py rebuilds each one
+          byte for byte).

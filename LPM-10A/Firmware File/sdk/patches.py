@@ -2026,3 +2026,6 @@ _register_cable_test(patch)
 
 from cable_clear import register as _register_cable_clear
 _register_cable_clear(patch)
+
+from cable_values import register as _register_cable_values
+_register_cable_values(patch)

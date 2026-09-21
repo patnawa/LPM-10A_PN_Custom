@@ -15,16 +15,15 @@ Built by patching the shipped binaries — no vendor source — and verified by 
 
 | Device | Version | Download | File to copy |
 |---|---|---|---|
-| **TX** tester | **PN 2.20** | [Release v2.20](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.20) | `LPM-10A-TX_PN2.20-cable-text-clear.bin` |
+| **TX** tester | **PN 2.21** | [Release v2.21](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.21) | `LPM-10A-TX_PN2.21-cable-values.bin` |
 | **RX** probe | **PN 1.23** | [Release rx-v1.23](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.23) | `APP_LPM-10RX_PN1.23-mains-tone-update.bin` |
 
 Both are the builds running on the owner's unit (2026-09-21: RX PN 1.23 in all three modes; TX PN 2.19 every
-function, then PN 2.20 with the one fix it needed, a stale "Not connected" line after a Test Retry). The six TX
-versions since PN 2.14 are one chain, each file the previous plus one patch. Each release
-carries its notes and a SHA-256 file. **TX and RX firmware are not interchangeable.** FNIRSI's own files are not
-redistributed here.
+function, PN 2.20 the one fix it needed, PN 2.21 the readings on the Cable Test wires). The seven TX versions
+since PN 2.14 are one chain, each file the previous plus one patch. Each release carries its notes and a
+SHA-256 file. **TX and RX firmware are not interchangeable.** FNIRSI's own files are not redistributed here.
 
-> **สรุปภาษาไทย:** TX ใช้ PN 2.20, RX ใช้ PN 1.23 · TX อัปเดต: ปิดเครื่อง → กด **M + Power** ค้าง → เสียบ USB → ก๊อปปี้ไฟล์ ·
+> **สรุปภาษาไทย:** TX ใช้ PN 2.21, RX ใช้ PN 1.23 · TX อัปเดต: ปิดเครื่อง → กด **M + Power** ค้าง → เสียบ USB → ก๊อปปี้ไฟล์ ·
 > RX อัปเดต: ปิดเครื่อง → กด **SCAN** ค้าง → เสียบ USB → ไดรฟ์ `BOOTLOADER` → ก๊อปปี้ไฟล์ **`-update.bin`** ด้วย Explorer →
 > ไดรฟ์หายใน 1 วิ = เสร็จ · รายละเอียดและวิธีย้อนกลับ: [คู่มืออัปเดต RX](docs/RX-UPDATE-GUIDE.md)
 
@@ -32,12 +31,12 @@ redistributed here.
 
 ### TX (tester)
 
-1. Check the download: `certutil -hashfile LPM-10A-TX_PN2.20-cable-text-clear.bin SHA256` →
-   `9eaa0fdeded19a0f7c6bb77c386c8abad9ab8d9a4720341d7ec2a79a03866d02`
+1. Check the download: `certutil -hashfile LPM-10A-TX_PN2.21-cable-values.bin SHA256` →
+   `23fbc3b4404c866dc8a7961ac7b1cf8ebcfb0bf3b4b2338c6f798d07db0a353e`
 2. Tester off. Hold **M + Power** until the firmware-update screen appears.
 3. Plug in USB-C; a removable drive appears.
 4. Copy the `.bin` onto the drive. Do not unplug while it writes.
-5. Long-press Power to shut down, then power on. Settings › About shows `Software:PN 2.20`.
+5. Long-press Power to shut down, then power on. Settings › About shows `Software:PN 2.21`.
 
 If the drive refuses the file, rename it exactly `LPM-10A-TX_V2.0.7_260610.bin` and copy again
 (some bootloaders match on the file name; the name inside the image is already the stock one).
@@ -84,11 +83,11 @@ explained: what stock does, what PN does, how it works and how it was checked.
 | PoE screen | voltage drawn once; blank without a supply | **voltage refreshed every 0.5 s**; "Detecting…" then "No PoE"; "Standard : Yes / No" |
 | Tone (SCAN) menu | Noiseless / Normal | **Digital 454 kHz** and **Analog 825 Hz** — the two the probe decodes |
 | SPEED | resolved speed and duplex only | + a **Switch** row: the speeds the port advertises (`10/100/1000`, `10/100`, … `No autoneg`) — a 100 Mbps link on a gigabit port points at the cable, on a 10/100 port at the port |
-| Cable Test | one ADC sample per pin, "open" only 77 mV under the rail → random open / crossed wires on a cable plugged into nothing; Back leaves the screen; error text hidden under a button | **eleven samples per pin, the median decides**; Switch mode needs a real short; **Not connected** when nothing is at the far end; modes named Switch / **RX unit**; the message line is wiped before every test; Back returns to the mode choice; error line visible |
+| Cable Test | one ADC sample per pin, "open" only 77 mV under the rail → random open / crossed wires on a cable plugged into nothing; pass / fail only; Back leaves the screen; error text hidden under a button | **eleven samples per pin, the median decides**; Switch mode needs a real short; **Not connected** when nothing is at the far end; **every wire ends with its reading** (partner pin + reading in Switch mode, the RX unit's ladder value otherwise); modes named Switch / **RX unit**; the message line is wiped before every test; Back returns to the mode choice; error line visible |
 | Language | Chinese / English | **ไทย / English** on every screen; picker on first boot |
 | Font | thin serif | Ubuntu Sans Mono + Sarabun (Thai), rendered from the firmware's own layout tables |
 | Reliability | heap leak on settings save, timer-path logging, FP crash frame | fixed; watchdog on the service task; fault records kept across warm reset |
-| Identity | `Software:V2.0.7`, fnirsi.cn | `Software:PN 2.20`, this repository's URL, and `BATT / NVP / ZERO` on the About screen; bootloader-facing image name unchanged |
+| Identity | `Software:V2.0.7`, fnirsi.cn | `Software:PN 2.21`, this repository's URL, and `BATT / NVP / ZERO` on the About screen; bootloader-facing image name unchanged |
 
 ### TX (tester) — in detail
 
@@ -243,7 +242,7 @@ use. Pair TX Digital with RX Digital and TX Analog with RX Analog.
 </details>
 
 <details>
-<summary><b>Cable Test: "Not connected" instead of a guess; Switch / RX unit; Back and the error line</b></summary>
+<summary><b>Cable Test: "Not connected" instead of a guess; the reading on every wire; Switch / RX unit</b></summary>
 
 The wire map drives one tester pin and reads the other eight through the ADC. *Stock* took **one sample**
 per pin, 2 ms after switching the mux, and called a pin open only when all eight readings were above
@@ -263,6 +262,14 @@ or a switch and is not counted. The second mode is named for what you plug in, *
 test takes about 0.9 s instead of 0.15 s; the thresholds and the remote ladder table are stock's.
 (PN 2.20: the message line under the wires is wiped before every test — a Test Retry from the result
 screen never redrew it, so a message could outlive its result.)
+
+PN 2.21 puts the reading that decided each wire at its right end, in the wire's colour (red for an open
+wire, yellow for a short). In Switch mode it is the partner pin and the reading — `2   60` — so a good
+cable reads `2 1 6 5 4 3 8 7` down the rows and a single swapped wire shows the wrong letter where stock
+only draws green; `- 4037` means nothing reached. In RX unit mode it is the ladder value alone, which *is*
+the remote pin (1655 pin 1 … 3679 pin 8, 3900 shield), so a crossover cable shows its crossing lines and the
+swapped values. A floating wire well under 4095 (say 3800) is leakage or moisture; a switch partner well
+above 60 (say 300) a poor contact. Nothing about the decision changes.
 
 Stock's Back key also left the Cable Test screen from every step, and the red "Result error!!" line was
 painted underneath the Test Retry button. PN's Back returns to the Switch / RX unit choice from the armed
@@ -312,12 +319,13 @@ hardware/RTOS boundaries.
 <details>
 <summary><b>Identity and the update file</b></summary>
 
-About reports `Software:PN 2.20` and this repository's URL instead of `V2.0.7` / fnirsi.cn, and since PN 2.16 one
+About reports `Software:PN 2.21` and this repository's URL instead of `V2.0.7` / fnirsi.cn, and since PN 2.16 one
 line under Factory Reset — `BATT 3874mV  NVP 68%  ZERO 0.4m` — the pack voltage and the Length calibration as
 stored. The
 container's internal image name stays FNIRSI's, because the bootloader may match on it. Since PN 2.3
 the file is one 4 KB flash page longer than stock (393 216 bytes) because the code cave ran out; the
-container header carries the payload length and the bootloader accepted the longer file on the tested
+container header carries the payload length and the bootloader accepted the longer file (and, in the
+`cable-diag` experiment, a two-page-longer one) on the tested
 unit. Formulas, addresses and verdicts for every calculation, TX and RX: [`FORMULA-AUDIT.md`](LPM-10A/Firmware%20File/FORMULA-AUDIT.md).
 </details>
 
@@ -457,7 +465,8 @@ quantified against another probe.
 
 - **Cables of about 2 m and under cannot be measured** (the PHY's TDR blind zone); the Cable Test (wiremap)
   screen still finds the broken pair. Blind pairs read `< 2 m`.
-- The TX update file is one 4 KB page longer than stock (code cave grew); the bootloader accepts it.
+- The TX update file is one 4 KB page longer than stock (code cave grew); the bootloader accepts it, and
+  took a two-page-longer experimental build as well.
 - A Cable Test takes about a second (eleven samples per pin). G (the shield) reads open on an unshielded cable
   or a switch — normal, not counted as a fault. The wire-map thresholds are stock's, confirmed on one unit; the
   `cable-diag` build in `experimental/` prints the deciding numbers if another unit disagrees.
@@ -480,7 +489,7 @@ LPM-10A/Firmware File/
   SHA256SUMS.txt                             checksums of the two files above
   README.md                                  what is in this folder
   FORMULA-AUDIT.md                           every measurement formula with verdicts: TX §1-6, receiver PN formulas §7
-  sdk/                                       TX toolkit: patch chain PN 2.9 → 2.20 (profiles.py), assembler, verifier, Thai UI, tests
+  sdk/                                       TX toolkit: patch chain PN 2.9 → 2.21 (profiles.py), assembler, verifier, Thai UI, tests
   rx-sdk/                                    RX toolkit: patch chain PN 1.0 → 1.23 (profiles.py), container, emulator, tests
   experimental/                              build outputs of every PN version (the test suites compare against them)
   archive/                                   earlier release copies and their notes (history only)

@@ -21,7 +21,7 @@ from collections import OrderedDict
 
 import patches
 import roadmap, portflash, audit_fixes, portflash_status, scan_sync, scan_recovery, length_progress  # noqa: E401
-import about_values, speed_partner, length_reference, cable_test, cable_clear  # noqa: E401
+import about_values, speed_partner, length_reference, cable_test, cable_clear, cable_values  # noqa: E401
 
 
 class Profile:
@@ -94,7 +94,10 @@ _CHAIN = [
      "unplugged test stayed on screen after a Test Retry with the cable in a switch / the RX unit -> PN 2.20"),
     ("pn2.20", "cable-text-clear", cable_clear,      "pn2.19", "experimental/LPM-10A-TX_PN2.20-cable-text-clear.bin",
      "PN 2.20 Cable Test: the text line under the wires is wiped before every test (the stale 'Not connected')",
-     "on the owner's unit 2026-09-21: the retry check passes (release v2.20)"),
+     "on the owner's unit 2026-09-21: the retry check passes (release v2.20; superseded by PN 2.21)"),
+    ("pn2.21", "cable-values",     cable_values,     "pn2.20", "experimental/LPM-10A-TX_PN2.21-cable-values.bin",
+     "PN 2.21 Cable Test: every wire ends with the reading that decided it (partner pin in switch mode)",
+     "on the owner's unit 2026-09-21, both modes with retries (release v2.21); the owner asked for the diag numbers"),
 ]
 
 PROFILES = OrderedDict((n, Profile(n, *rest)) for n, *rest in _CHAIN)

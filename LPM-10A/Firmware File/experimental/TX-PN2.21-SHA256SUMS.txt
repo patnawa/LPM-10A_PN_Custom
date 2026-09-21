@@ -1,0 +1,1 @@
+23fbc3b4404c866dc8a7961ac7b1cf8ebcfb0bf3b4b2338c6f798d07db0a353e  LPM-10A-TX_PN2.21-cable-values.bin

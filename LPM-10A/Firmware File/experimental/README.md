@@ -1,11 +1,22 @@
 # Experimental builds
 
-**TX PN 2.20 (2026-09-21, the release):** PN 2.19 passed every function on the owner's unit; its
+**TX PN 2.21 (2026-09-21, the release):** the owner liked the
+diag build's numbers — they tell the state of the cable, not just pass / fail — so PN 2.21 puts
+the reading that decided each wire at its right end, in the wire's colour: Switch mode
+`2   60` (the partner pin through the switch and the reading; `- 4037` = nothing reached), RX unit
+mode `1655` (the ladder value = the remote pin: 1655 pin 1 … 3679 pin 8, 3900 shield). A swapped
+single wire shows the wrong partner letter where stock only draws green; a crossover cable reads
+like a straight one in Switch mode (whole pairs are swapped, as in stock) and shows its crossing
+lines and values in RX unit mode. No change to any decision. Passed on the owner's unit the same day.
+[TX PN 2.21](LPM-10A-TX_PN2.21-cable-values.bin) (also the file at the top of the Firmware File folder
+and in release v2.21), [checksum](TX-PN2.21-SHA256SUMS.txt), `sdk/test_cable_values.py` (6 tests on the
+real routines with simulated far ends and hum).
+
+**TX PN 2.20 (2026-09-21, on the unit; superseded by 2.21):** PN 2.19 passed every function on the owner's unit; its
 one report — the "Not connected" of an earlier unplugged test staying on screen after a Test Retry
 with the cable in a switch or the RX unit — was reproduced on the CPU model (a retry never redrew
 the text line) and fixed by [TX PN 2.20](LPM-10A-TX_PN2.20-cable-text-clear.bin)
-([checksum](TX-PN2.20-SHA256SUMS.txt), `sdk/test_cable_clear.py`), which is the file at the top
-of the Firmware File folder and in the release.
+([checksum](TX-PN2.20-SHA256SUMS.txt), `sdk/test_cable_clear.py`), release v2.20.
 
 **TX PN 2.19 cable-robust (2026-09-21, on the unit):** the owner reported
 random open / crossed wires in Cable Test on a cable not plugged into anything. Cause found

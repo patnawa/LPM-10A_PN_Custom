@@ -62,6 +62,7 @@ ADC_READ = 0x080107A4           # (channel) -> the latest DMA sample of that ADC
 SAMPLE_SITES = {0x0800C544: '0420 04f02df9', 0x0800CBCA: '0420 03f0eafd'}   # movs r0, #4; bl adc_read (far end, switch)
 SWITCH_OPEN = 0x0800CBEA        # switch mode: cmp.w r0, #0xFA0 (readings above this count towards "open")
 SWITCH_OPEN_STOCK, SWITCH_OPEN_NEW = 'b0f57a6f', 'b0f59b6f'                  # 4000 -> 1240
+SWITCH_SHORT = 0x4D8                                                          # the reading at or below which a pin is joined
 FAR_OPEN_SITE, FAR_OPEN_STOCK = 0x0800C5A8, 'd348 30f81500'                   # far end, open test: ldr r0, =adc; ldrh.w r0, [r0, r5, lsl #1]
 RELEASE_SITES = {0x0800CB18: '0cf090f8', 0x0800CE76: '0bf0e1fe'}               # bl 0x08018C3C (mux release) after the result
 MUX_RELEASE = 0x08018C3C

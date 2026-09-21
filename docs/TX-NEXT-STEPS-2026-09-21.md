@@ -4,7 +4,9 @@ Starting point: TX PN 2.14 in daily use on the owner's unit; length, calibration
 PoE, Thai UI and the reliability plumbing all hardware-confirmed (README, `FORMULA-AUDIT.md`).
 The sister document for the probe is [RX-NEXT-STEPS-2026-09-21.md](RX-NEXT-STEPS-2026-09-21.md).
 Ranking is value ÷ effort, on what the code and the hardware record actually show. Space is not
-a constraint: 1.7 KB left in the current cave page and about 92 KB before the boot-flag page.
+a constraint: the cave grows a 4 KB page at a time and the bootloader has taken files one page
+(every release since PN 2.3) and two pages (the PN 2.19 cable-diag build, 2026-09-21) longer than
+stock; about 92 KB remain before the boot-flag page.
 
 | # | Item | Value | Effort / risk | Gate |
 |---|---|---|---|---|
@@ -34,8 +36,11 @@ a constraint: 1.7 KB left in the current cave page and about 92 KB before the bo
 are confirmed on the unit. The one report, a "Not connected" line staying on screen after a Test Retry with the
 cable in a switch / the RX unit (the retry never redrew that line), was reproduced on the CPU model and fixed in
 **PN 2.20** (`cable-text-clear`, sha256 `9eaa0fde…`, `test_cable_clear.py`), confirmed on the unit the same day —
-the release (`docs/releases/v2.20.md`). The chain PN 2.15 → … → 2.20 stays one patch per file in `experimental/` for
-bisecting; device notes in `experimental/TX-PN2.16-2.18-README.txt`, `TX-PN2.19-CABLE-README.txt` and the
+the release (`docs/releases/v2.20.md`). **PN 2.21 candidate** (`cable-values`, sha256 `23fbc3b4…`): the owner liked the
+diag build's numbers, so the reading that decided each wire is drawn at its right end in the wire's colour — the
+partner pin and reading in Switch mode (a swapped single wire shows the wrong letter), the ladder value in RX unit
+mode; no decision changes (`test_cable_values.py`). Passed on the unit the same day — release v2.21
+(`docs/releases/v2.21.md`). The chain PN 2.15 → … → 2.21 stays one patch per file in `experimental/` for bisecting; device notes in `experimental/TX-PN2.16-2.18-README.txt`, `TX-PN2.19-CABLE-README.txt` and the
 release's `TX-PN2.20-README.txt`.
 
 ## Where there is no room (checked, so nobody chases them)

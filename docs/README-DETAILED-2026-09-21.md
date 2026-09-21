@@ -586,7 +586,7 @@ pip install capstone unicorn        # pillow + pymupdf only to rebuild the fonts
 python test_thumb.py                # assembler self-test against Capstone
 python build.py --list              # the patch set and the build profiles (one per PN version)
 python build.py                     # dry run of the latest profile: every byte it would change, disassembled
-python build.py --write             # emit the latest profile (PN 2.20, experimental/LPM-10A-TX_PN2.20-cable-text-clear.bin)
+python build.py --write             # emit the latest profile (PN 2.21, experimental/LPM-10A-TX_PN2.21-cable-values.bin)
 python build.py --profile pn2.14 --write  # reproduce the release, or any earlier PN version
 python build.py --default --write   # the frozen baseline verify.py models (unreleased)
 python verify.py                    # full baseline verifier (235 checks, CPU emulation)
@@ -802,7 +802,8 @@ Remaining firmware edge cases and hardware limits:
   the window it examines would flag every supply once the units were made consistent, so
   the vendor's intent is not recoverable and the check is left as it is.
 - Since PN 2.3 the update file is one 4 KB flash page longer than stock; the bootloader
-  accepted it on the tested unit (2026-09-18).
+  accepted it on the tested unit (2026-09-18), and a two-page-longer experimental build
+  (PN 2.19 cable-diag, 397 312 bytes) on 2026-09-21.
 - NVP and Zero are on the Length screen, not in Settings: the five Settings rows already fill the
   320-px screen.
 - The update container has no CRC or signature; that is what `verify.py` is for.

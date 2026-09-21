@@ -1,9 +1,9 @@
 # Roadmap: what to check next
 
 **TX after PN 2.14 (2026-09-21):** what is left, ranked, with what was done about each item
-(build profiles; PN 2.15 … 2.20 — run counter, About values, SPEED partner row, known-length NVP calibration,
-a Cable Test that says "Not connected" instead of guessing — PN 2.19 passed on the unit 2026-09-21, PN 2.20 is
-the release) —
+(build profiles; PN 2.15 … 2.21 — run counter, About values, SPEED partner row, known-length NVP calibration,
+a Cable Test that says "Not connected" instead of guessing and shows its readings — all on the unit 2026-09-21,
+PN 2.21 is the release) —
 [TX-NEXT-STEPS-2026-09-21.md](TX-NEXT-STEPS-2026-09-21.md). The RX equivalent is
 [RX-NEXT-STEPS-2026-09-21.md](RX-NEXT-STEPS-2026-09-21.md).
 

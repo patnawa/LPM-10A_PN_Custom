@@ -4,8 +4,8 @@ TX / main unit (checksums in TX-PN2.19-SHA256SUMS.txt):
 
   LPM-10A-TX_PN2.19-cable-robust.bin      = PN 2.18 + cable-robust   393216 bytes (on the unit 2026-09-21)
   LPM-10A-TX_PN2.19-exp-cablediag.bin     = the same + cable-diag    397312 bytes: the diag code needed one
-                                            more 4 KB page; a file of that length has not been offered to the
-                                            bootloader yet (393216 has, many times) -- never needed so far
+                                            more 4 KB page; the owner flashed it on 2026-09-21 and it ran, so
+                                            the bootloader takes a file two pages longer than stock
 
 Status: flashed by the owner on 2026-09-21, every function passes.  One
 report: the "Not connected" of an earlier unplugged test stayed on screen

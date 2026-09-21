@@ -1,2 +1,2 @@
-9eaa0fdeded19a0f7c6bb77c386c8abad9ab8d9a4720341d7ec2a79a03866d02  LPM-10A-TX_PN2.20-cable-text-clear.bin
+23fbc3b4404c866dc8a7961ac7b1cf8ebcfb0bf3b4b2338c6f798d07db0a353e  LPM-10A-TX_PN2.21-cable-values.bin
 864ca1a1777c41fa0197bad97c94665b9cd25521723fcc4ec9887710c1f788ec  APP_LPM-10RX_PN1.23-mains-tone-update.bin
