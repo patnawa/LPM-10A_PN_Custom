@@ -16,7 +16,7 @@ import rx_patches
 import audit_fixes, followup_fixes, precision_fixes, pinpoint_fixes, robust_fixes  # noqa: E401
 import sync_fixes, tracking_fixes, overload_fixes, audio_clock_fixes            # noqa: E401
 import mode_tone, gain_norm, release_hold, smooth_gain, rail_strong, strong_cap  # noqa: E401
-import fast_update, auto_range                                                  # noqa: E401
+import fast_update, auto_range, mains_tone                                      # noqa: E401
 
 
 class Profile:
@@ -67,6 +67,7 @@ _CHAIN = [
     ("pn1.20", "version-tag",  None,              "pn1.19", "PN 1.20 the drive's status file names the PN build", True),
     ("pn1.21", "fast-update",  fast_update,       "pn1.20", "PN 1.21 Digital evaluates every 40 ms instead of 80", True),
     ("pn1.22", "auto-range",   auto_range,        "pn1.21", "PN 1.22 gain steps down by itself when the front end saturates", True),
+    ("pn1.23", "mains-tone",   mains_tone,        "pn1.22", "PN 1.23 mains mode beeps at 5 kHz: three modes, three pitches", True),
 ]
 
 PROFILES = OrderedDict((n, Profile(n, *rest)) for n, *rest in _CHAIN)

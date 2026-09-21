@@ -524,3 +524,5 @@ from fast_update import register as _register_fast_update
 _register_fast_update(patch)
 from auto_range import register as _register_auto_range
 _register_auto_range(patch)
+from mains_tone import register as _register_mains_tone
+_register_mains_tone(patch)
