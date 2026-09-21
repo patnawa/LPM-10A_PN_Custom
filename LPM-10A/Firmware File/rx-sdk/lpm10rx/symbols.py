@@ -29,6 +29,7 @@ APP_BASE = 0x08006800           # image load address; the bootloader lives below
 LICENCE_BLOCK = 0x08006700      # 24-byte UID-binding record + "_V3." tag at 0x0800676C (bootloader page)
 APP_SIZE = 26152                # stock image size (0x6628)
 APP_END = APP_BASE + APP_SIZE
+EXTEND_LIMIT = 0x0801E000       # appended code may grow the image up to here (version page 0x0801F000 stays clear)
 VERSION_PAGE = 0x0801F000       # holds the version string "3.0.0"; rewritten by main when it differs (no settings live there)
 RAM_BASE = 0x20000000
 STACK_TOP = 0x20001618          # initial MSP from the vector table

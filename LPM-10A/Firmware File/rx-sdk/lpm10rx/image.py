@@ -126,12 +126,28 @@ class Image:
         return assemble(addr, source, syms)
 
     # ---------------------------------------------------------- output
+    def extend(self, n, why=""):
+        """Append n zero bytes (a multiple of 4) after the image and return the
+        flash address of the new space.  The update container carries the
+        payload length, so a longer image is programmed as-is (established on
+        hardware for the TX on 2026-09-18 and for the RX container format on
+        2026-09-21); the version page and bootloader pages stay untouched."""
+        if n <= 0 or n % 4:
+            raise PatchError("extend: size must be a positive multiple of 4")
+        start = S.APP_BASE + len(self.data)
+        if start + n > S.EXTEND_LIMIT:
+            raise PatchError(f"extend: 0x{start + n:08X} would pass EXTEND_LIMIT 0x{S.EXTEND_LIMIT:08X}")
+        self.data += bytes(n)
+        self.log.append((start, b"", b"", why or f"image extended by {n} bytes at 0x{start:08X}", "note"))
+        return start
+
     def save(self, path):
-        if len(self.data) != S.APP_SIZE:
-            raise PatchError("refusing to save a resized receiver image")
+        if len(self.data) < S.APP_SIZE or len(self.data) % 4 or S.APP_BASE + len(self.data) > S.EXTEND_LIMIT:
+            raise PatchError("refusing to save a truncated, unaligned or over-long receiver image")
         with open(path, "wb") as output:
             output.write(bytes(self.data))
         return hashlib.sha256(bytes(self.data)).hexdigest()
 
     def diff_offsets(self):
-        return [i for i in range(len(self.data)) if self.data[i] != self.original[i]]
+        n = len(self.original)
+        return [i for i in range(n) if self.data[i] != self.original[i]] + list(range(n, len(self.data)))

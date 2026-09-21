@@ -508,3 +508,7 @@ _register_overload(patch)
 
 from audio_clock_fixes import register as _register_audio_clock
 _register_audio_clock(patch)
+from mode_tone import register as _register_mode_tone
+_register_mode_tone(patch)
+from gain_norm import register as _register_gain_norm
+_register_gain_norm(patch)

@@ -9,6 +9,10 @@ is silently ignored (`UNKOWN.TXT`). Copy the `*-update.bin` that `rx-sdk/build.p
 emits with Explorer; the probe programs it in about a second and reboots. Proven by watching
 the bootloader's SRAM over SWD, then by stack return addresses that exist only in PN 1.12.
 The owner reports the one-second Digital tail is gone and the feedback is finer than stock.
+PN 1.14 then gave Analog its own pitch (1.25 kHz vs 2.5 kHz) with a chirp on every key beep,
+and PN 1.15 made the beep rate report the cable rather than the sensitivity knob after a
+live measurement showed the front end has three effective gain steps and the knob was
+scaling the strength score ~20x ([RX sensitivity measurements](docs/RX-SENSITIVITY-2026-09-21.md)).
 **Earlier RX "device pass" reports (PN 1.3–1.8) were tests of the factory firmware**, since
 no PN image had ever been installed. See [the procedure, evidence and rollback](docs/RX-UPDATE-PROCEDURE-2026-09-21.md).
 
@@ -173,7 +177,7 @@ fault-handling and ADC timeout margin bug fixes. See the
 | Device | Release | Firmware | Status |
 |---|---|---|---|
 | TX tester | [PN 2.12](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.12) | `LPM-10A-TX_PN2.12-portflash-status.bin` | CPU-verified; owner confirms Port FLASH fixed |
-| RX probe | PN 1.12 (local, [procedure](docs/RX-UPDATE-PROCEDURE-2026-09-21.md)) | `experimental/APP_LPM-10RX_PN1.12-overload-update.bin` | **Installed and running on the owner's probe 2026-09-21** (first PN RX image ever installed); copy the `-update.bin` container, not the raw image |
+| RX probe | PN 1.15 (local, [procedure](docs/RX-UPDATE-PROCEDURE-2026-09-21.md)) | `experimental/APP_LPM-10RX_PN1.15-gain-norm-update.bin` | **Running on the owner's probe 2026-09-21**: PN 1.12 detection + Analog one octave below Digital with mode chirps (1.14) + beep rate normalised by the measured knob gain step (1.15, [measurements](docs/RX-SENSITIVITY-2026-09-21.md)); copy the `-update.bin` container, not the raw image |
 
 **Use the file for the correct device; TX and RX firmware are not interchangeable.**
 Each release includes device-specific notes and a SHA-256 checksum file.

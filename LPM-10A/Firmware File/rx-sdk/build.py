@@ -14,6 +14,8 @@ LPM-10A receiver firmware build tool.
     python build.py --tracking --write     emit the PN 1.11 Digital/Analog tracking candidate
     python build.py --overload --write     emit the PN 1.12 Digital upper-rail candidate
     python build.py --audio-clock --write  emit the PN 1.13 independent audio-clock test candidate
+    python build.py --mode-tone --write    emit the PN 1.14 per-mode speaker pitch candidate
+    python build.py --gain-norm --write    emit the PN 1.15 knob-independent strength candidate
     python build.py --only a,b --write     build a specific set
     python build.py --all --write          include patches marked untested
 
@@ -47,6 +49,8 @@ from sync_fixes import PATCHES as SYNC_PATCHES              # noqa: E402
 from tracking_fixes import PATCHES as TRACKING_PATCHES      # noqa: E402
 from overload_fixes import PATCHES as OVERLOAD_PATCHES      # noqa: E402
 from audio_clock_fixes import PATCHES as AUDIO_CLOCK_PATCHES  # noqa: E402
+from mode_tone import PATCHES as MODE_TONE_PATCHES           # noqa: E402
+from gain_norm import PATCHES as GAIN_NORM_PATCHES           # noqa: E402
 
 FW_DIR = os.path.dirname(HERE)
 STOCK = os.path.join(FW_DIR, STOCK_NAME)
@@ -82,14 +86,21 @@ def main():
     ap.add_argument("--tracking", action="store_true", help="build PN 1.11 with faster Digital tracking and finer Analog feedback")
     ap.add_argument("--overload", action="store_true", help="build PN 1.12 with Digital upper-rail fallback uncertainty")
     ap.add_argument("--audio-clock", action="store_true", help="build PN 1.13 test candidate with audio countdown on the speaker timer")
+    ap.add_argument("--mode-tone", action="store_true", help="build PN 1.14 with Analog one octave below Digital and chirping key beeps")
+    ap.add_argument("--gain-norm", action="store_true", help="build PN 1.15: beep rate normalised by the measured knob gain step, audible floor")
     ap.add_argument("--only", help="comma-separated patch ids")
     ap.add_argument("--out", help="output path (experimental builds use a distinct filename)")
     args = ap.parse_args()
+    if args.gain_norm and (args.mode_tone or args.audio_clock or args.overload or args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
+        ap.error("--gain-norm is a fixed profile; do not combine it with other profile/patch selectors")
+    args.mode_tone = args.mode_tone or args.gain_norm
+    if args.mode_tone and not args.gain_norm and (args.audio_clock or args.overload or args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
+        ap.error("--mode-tone is a fixed profile; do not combine it with other profile/patch selectors")
     if args.audio_clock and (args.overload or args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
         ap.error("--audio-clock is a fixed profile; do not combine it with other profile/patch selectors")
     # PN 1.13 inherits the complete fixed PN 1.12 selection before its own patch.
     # Keep the existing ancestry and custom-output guards on that same path.
-    args.overload = args.overload or args.audio_clock
+    args.overload = args.overload or args.audio_clock or args.mode_tone
     if args.overload and (args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
         ap.error("--overload is a fixed profile; do not combine it with other profile/patch selectors")
     if args.tracking and (args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
@@ -136,10 +147,16 @@ def main():
                (args.sync and p.pid in SYNC_PATCHES) or
                ((args.tracking or args.overload) and p.pid in TRACKING_PATCHES) or
                (args.overload and p.pid in OVERLOAD_PATCHES) or
-               (args.audio_clock and p.pid in AUDIO_CLOCK_PATCHES)]
+               (args.audio_clock and p.pid in AUDIO_CLOCK_PATCHES) or
+               (args.mode_tone and p.pid in MODE_TONE_PATCHES) or
+               (args.gain_norm and p.pid in GAIN_NORM_PATCHES)]
 
-    if any(p.pid in SYNC_PATCHES for p in sel) and any(p.pid in TRACKING_PATCHES | OVERLOAD_PATCHES | AUDIO_CLOCK_PATCHES for p in sel):
-        ap.error("rx-sync cannot be combined with rx-tracking, rx-overload or rx-audio-clock")
+    if any(p.pid in SYNC_PATCHES for p in sel) and any(p.pid in TRACKING_PATCHES | OVERLOAD_PATCHES | AUDIO_CLOCK_PATCHES | MODE_TONE_PATCHES | GAIN_NORM_PATCHES for p in sel):
+        ap.error("rx-sync cannot be combined with rx-tracking, rx-overload, rx-audio-clock, rx-mode-tone or rx-gain-norm")
+    if not args.gain_norm and any(p.pid in GAIN_NORM_PATCHES for p in sel) and not args.out:
+        ap.error("custom gain-norm patch selections require --out; use --gain-norm for PN 1.15")
+    if not args.mode_tone and any(p.pid in MODE_TONE_PATCHES for p in sel) and not args.out:
+        ap.error("custom mode-tone patch selections require --out; use --mode-tone for PN 1.14")
     if not args.audio_clock and any(p.pid in AUDIO_CLOCK_PATCHES for p in sel) and not args.out:
         ap.error("custom audio-clock patch selections require --out; use --audio-clock for PN 1.13")
     if not args.overload and any(p.pid in OVERLOAD_PATCHES for p in sel) and not args.out:
@@ -193,6 +210,12 @@ def main():
     if args.audio_clock:
         from audio_clock_fixes import OUTPUT
         name = OUTPUT
+    if args.mode_tone:
+        from mode_tone import OUTPUT
+        name = OUTPUT
+    if args.gain_norm:
+        from gain_norm import OUTPUT
+        name = OUTPUT
     out = args.out or (os.path.join(FW_DIR, name) if experimental else OUT)
     if experimental:
         print("EXPERIMENTAL V3.0.0-BASED RX IMAGE: bench validation and matching-device recovery required.")
@@ -219,6 +242,8 @@ def main():
         for addr, old, new, why, kind in img.log[before:]:
             if kind == "text":
                 print(f"              0x{addr:08X}  \"{old.decode()}\" -> \"{new.decode()}\"")
+            elif kind == "note":
+                print(f"              0x{addr:08X}  {why}")
             else:
                 print(f"              0x{addr:08X}  {old.hex()} -> {new.hex()}   {why}")
                 touched.append((addr, max(len(old), len(new))))
@@ -236,7 +261,9 @@ def main():
 
     d = img.diff_offsets()
     print(f"\nbytes changed : {len(d)}")
-    print(f"file size     : {len(img.data)} (unchanged raw image; the update file adds the 4 KB container header)")
+    grown = len(img.data) - len(img.original)
+    print(f"file size     : {len(img.data)} raw image" + (f" (+{grown} bytes appended)" if grown else " (unchanged)")
+          + "; the update file adds the 4 KB container header")
 
     if args.write:
         out_sha = img.save(out)
