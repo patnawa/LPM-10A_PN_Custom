@@ -19,7 +19,7 @@ SAVED = (UC_ARM_REG_R4, UC_ARM_REG_R5, UC_ARM_REG_R6, UC_ARM_REG_R7,
 
 
 def run_checks(data, img, check):
-    baseline = Path(__file__).resolve().parent.parent / "LPM-10A-TX_PN2.6.bin"
+    baseline = Path(__file__).resolve().parent.parent / "archive/LPM-10A-TX_PN2.6.bin"
     old = baseline.read_bytes()
     def flash(buf, delay, duration=90000):
         m = Machine(buf, 6)

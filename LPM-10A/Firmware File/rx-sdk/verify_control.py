@@ -141,7 +141,7 @@ def run_checks(stock, mod, check, roadmap=False, mains_rearm=False):
 
     # No other firmware paths changed between the prior digital image and PN 1.2.
     from pathlib import Path
-    previous = (Path(__file__).resolve().parent.parent / "APP_LPM-10RX_PN1.1-digital-experimental.bin").read_bytes()
+    previous = (Path(__file__).resolve().parent.parent / "archive/APP_LPM-10RX_PN1.1-digital-experimental.bin").read_bytes()
     changed = [0x08006800 + n for n, (a, b) in enumerate(zip(previous, mod)) if a != b]
     check(len(previous) == len(mod) and changed and all(0x0800A992 <= a < 0x0800A9B6 for a in changed),
           "PN 1.2 changes only the 36-byte auto-off block from PN 1.1; analog/mains/sampler untouched")

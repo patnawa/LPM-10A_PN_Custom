@@ -32,7 +32,7 @@ import patches                                       # noqa: E402
 FW_DIR = os.path.dirname(HERE)
 STOCK = os.path.join(FW_DIR, "LPM-10A-TX_V2.0.7_260610.bin")
 STOCK_SHA = "29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b"
-OUT = os.path.join(FW_DIR, f"LPM-10A-TX_{patches.VERSION.replace(' ', '')}.bin")
+OUT = os.path.join(FW_DIR, "experimental", f"LPM-10A-TX_{patches.VERSION.replace(' ', '')}.bin")
 ROADMAP_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.9-roadmap.bin")
 PORTFLASH_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.10-portflash.bin")
 AUDIT_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.11-audit.bin")

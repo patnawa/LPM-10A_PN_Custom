@@ -92,7 +92,7 @@ class Roadmap(unittest.TestCase):
 
     def test_beep_gaps_do_not_accumulate_five_minutes_in_previous_release(self):
         # Correct the submitted report: every stock beep already resets idle.
-        previous = Path(__file__).resolve().parent.parent / "APP_LPM-10RX_PN1.2-reliability-experimental.bin"
+        previous = Path(__file__).resolve().parent.parent / "archive/APP_LPM-10RX_PN1.2-reliability-experimental.bin"
         c = Control(previous.read_bytes())
         c.w32(IDLE, 299990)
         c.w8(BEEP, 50)

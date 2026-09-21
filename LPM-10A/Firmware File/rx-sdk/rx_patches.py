@@ -15,8 +15,8 @@ import hashlib
 
 REGISTRY = []
 
-DIGITAL_EXPERIMENT = "APP_LPM-10RX_PN1.1-digital-experimental.bin"
-RELIABILITY_EXPERIMENT = "APP_LPM-10RX_PN1.2-reliability-experimental.bin"
+DIGITAL_EXPERIMENT = "archive/APP_LPM-10RX_PN1.1-digital-experimental.bin"
+RELIABILITY_EXPERIMENT = "archive/APP_LPM-10RX_PN1.2-reliability-experimental.bin"
 ROADMAP_EXPERIMENT = "experimental/APP_LPM-10RX_PN1.4-roadmap.bin"
 ROADMAP_PATCHES = {"batt-critical-recover", "activity-before-autooff", "digital-correlation",
                    "recent-signal-autooff", "adc-complete", "main-watchdog", "digital-strength"}

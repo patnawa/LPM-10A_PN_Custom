@@ -37,7 +37,7 @@ from profiles import PROFILES, LATEST, apply_profile       # noqa: E402
 
 FW_DIR = os.path.dirname(HERE)
 STOCK = os.path.join(FW_DIR, STOCK_NAME)
-OUT = os.path.join(FW_DIR, "APP_LPM-10RX_PN1.0.bin")
+OUT = os.path.join(FW_DIR, "experimental", "APP_LPM-10RX_PN1.0.bin")
 
 
 def disasm(data, addr, n):

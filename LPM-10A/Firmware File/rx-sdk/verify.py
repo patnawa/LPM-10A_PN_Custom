@@ -34,7 +34,7 @@ ap.add_argument("--digital", action="store_true", help="verify the opt-in digita
 ap.add_argument("--reliability", action="store_true", help="verify PN 1.2: digital + activity-aware auto-off")
 args = ap.parse_args()
 args.digital = args.digital or args.reliability
-name = patches.RELIABILITY_EXPERIMENT if args.reliability else (patches.DIGITAL_EXPERIMENT if args.digital else "APP_LPM-10RX_PN1.0.bin")
+name = patches.RELIABILITY_EXPERIMENT if args.reliability else (patches.DIGITAL_EXPERIMENT if args.digital else "archive/APP_LPM-10RX_PN1.0.bin")
 MOD = args.image or os.path.join(FW, name)
 
 fails = 0

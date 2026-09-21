@@ -429,30 +429,30 @@ quantified against another probe.
 
 ```
 LPM-10A/Firmware File/
-  experimental/LPM-10A-TX_PN2.14-tone-recovery.bin        current TX build
-  experimental/TONE-RECOVERY-PN2.14-README.txt            its notes / TONE-RECOVERY-SHA256SUMS.txt
-  experimental/APP_LPM-10RX_PN1.23-mains-tone-update.bin  current RX build — copy THIS to the BOOTLOADER drive
-  experimental/APP_LPM-10RX_PN1.23-mains-tone.bin         its raw image (hashes, emulation only)
-  experimental/RX-PN1.20-1.23-SHA256SUMS.txt              RX checksums
-  RX-PN1.23-README.txt                                    RX notes: update, what you hear, rollback
-  FORMULA-AUDIT.md                                        every measurement formula with verdicts: TX §1-6, receiver PN formulas §7
-  sdk/                                                    TX toolkit: patches, assembler, verifier, Thai UI
-  rx-sdk/                                                 RX toolkit: patches (PN 1.0 → 1.23, profiles.py), container, emulator, tests
-  (older PN builds and notes are kept alongside for reference)
+  LPM-10A-TX_PN2.14-tone-recovery.bin        current TX build — copy to the tester's update drive
+  APP_LPM-10RX_PN1.23-mains-tone-update.bin  current RX build — copy to the probe's BOOTLOADER drive
+  TX-PN2.14-README.txt, RX-PN1.23-README.txt notes for each: what it does, how to update, how to roll back
+  SHA256SUMS.txt                             checksums of the two files above
+  README.md                                  what is in this folder
+  FORMULA-AUDIT.md                           every measurement formula with verdicts: TX §1-6, receiver PN formulas §7
+  sdk/                                       TX toolkit: patches, assembler, verifier, Thai UI, tests
+  rx-sdk/                                    RX toolkit: patch chain PN 1.0 → 1.23 (profiles.py), container, emulator, tests
+  experimental/                              build outputs of every PN version (the test suites compare against them)
+  archive/                                   earlier release copies and their notes (history only)
 docs/
   RX-UPDATE-GUIDE.md                    how to update / roll back the RX and what was changed to make it work
   RX-UPDATE-PROCEDURE-2026-09-21.md     the SWD investigation that found the container requirement
-  RX-SENSITIVITY-2026-09-21.md          knob / gain / rhythm measurements behind PN 1.15–1.19
-  RX-AUDIT.md                           the probe firmware, function by function
-  ROADMAP.md                            what to test and build next
+  RX-SENSITIVITY-2026-09-21.md          knob / gain / rhythm measurements behind PN 1.15–1.23
   RX-NEXT-STEPS-2026-09-21.md           assessment of the next RX improvements and what was done about each
   RX-FIELD-CHECKLIST-PN1.23.md          30-minute field measurements to compare builds
+  RX-AUDIT.md                           the probe firmware, function by function
+  ROADMAP.md                            what to test and build next
   README-DETAILED-2026-09-21.md         the full write-up: history, TDR science, maths, audits
   experiments/                          read-only SWD tools (rx_ro.py, rx_sens_capture.py, …)
   img/                                  the pictures on this page (screens are rendered from the firmware's own layout tables and glyphs)
 ```
 
-Build: `python sdk/build.py --write` (TX) and `python rx-sdk/build.py --write` (RX, latest profile; `--profile pn1.xx` for another) with FNIRSI's
+Build: `python sdk/build.py --write` (TX) and `python rx-sdk/build.py --write` (RX, latest profile; `--profile pn1.xx` for another); outputs land in `experimental/`, and `publish_current.py` copies the release pair to the folder root with FNIRSI's
 images placed outside the repository (see each `build.py`). Every RX build writes both the raw image and the
 `-update.bin` container; `python -m lpm10rx.container check <file>` tells which one you have.
 
