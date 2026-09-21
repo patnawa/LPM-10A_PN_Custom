@@ -1,0 +1,46 @@
+LPM-10A TX PN 2.15 - run counter on the Length screen - 2026-09-21
+
+TX / main unit: LPM-10A-TX_PN2.15-length-progress.bin (393216 bytes)
+Checksum: LENGTH-PROGRESS-SHA256SUMS.txt
+Status: on the owner's unit since 2026-09-21 as part of PN 2.19 / 2.20 ("every
+function passes"); PN 2.20 is the release.
+
+What changes
+  A Length test runs the PHY's cable diagnostic four times and averages
+  (PN 1.2), so it takes about four times as long as stock. The Testing
+  line now counts the runs at its right end:
+
+      Testing..                2/4
+      กำลังทดสอบ..             2/4
+
+  1/4 appears when the test starts, 2/4 .. 4/4 as each run begins; the
+  "..." animation, the 20 s timeout per run and the result screen are
+  unchanged. Nothing about the measurement changes: the four readings,
+  Zero, NVP and the average are exactly PN 2.14's.
+
+How
+  PN 2.15 is the exact PN 2.14 image plus one patch (length-progress):
+  the instruction that starts every run (bl 0x08019C38 at 0x08011A6E)
+  calls a 60-byte hook in the code cave that runs the stock routine and
+  then posts one more text box, "n/4", through gui_draw_text_box - the
+  same path the "..." frames use. Version strings read PN 2.15.
+
+Verified (python -m unittest test_length_progress, 6 tests on the real
+draw code under Unicorn): every run draws its number at (192, 175) in
+English and Thai, pixel-identical digits in both languages; the Thai
+"กำลังทดสอบ" label is still drawn from the Thai cells; the result screen
+is pixel-identical with or without the counter (nothing left behind);
+"2/4" over "1/4" looks exactly like "2/4" alone; only the run-entry bl,
+the two version strings and the container's length fields differ from
+PN 2.14 apart from the appended hook.
+
+Checklist on the unit
+  1. About screen reads Software:PN 2.15.
+  2. Length > Test Start: "1/4" at the right of the Testing line, then
+     2/4, 3/4, 4/4, then the four readings as before.
+  3. Repeat the test: the same cable reads the same as on PN 2.14.
+  4. Thai: the label stays "กำลังทดสอบ", the digits at the right.
+
+Build in sdk: python build.py --write        (PN 2.15 is the latest profile)
+Rollback:     flash LPM-10A-TX_PN2.14-tone-recovery.bin (the same
+              bootloader procedure; no settings change between the two).

@@ -169,6 +169,22 @@ colours), §16 (screen entry) and §16b (Factory Reset compared with stock).
 Worked example: a 55.40 m reading with NVP set to 75 % shows 60.2 m
 (5540 × 75 / 69 = 6022 cm).
 
+### 1.7 Known-length calibration — `length-reference` (PN 2.18 candidate)
+
+The inverse of 1.6, solved on the tester instead of by the user: with a result
+on screen, a third OK-hold target `REF` starts at the displayed length
+`disp = (mean − 10·Zero) × NVP / 69` (mean = the raw centimetres of the pairs
+the PHY timed, zero pairs left out) and every UP / DOWN step (0.1 m, 10 cm or
+0.1 ft, REF kept in 100..30000 cm) stores
+
+    NVP = round(69 × REF / (mean − 10·Zero))        clamped to 50..99
+
+so the readings settle on REF to within NVP's 1 % step (±0.1 m at 20 m).
+Zero is not solved for — one cable fixes one unknown — and stays the short-
+cable step. Integer maths (`69 × REF ≤ 2 070 000`, 32-bit), no change to the
+measurement or to 1.4 / 1.6. Exercised end to end through `Action_key_Process`
+in `sdk/test_length_reference.py` (both languages, every unit, both clamps).
+
 ---
 
 ## 2. Link speed / duplex — `LENG_link_test` 0x0800D47C, `LENG_speed_result` 0x0801A9A8
@@ -182,6 +198,15 @@ PHY register 0x11 (PHY-specific status) is read after auto-negotiation:
 
 Matches the YT8531 register map (Marvell-compatible layout). Link wait
 timeout 20 s. **OK**
+
+PN 2.17 (`speed-partner`, candidate) adds what the port offered, from the two
+IEEE 802.3 registers every PHY has and stock never reads: register 5
+(auto-negotiation link partner ability; bits 5/6 = 10BASE-T HD/FD, 7/8 =
+100BASE-TX HD/FD, 9 = 100BASE-T4) and register 10 (1000BASE-T status; bits
+10/11 = partner 1000BASE-T HD/FD), read right after the link came up, before
+stock's register 0x11. Shown as `10/100/1000`, `10/100`, `100/1000`, … or
+`No autoneg` (register 5 = 0: parallel detection, a fixed-speed port). Display
+only; the resolved speed / duplex above are untouched.
 
 ---
 
@@ -317,12 +342,14 @@ symbol table had the two swapped, and verify §4b tested state 8. So PN 1.0–2.
 held Auto Off during a SCAN tone but not during a port blink. Corrected with
 the value from the symbol table; §4b tests 6 and checks 8 is not held.
 
-## 4. Wiremap / continuity — `CNT_run_test` 0x0800BF40
+## 4. QC (crimp) test — `CNT_run_test` 0x0800BF40 — **record corrected 2026-09-21**
 
+Earlier revisions of this section called this routine the wire map; it is the
+**QC Test** (压接测试, sysState 8: `cnt_is_calibrated` returns 1 only there).
 For each of the 8 wires: select it (4-bit mux on PE1/PE2/PE3/PC3), zero TIM8's
 counter (0x40013400, external clock on PC7), wait 10 ms, read the count.
-Compared with the baseline captured by the wiremap Init action (eight counts,
-stored in the settings block at offset 0x90 and reloaded at boot):
+Compared with the baseline captured by the Init action (eight counts, stored
+in the settings block at offset 0x90 and reloaded at boot):
 
 ```
 |count - baseline| < 7   → "not connected"
@@ -331,6 +358,37 @@ otherwise                → connected
 ```
 
 **OK** — a threshold test, no unit conversion involved.
+
+### 4.1 Wire map (Cable Test) — far end 0x0800C4E0, switch 0x0800CB68 — **FIXED in the PN 2.19 candidate**
+
+The Cable Test is a resistive matrix in the CNT task.  For each of nine tester
+pins (1..8 and the shield) it drives that pin through the source mux
+(0x080180A0, mode 0) and reads the other eight through the sense mux (mode 1)
+into ADC channel 4 (`0x080107A4`, the latest DMA sample), one reading each,
+2 ms after switching:
+
+```
+switch mode:  open if all 8 readings > 4000, else connected      (no pattern check)
+far-end mode: short if any reading <= 1240 (0x4D8, map bit set)
+              open  if all 8 readings > 4000
+              else: readings in (1240, 4000) averaged, nearest of the remote
+                    ladder table [1655 1975 2319 2607 2935 3183 3391 3679 3900]
+                    (windows +-5 %): same index -> straight, other -> crossed,
+                    none -> "unknown" (the only case that prints "Result error!!")
+```
+
+The open threshold, 4000 of 4095, sits 77 mV under the rail; a floating wire
+(nothing at the far end) picks up mains hum and single samples cross it at
+random, which is the random open / crossed result the owner reported on an
+unconnected cable (2026-09-21).  **PN 2.19** (`cable-robust`) reads eleven
+samples 1 ms apart per sensed pin and uses their median where stock used the
+sample; far-end mode's open test judges the highest of the eleven (a floating
+wire touches the rail within a half-cycle, a wire on the ladder does not);
+switch mode's "connected" becomes a real short (<= 1240, stock's own far-end
+short threshold) instead of anything under 4000; all eight signal pins open
+prints "Not connected".  The thresholds and the ladder table are stock's; the
+`cable-diag` build prints the deciding numbers per row so the owner's unit
+can confirm them (protocol in `experimental/TX-PN2.19-CABLE-README.txt`).
 
 ---
 

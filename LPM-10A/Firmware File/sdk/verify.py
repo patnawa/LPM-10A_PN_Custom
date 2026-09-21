@@ -46,8 +46,13 @@ from lpm10a.image import Image, require_stock   # noqa: E402
 import patches                            # noqa: E402
 
 STOCK = require_stock(os.path.join(FW, "LPM-10A-TX_V2.0.7_260610.bin"))
-MOD = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
-    FW, f"LPM-10A-TX_{patches.VERSION.replace(' ', '')}.bin")
+# The image this file models is the BASELINE (build.py --default), archived as
+# LPM-10A-TX_PN2.9.bin; the released profiles are checked by test_profiles.py and
+# their own test modules.  A path on the command line overrides the default.
+_BASELINE = f"LPM-10A-TX_{patches.VERSION.replace(' ', '')}.bin"
+MOD = sys.argv[1] if len(sys.argv) > 1 else next(
+    (c for c in (os.path.join(FW, d, _BASELINE) for d in ("", "archive", "experimental")) if os.path.exists(c)),
+    os.path.join(FW, "archive", _BASELINE))
 
 fails = 0
 

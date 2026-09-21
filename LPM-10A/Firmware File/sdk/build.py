@@ -2,17 +2,20 @@
 """
 LPM-10A firmware build tool.
 
-    python build.py --list                 show available patches
-    python build.py                        dry run with the default patch set
-    python build.py --write                emit the current PN version
-    python build.py --portflash --write    emit the PN 2.10 Port FLASH candidate
-    python build.py --audit --write        emit the PN 2.11 full TX audit candidate
-    python build.py --portflash-status --write  emit the PN 2.12 PHY-status candidate
-    python build.py --scan-sync --write    emit the PN 2.13 paired tracing candidate
-    python build.py --scan-recovery --write  emit PN 2.14 with the two established tone modes
+    python build.py --list                      show available patches and profiles
+    python build.py                             dry run of the latest profile (see profiles.py)
+    python build.py --write                     emit the latest profile, e.g. experimental/LPM-10A-TX_PN2.14-tone-recovery.bin
+    python build.py --profile pn2.12 --write    reproduce an earlier PN version
+    python build.py --default --write           the frozen baseline verify.py models (unreleased LPM-10A-TX_PN2.9.bin)
     python build.py --with blind-zone-50cm --out ../experimental/x.bin --write
-    python build.py --only a,b --write     build a specific set
-    python build.py --all --write          include patches marked untested
+                                                a profile (or --default) plus opt-in patches
+    python build.py --only a,b --out X --write  build a specific set
+    python build.py --all --out X --write       every registered patch
+
+The old per-version flags (--roadmap, --portflash, --audit, --portflash-status,
+--scan-sync, --scan-recovery) still work as aliases for --profile.  Custom builds
+(--only, --with, --all) need --out when they write: they must not impersonate a
+numbered PN file.
 
 Every build re-disassembles the result and diffs it against the stock image,
 so the exact instruction-level change is printed before anything is written.
@@ -28,17 +31,15 @@ sys.path.insert(0, HERE)
 from lpm10a.image import Image, PatchError          # noqa: E402
 from lpm10a import symbols as S                     # noqa: E402
 import patches                                       # noqa: E402
+from profiles import PROFILES, LATEST, apply_profile, baseline_ids   # noqa: E402
 
 FW_DIR = os.path.dirname(HERE)
 STOCK = os.path.join(FW_DIR, "LPM-10A-TX_V2.0.7_260610.bin")
 STOCK_SHA = "29081ccbbd929a884c7c81fb309aa2894ce2ab84e061918538b3ead8e632940b"
-OUT = os.path.join(FW_DIR, "experimental", f"LPM-10A-TX_{patches.VERSION.replace(' ', '')}.bin")
-ROADMAP_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.9-roadmap.bin")
-PORTFLASH_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.10-portflash.bin")
-AUDIT_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.11-audit.bin")
-PORTFLASH_STATUS_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.12-portflash-status.bin")
-SCAN_SYNC_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.13-sync.bin")
-SCAN_RECOVERY_OUT = os.path.join(FW_DIR, "experimental", "LPM-10A-TX_PN2.14-tone-recovery.bin")
+OUT = os.path.join(FW_DIR, "experimental", f"LPM-10A-TX_{patches.VERSION.replace(' ', '')}.bin")   # the baseline
+# the profile outputs by name, for the test modules that compare against the archived files
+ROADMAP_OUT, PORTFLASH_OUT, AUDIT_OUT, PORTFLASH_STATUS_OUT, SCAN_SYNC_OUT, SCAN_RECOVERY_OUT = (
+    PROFILES[n].path(FW_DIR) for n in ("pn2.9", "pn2.10", "pn2.11", "pn2.12", "pn2.13", "pn2.14"))
 
 
 def disasm_region(data, payload_off, addr, n):
@@ -55,89 +56,93 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--write", action="store_true")
-    ap.add_argument("--all", action="store_true", help="include risk=untested")
-    ap.add_argument("--roadmap", action="store_true", help="PN 2.9 roadmap experiment (distinct output file)")
-    ap.add_argument("--portflash", action="store_true", help="PN 2.10 Port FLASH candidate, including all roadmap features")
-    ap.add_argument("--audit", action="store_true", help="PN 2.11 candidate: Port FLASH, battery monitoring and all settings-save paths")
-    ap.add_argument("--portflash-status", action="store_true", help="PN 2.12 candidate: PN 2.11 plus direct PHY link status for FLASH")
-    ap.add_argument("--scan-sync", action="store_true", help="PN 2.13 candidate: PN 2.12 plus optional Sync32 and diagnostic pulse modes")
-    ap.add_argument("--scan-recovery", action="store_true", help="PN 2.14 candidate: PN 2.12 with frequency labels and only the two established tone modes")
-    ap.add_argument("--only", help="comma-separated patch ids")
-    ap.add_argument("--with", dest="extra", help="comma-separated non-default patch ids to add to the default set")
-    ap.add_argument("--out")
+    ap.add_argument("--profile", metavar="NAME", help=f"a profile from profiles.py, e.g. {LATEST} (the default)")
+    ap.add_argument("--default", action="store_true", help="the frozen baseline patch set (what verify.py models) instead of a profile")
+    ap.add_argument("--all", action="store_true", help="every registered patch, including risk=untested (custom build)")
+    ap.add_argument("--only", help="comma-separated patch ids (custom build)")
+    ap.add_argument("--with", dest="extra", help="comma-separated opt-in patch ids added to the profile or --default (custom build)")
+    ap.add_argument("--out", help="output path (required to write a custom build)")
+    for p in PROFILES.values():
+        ap.add_argument(f"--{p.flag}", dest=f"flag_{p.name}", action="store_true",
+                        help=f"alias for --profile {p.name}: {p.title}")
     args = ap.parse_args()
-    if args.scan_recovery and (args.scan_sync or args.portflash_status or args.audit or args.portflash or args.roadmap or args.all or args.only is not None or args.extra is not None):
-        ap.error("--scan-recovery is a fixed profile; do not combine it with other profile/patch selectors")
-    if args.scan_sync and (args.portflash_status or args.audit or args.portflash or args.roadmap or args.all or args.only is not None or args.extra is not None):
-        ap.error("--scan-sync is a fixed profile; do not combine it with other profile/patch selectors")
-    if args.portflash_status and (args.audit or args.portflash or args.roadmap or args.all or args.only is not None or args.extra is not None):
-        ap.error("--portflash-status is a fixed profile; do not combine it with other profile/patch selectors")
-    if args.audit and (args.portflash or args.roadmap or args.all or args.only is not None or args.extra is not None):
-        ap.error("--audit is a fixed profile; do not combine it with other profile/patch selectors")
-    if args.portflash and (args.roadmap or args.all or args.only is not None or args.extra is not None):
-        ap.error("--portflash is a fixed profile; do not combine it with --roadmap, --all, --only or --with")
-    if args.roadmap and (args.all or args.only is not None or args.extra is not None):
-        ap.error("--roadmap is a fixed profile; do not combine it with --all, --only or --with")
-    if args.only is not None and (args.all or args.extra is not None or args.roadmap):
-        ap.error("--only cannot be combined with --all, --with or --roadmap")
-    explicit_out = args.out is not None
-    args.out = args.out or (SCAN_RECOVERY_OUT if args.scan_recovery else SCAN_SYNC_OUT if args.scan_sync else PORTFLASH_STATUS_OUT if args.portflash_status else AUDIT_OUT if args.audit else PORTFLASH_OUT if args.portflash else ROADMAP_OUT if args.roadmap else OUT)
 
     if args.list:
-        print(f"{'id':22} {'risk':9} {'group':8} {'default':8} title (required patches)")
-        print("-" * 96)
+        latest = PROFILES[LATEST].patch_ids()
+        print(f"{'id':22} {'risk':9} {'group':11} {'baseline':9} {LATEST:8} title (required patches)")
+        print("-" * 110)
         for p in patches.REGISTRY:
-            print(f"{p.pid:22} {p.risk:9} {p.group:8} "
-                  f"{'yes' if p.default else 'no':8} {p.title}"
+            print(f"{p.pid:22} {p.risk:9} {p.group:11} {'yes' if p.default else 'no':9} "
+                  f"{'yes' if p.pid in latest else 'no':8} {p.title}"
                   + (f" (requires: {', '.join(p.requires)})" if p.requires else ""))
+        print("\nprofiles (--profile NAME, or the alias flag; the last one is the default):")
+        for p in PROFILES.values():
+            print(f"  {p.name:7} --{p.flag:17} {p.version:8} {p.output}")
+            print(f"          {p.title}")
+            print(f"          hardware: {p.hardware}")
         return 0
 
     # ---- select patches
+    aliases = [p for p in PROFILES.values() if getattr(args, f"flag_{p.name}")]
+    if len(aliases) > 1 or (aliases and args.profile):
+        ap.error("choose one profile")
+    if aliases:
+        args.profile = aliases[0].name
+    if args.default and args.profile:
+        ap.error("--default and --profile are exclusive")
+    if args.only is not None and (args.profile or args.default or args.extra is not None or args.all):
+        ap.error("--only builds exactly the listed set; do not combine it with a profile, --default, --with or --all")
+    if args.all and (args.profile or args.default or args.extra is not None):
+        ap.error("--all builds every registered patch; do not combine it with a profile, --default or --with")
+    custom = args.only is not None or args.extra is not None or args.all
+    if custom and args.write and not args.out:
+        ap.error("custom builds need --out (they must not impersonate a numbered PN file)")
+
+    prof = None
     if args.only is not None:
         want = [x.strip() for x in args.only.split(",")]
-        sel = [p for p in patches.REGISTRY if p.pid in want]
-        missing = set(want) - {p.pid for p in sel}
+        ids = set(want)
+        missing = ids - {p.pid for p in patches.REGISTRY}
         if missing:
             print(f"unknown patch id(s): {', '.join(sorted(missing))}")
             return 2
+        out = args.out
+    elif args.all:
+        ids = {p.pid for p in patches.REGISTRY}
+        out = args.out
     else:
         extra = {x.strip() for x in args.extra.split(",")} if args.extra else set()
-        if args.roadmap or args.portflash or args.audit or args.portflash_status or args.scan_sync or args.scan_recovery:
-            from roadmap import PATCHES
-            extra.update(PATCHES)
-        if args.portflash or args.audit or args.portflash_status or args.scan_sync or args.scan_recovery:
-            from portflash import PATCH_ID
-            extra.add(PATCH_ID)
-        if args.audit or args.portflash_status or args.scan_sync or args.scan_recovery:
-            from audit_fixes import PATCHES
-            extra.update(PATCHES)
-        if args.portflash_status or args.scan_sync or args.scan_recovery:
-            from portflash_status import PATCH_ID
-            extra.add(PATCH_ID)
-        if args.scan_sync:
-            from scan_sync import PATCH_ID
-            extra.add(PATCH_ID)
-        if args.scan_recovery:
-            from scan_recovery import PATCH_ID
-            extra.add(PATCH_ID)
         missing = extra - {p.pid for p in patches.REGISTRY}
         if missing:
             print(f"unknown patch id(s): {', '.join(sorted(missing))}")
             return 2
-        sel = [p for p in patches.REGISTRY if p.default or args.all or p.pid in extra]
+        if args.default:
+            ids = set(baseline_ids()) | extra
+            out = args.out or OUT
+        else:
+            name = args.profile or LATEST
+            if name not in PROFILES:
+                ap.error(f"unknown profile {name!r}; known: {', '.join(PROFILES)}")
+            prof = PROFILES[name]
+            ids = prof.patch_ids() | extra
+            out = args.out or prof.path(FW_DIR)
 
-    selected = {p.pid for p in sel}
-    if 'scan-sync' in selected and not args.scan_sync and not explicit_out:
-        ap.error("custom scan-sync selections require --out; use --scan-sync for PN 2.13")
-    if 'scan-recovery' in selected and not args.scan_recovery and not explicit_out:
-        ap.error("custom scan-recovery selections require --out; use --scan-recovery for PN 2.14")
-    if {'scan-sync', 'scan-recovery'} <= selected:
+    sel = [p for p in patches.REGISTRY if p.pid in ids]
+    if {'scan-sync', 'scan-recovery'} <= ids:
         ap.error("scan-sync and scan-recovery are alternative profiles; select only one")
     for p in sel:
-        missing = set(p.requires) - selected
-        if missing:
-            print(f"{p.pid} requires: {', '.join(sorted(missing))}; include them in --only")
+        unmet = set(p.requires) - ids
+        if unmet:
+            print(f"{p.pid} requires: {', '.join(sorted(unmet))}; include them in --only")
             return 2
+
+    if prof is not None:
+        print(f"profile {prof.name}: {prof.title}")
+        print(f"version {prof.version}; hardware: {prof.hardware}")
+    elif args.default:
+        print(f"baseline {patches.VERSION}: the frozen set verify.py models (never released on its own)")
+    else:
+        print("custom build")
 
     # ---- load and check provenance
     try:
@@ -154,16 +159,11 @@ def main():
         return 2
     print(f"{img.summary().splitlines()[2]}\n")
 
-    # ---- apply
+    # ---- apply, in registry order
     print(f"applying {len(sel)} patch(es):")
     touched = []
-    for p in sel:
-        before = len(img.log)
-        try:
-            p(img)
-        except PatchError as e:
-            print(f"  [FAIL] {p.pid}: {e}")
-            return 2
+
+    def report(p, before):
         edits = img.log[before:]
         print(f"  [{p.risk:8}] {p.pid:22} {p.title}")
         for addr, old, new, why, kind in edits:
@@ -177,13 +177,21 @@ def main():
                 print(f"              0x{addr:08X}  {old.hex() or '(new)'} -> {new.hex()}   {why}")
                 touched.append(addr)
 
+    try:
+        for p in sel:
+            before = len(img.log)
+            p(img)
+            report(p, before)
+    except PatchError as e:
+        print(f"  [FAIL] {p.pid}: {e}")
+        return 2
+
     img.finalize()
 
     # ---- verification: show the CPU's view of every changed code site
     print("\ninstruction-level verification (stock -> patched):")
     original = img.original + bytes(len(img.data) - len(img.original))    # stock, padded to the built length
     for addr in sorted(set(touched)):
-        o = addr - S.APP_BASE + img.payload_off
         # only disassemble sites that live in the code region
         a = disasm_region(original, img.payload_off, addr, 8)
         b = disasm_region(img.data, img.payload_off, addr, 8)
@@ -201,11 +209,11 @@ def main():
           f"{img.cave_end - img.cave_start} bytes")
 
     if args.write:
-        out_sha = img.save(args.out)
-        print(f"\nwrote {args.out}")
+        out_sha = img.save(out)
+        print(f"\nwrote {out}")
         print(f"sha256 {out_sha}")
     else:
-        print("\n(dry run -- pass --write to emit the file)")
+        print(f"\n(dry run -- pass --write to emit {out or 'the file named by --out'})")
     return 0
 
 

@@ -2,14 +2,19 @@
 Patch set for LPM-10A TX firmware; build inputs are SHA-256 pinned.
 
 Each patch is a function taking the Image and doing its edits.  Patches are
-grouped so a build can select exactly what it wants.  Anything that cannot be
-verified without hardware is marked risk="untested" and left out of the
-default build.
+grouped so a build can select exactly what it wants.
+
+default=True marks the BASELINE: the frozen set verify.py models byte for byte
+(archived as LPM-10A-TX_PN2.9.bin, never released on its own).  Everything
+since PN 2.9 is a module registered at the end of this file and selected by a
+profile in profiles.py; build.py emits the latest profile unless told otherwise.
 
 risk levels
     safe      byte-for-byte reversible edit, verified by disassembly+emulation
-    low       behavioural change, verified by emulation, semantics well understood
-    untested  needs a real device to confirm; not in the default build
+    low       behavioural change, verified by emulation, semantics well understood;
+              the profile record in profiles.py says what the owner's unit confirmed
+    untested  needs a real device to confirm (or failed on one); never in a
+              released profile
 """
 
 import os
@@ -627,6 +632,7 @@ def p_nvp(img):
     site = 0x080195BC
     img.poke(site, "0020 11e0", assemble(site, f"bl 0x{zdef:08X}"),
              "factory defaults: Zero = 0.0 m")
+    img.nvp = dict(draw=draw, key=key, gui=gui, tail=tail, zero_default=zdef)   # for later modules (length-reference)
 
 
 @patch("length-no-sticky", "Length result no longer sticks to the previous reading",
@@ -1032,10 +1038,10 @@ STOCK_FONT_SHA = {
 # Group: identity
 # =====================================================================
 
-VERSION = "PN 2.9"          # fault handling, SHCSR activation and ADC timeout fix, 2026-09-19
+VERSION = "PN 2.9"          # the BASELINE's version; each profile module since PN 2.10 writes its own (profiles.py)
 
 
-@patch("version-string", f"Report the firmware version as {VERSION}",
+@patch("version-string", f"Report the firmware version as {VERSION} (a profile module overrides it with its own)",
        risk="safe", group="identity")
 def p_version(img):
     """
@@ -2002,3 +2008,21 @@ _register_scan_sync(patch)
 
 from scan_recovery import register as _register_scan_recovery
 _register_scan_recovery(patch)
+
+from length_progress import register as _register_length_progress
+_register_length_progress(patch)
+
+from about_values import register as _register_about_values
+_register_about_values(patch)
+
+from speed_partner import register as _register_speed_partner
+_register_speed_partner(patch)
+
+from length_reference import register as _register_length_reference
+_register_length_reference(patch)
+
+from cable_test import register as _register_cable_test
+_register_cable_test(patch)
+
+from cable_clear import register as _register_cable_clear
+_register_cable_clear(patch)

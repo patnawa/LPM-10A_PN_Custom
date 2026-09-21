@@ -1,36 +1,15 @@
-"""Exercise TX profile/output isolation through the real CLI parser."""
-import contextlib
-import hashlib
-import io
+"""The retired PN 2.13 Sync32 branch stays reproducible and stays out of every other profile."""
 import os
 import unittest
-from unittest.mock import Mock, patch
 
 import build
+from profiles import PROFILES, LATEST
+from test_profiles import BuildCli
 
 
 class SyncProfile(unittest.TestCase):
-    def select(self, *arguments):
-        applied, registry = [], []
-        for original in build.patches.REGISTRY:
-            def record(image, pid=original.pid):
-                applied.append(pid)
-            for field in ('pid', 'title', 'risk', 'default', 'group', 'requires'):
-                setattr(record, field, getattr(original, field))
-            registry.append(record)
-        image = Mock(original=b'', data=bytearray(), log=[], name='fixture',
-                     payload_len=0, orig_payload_len=0, cave_ptr=0,
-                     cave_start=0, cave_end=0, extended=0)
-        image.summary.return_value = 'name\nlength\ncave'
-        image.diff_offsets.return_value = []
-        image.save.return_value = 'fixture-digest'
-        with patch('sys.argv', ['build.py', *arguments]), \
-                patch.object(build.patches, 'REGISTRY', registry), \
-                patch.object(build, 'Image', return_value=image), \
-                patch.object(build, 'STOCK_SHA', hashlib.sha256(b'').hexdigest()), \
-                contextlib.redirect_stdout(io.StringIO()):
-            self.assertEqual(build.main(), 0)
-        return applied, image
+    select = BuildCli.select
+    ordered = BuildCli.ordered
 
     def test_fixed_profile_is_exact_parent_plus_sync_patch(self):
         parent, _ = self.select('--portflash-status')
@@ -38,17 +17,17 @@ class SyncProfile(unittest.TestCase):
         self.assertEqual(actual, [*parent, 'scan-sync'])
         image.save.assert_called_once_with(os.path.join(
             build.FW_DIR, 'experimental', 'LPM-10A-TX_PN2.13-sync.bin'))
+        self.assertEqual(PROFILES['pn2.13'].parent, 'pn2.12')
 
-    def test_default_and_historical_profiles_exclude_sync(self):
-        default = [p.pid for p in build.patches.REGISTRY if p.default]
-        actual, image = self.select()
-        self.assertEqual(actual, default)
-        image.save.assert_not_called()
-        for profile in ('--roadmap', '--portflash', '--audit', '--portflash-status'):
-            with self.subTest(profile=profile):
-                actual, image = self.select(profile)
-                self.assertNotIn('scan-sync', actual)
-                image.save.assert_not_called()
+    def test_no_other_profile_carries_sync(self):
+        for prof in PROFILES.values():
+            if prof.name != 'pn2.13':
+                self.assertNotIn('scan-sync', prof.patch_ids(), prof.name)
+        actual, _ = self.select()
+        self.assertEqual(actual, self.ordered(PROFILES[LATEST].patch_ids()))
+        self.assertNotIn('scan-sync', actual)
+        actual, _ = self.select('--default')
+        self.assertNotIn('scan-sync', actual)
 
     def test_fixed_profile_allows_explicit_output(self):
         _, image = self.select('--scan-sync', '--write', '--out', 'bench/tx.bin')
@@ -59,24 +38,6 @@ class SyncProfile(unittest.TestCase):
         actual, image = self.select('--only', ','.join(expected), '--write', '--out', 'bench/custom.bin')
         self.assertEqual(actual, expected)
         image.save.assert_called_once_with('bench/custom.bin')
-
-    def test_invalid_combinations_reject_before_loading_image(self):
-        combinations = [('--scan-sync', flag) for flag in
-                        ('--portflash-status', '--audit', '--portflash', '--roadmap', '--all')]
-        combinations += [('--scan-sync', '--only', ''),
-                         ('--scan-sync', '--only', 'scan-sync'),
-                         ('--scan-sync', '--with', 'scan-sync'),
-                         ('--only', 'scan-sync', '--write'),
-                         ('--with', 'scan-sync', '--write'),
-                         ('--all', '--write')]
-        for args in combinations:
-            with self.subTest(args=args), patch('sys.argv', ['build.py', *args]), \
-                    patch.object(build, 'Image') as loader, \
-                    contextlib.redirect_stderr(io.StringIO()):
-                with self.assertRaises(SystemExit) as result:
-                    build.main()
-                self.assertEqual(result.exception.code, 2)
-                loader.assert_not_called()
 
 
 if __name__ == '__main__':

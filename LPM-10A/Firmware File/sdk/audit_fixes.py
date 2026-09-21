@@ -7,7 +7,7 @@ VERSION = 'PN 2.11'
 
 def register(patch):
     @patch(PATCHES[0], 'Keep battery monitoring active during Port FLASH',
-           risk='untested', default=False, group='power',
+           risk='low', default=False, group='power',
            requires=('portflash-recovery', 'isr-event-worker'))
     def battery(img):
         # These are the only two callers of test_in_progress: the battery
@@ -33,7 +33,7 @@ def register(patch):
         img.battery_busy_guard = guard
 
     @patch(PATCHES[1], 'Use the checked static settings writer for every save path',
-           risk='untested', default=False, group='reliability',
+           risk='low', default=False, group='reliability',
            requires=('calibration-autosave', 'portflash-recovery'))
     def settings(img):
         # All three callers run in APP_HOME task context: explicit save,

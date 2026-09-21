@@ -29,7 +29,7 @@ def startup(img, body, syms):
 
 def register(patch):
     @patch("isr-event-worker", "Defer every application SysTick callback to a service task",
-           risk="untested", default=False, group="reliability", requires=("batt-debounce", "scan-timing"))
+           risk="low", default=False, group="reliability", requires=("batt-debounce", "scan-timing"))
     def events(img):
         # Each audited call is a distinct bit. Conditions/cadences stay in the
         # vendor tick routine; repeated pending occurrences deliberately coalesce.
@@ -130,7 +130,7 @@ def register(patch):
                           worker=worker, create=create, calls=calls)
 
     @patch("task-watchdog", "Require service-task progress before TIM2 refreshes the watchdog",
-           risk="untested", default=False, group="reliability", requires=("isr-event-worker",))
+           risk="low", default=False, group="reliability", requires=("isr-event-worker",))
     def watchdog(img):
         hook = img.emit_code("""
             ldr r0, =EVENTS
@@ -150,7 +150,7 @@ def register(patch):
         img.watchdog = hook
 
     @patch("calibration-autosave", "Save changed NVP, Zero and unit when leaving Length",
-           risk="untested", default=False, group="reliability", requires=("length-decimal", "isr-event-worker"))
+           risk="low", default=False, group="reliability", requires=("length-decimal", "isr-event-worker"))
     def autosave(img):
         # Dedicated staging avoids the vendor routine's unchecked malloc. Tasks
         # stay suspended during the write, preventing concurrent settings writers;
@@ -244,7 +244,7 @@ def register(patch):
         img.autosave = dict(save=save, transition=transition, shadow=shadow)
 
     @patch("crash-record", "Retain fault context across warm reset and show it in About",
-           risk="untested", default=False, group="reliability")
+           risk="low", default=False, group="reliability")
     def crash(img):
         record = img.alloc_ram(40)  # outside scatterload ZI; do NOT initialize
         syms = {"RECORD": record}

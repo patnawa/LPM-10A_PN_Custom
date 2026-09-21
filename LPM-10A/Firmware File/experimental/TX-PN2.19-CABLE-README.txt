@@ -1,0 +1,82 @@
+LPM-10A TX PN 2.19 - Cable Test on an unconnected cable, and the RX unit label - 2026-09-21
+
+TX / main unit (393216 bytes each, checksums in TX-PN2.19-SHA256SUMS.txt):
+
+  LPM-10A-TX_PN2.19-cable-robust.bin      = PN 2.18 + cable-robust        <- the candidate
+  LPM-10A-TX_PN2.19-exp-cablediag.bin     = the same + cable-diag          <- the numbers, for one test session
+
+Status: flashed by the owner on 2026-09-21, every function passes.  One
+report: the "Not connected" of an earlier unplugged test stayed on screen
+after a Test Retry with the cable in a switch / the RX unit (a retry never
+redrew that line) -> fixed in PN 2.20 (LPM-10A-TX_PN2.20-cable-text-clear.bin),
+which is the release; this file stays for the record and for the diag build.
+The owner's report that triggered PN 2.19: Cable Test > Switch with the cable
+not plugged into a switch shows random broken wires; the same in the far-end
+mode.
+
+Why it happened (from the firmware, not a guess)
+  The wire map drives one tester pin and reads the other eight through the
+  ADC, ONE sample each, 2 ms after switching the mux.  A pin is OPEN only if
+  all eight readings are above 4000 of 4095 - 77 mV under the rail.  With
+  nothing at the far end the wires float on the tester's pull-up and pick up
+  mains hum; single samples wander below 4000 now and then.  Switch mode then
+  calls the pin connected (its rule was "any other pin at or below 4000"),
+  far-end mode tries to identify which remote pin was reached (windows of
+  +-5 % around 1655 .. 3900; the last window touches the rail).  Different
+  random answer every Test Retry; no "nothing connected" state exists.
+
+What PN 2.19 changes (four code sites, two strings; the Length, SPEED, FLASH,
+PoE and SCAN code is PN 2.18's)
+  1. Every sensed pin is read ELEVEN times, 1 ms apart (a whole half-cycle of
+     mains), and the median is used where stock used the single sample.  The
+     far-end open test additionally judges the HIGHEST of the eleven: a
+     floating wire touches the rail within a half-cycle whatever the hum, a
+     wire that reaches the RX unit's resistor ladder does not.  A test takes
+     about 0.9 s instead of 0.15 s.
+  2. Switch mode: "connected" means a real short - a reading at or below 1240
+     (the value the far-end routine itself uses for a short) - instead of
+     anything under 4000.  A switch port joins the two wires of a pair through
+     its transformer winding, which reads far below that.
+  3. When all eight signal pins are open the result shows a red line
+     "Not connected" (Thai: ไม่พบปลายสาย) under the wires: the far end is not
+     plugged into a switch or the RX unit.  (Stock printed "Result error!!"
+     only for an unreadable reading, never for open wires.)
+  4. The second mode is named for what you plug in: "RX unit" instead of
+     "Far end", "เครื่องรับ" instead of "ปลายสาย".
+
+What to expect that is different from before
+  - G (the shield) shows a red X on an unshielded cable or a switch, every
+    time.  Stock showed it green now and then for the same reason the
+    result was random; the shield is not counted as a fault, the LED is the
+    same as stock's.
+  - a cable with one broken wire in Switch mode marks BOTH wires of that pair
+    (the switch only joins the pair to itself), as stock did on a quiet day.
+
+Checklist on the unit (PN 2.19-cable-robust)
+  1. About reads Software:PN 2.19.  Cable Test: the right-hand box says
+     RX unit / เครื่องรับ.
+  2. Switch mode, cable plugged into the tester only: nine red wires and
+     "Not connected", the same on every Test Retry.  Same with no cable.
+  3. Switch mode, cable into a switch port: 1-8 green (about 1 s), G red.
+  4. RX unit mode, cable into the RX unit: 1-8 (and G on a shielded cable)
+     straight, no text.  With nothing at the far end: "Not connected".
+  5. Length / SPEED / FLASH as on PN 2.18.
+
+The diag build - one session, four measurements
+  Flash LPM-10A-TX_PN2.19-exp-cablediag.bin.  The result screen then prints
+  on every wire row: the sensed pin that read lowest, its median of the
+  eleven samples, and that pin's highest sample - e.g. "2   60   60" (pin 1
+  reaches pin 2 at 60) or "- 4022 4095" (nothing below 4000).  Photograph the
+  screen for:
+    a. no cable in the tester           (Switch mode and RX unit mode)
+    b. a cable with nothing at the far end, as long as you have (both modes)
+    c. the cable into a switch port     (Switch mode)
+    d. the cable into the RX unit       (RX unit mode)
+  Those numbers decide whether 1240 and the eleven-sample median are right
+  for your unit and your building's hum, or need adjusting in PN 2.20.  The
+  diag build is otherwise PN 2.19; flash the plain file afterwards.
+
+Build in sdk:  python build.py --write                       (PN 2.19 is the latest profile)
+               python build.py --with cable-diag --out ../experimental/LPM-10A-TX_PN2.19-exp-cablediag.bin --write
+Rollback:      flash LPM-10A-TX_PN2.18-length-reference.bin or LPM-10A-TX_PN2.14-tone-recovery.bin
+               (same bootloader procedure; no settings change).

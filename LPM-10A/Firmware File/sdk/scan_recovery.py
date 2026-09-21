@@ -27,7 +27,7 @@ LABEL_BLOCKS = (
 
 def register(patch):
     @patch(PATCH_ID, 'Retain Digital/Analog SCAN; label frequencies and repair RIGHT-key carrier cache',
-           risk='untested', default=False, group='scan',
+           risk='low', default=False, group='scan',
            requires=('portflash-phy-status', 'scan-labels', 'thai-ui'))
     def scan_recovery(img):
         img.finalize()

@@ -1,5 +1,12 @@
 # Roadmap: what to check next
 
+**TX after PN 2.14 (2026-09-21):** what is left, ranked, with what was done about each item
+(build profiles; PN 2.15 … 2.20 — run counter, About values, SPEED partner row, known-length NVP calibration,
+a Cable Test that says "Not connected" instead of guessing — PN 2.19 passed on the unit 2026-09-21, PN 2.20 is
+the release) —
+[TX-NEXT-STEPS-2026-09-21.md](TX-NEXT-STEPS-2026-09-21.md). The RX equivalent is
+[RX-NEXT-STEPS-2026-09-21.md](RX-NEXT-STEPS-2026-09-21.md).
+
 ## Owner checkpoint (2026-09-20)
 
 The owner requested Git push and an archival prerelease, and is retaining the
@@ -94,7 +101,9 @@ a 1 m cable read 2.4 m or *Out of range* (on PN 2.1 with Zero 0.4 / NVP 68: pair
 
 Still useful: the same two-cable measurement on a second unit, to learn whether
 the 0.4 m offset is per-unit or per-design (if per-design it becomes the factory
-default), and a 50 m or 100 m cable to check the scale at range.
+default), and a 50 m or 100 m cable to check the scale at range. The long-cable step
+is one dial since the PN 2.18 candidate (hold OK: NVP → ZERO → **REF**, dial the true
+length, NVP is solved; [TX-NEXT-STEPS](TX-NEXT-STEPS-2026-09-21.md) item 2).
 
 ## 3. Improvements that are ready to build once 1 and 2 are done
 
@@ -126,8 +135,8 @@ Ranked by value against risk. All are byte patches in the same style as PN 1.x.
    Confirm on hardware that repeated tests of one cable now agree to about ±0.15 m
    at 14 m and that the longer test time is acceptable; `AVG_RUNS` in `patches.py`
    is the knob.
-5. **Battery voltage, NVP and Zero on the About screen.** All three values exist in RAM;
-   three more text lines.
+5. ~~Battery voltage, NVP and Zero on the About screen~~ Done in the PN 2.16 candidate:
+   one line under Factory Reset, `BATT 3874mV  NVP 68%  ZERO 0.4m`.
 6. **Save settings when leaving the Length screen**, not only at power-off, so a dead
    battery cannot lose a calibration. One flash-page write per change is acceptable
    for the page's endurance.

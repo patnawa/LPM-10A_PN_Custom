@@ -15,14 +15,16 @@ Built by patching the shipped binaries — no vendor source — and verified by 
 
 | Device | Version | Download | File to copy |
 |---|---|---|---|
-| **TX** tester | **PN 2.14** | [Release v2.14](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.14) | `LPM-10A-TX_PN2.14-tone-recovery.bin` |
+| **TX** tester | **PN 2.20** | [Release v2.20](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.20) | `LPM-10A-TX_PN2.20-cable-text-clear.bin` |
 | **RX** probe | **PN 1.23** | [Release rx-v1.23](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.23) | `APP_LPM-10RX_PN1.23-mains-tone-update.bin` |
 
-Both are the builds running on the owner's unit (2026-09-21; RX PN 1.23 tested in all three modes). Each release carries its notes and a
-SHA-256 file. **TX and RX firmware are not interchangeable.** FNIRSI's own files are not
+Both are the builds running on the owner's unit (2026-09-21: RX PN 1.23 in all three modes; TX PN 2.19 every
+function, then PN 2.20 with the one fix it needed, a stale "Not connected" line after a Test Retry). The six TX
+versions since PN 2.14 are one chain, each file the previous plus one patch. Each release
+carries its notes and a SHA-256 file. **TX and RX firmware are not interchangeable.** FNIRSI's own files are not
 redistributed here.
 
-> **สรุปภาษาไทย:** TX ใช้ PN 2.14, RX ใช้ PN 1.23 · TX อัปเดต: ปิดเครื่อง → กด **M + Power** ค้าง → เสียบ USB → ก๊อปปี้ไฟล์ ·
+> **สรุปภาษาไทย:** TX ใช้ PN 2.20, RX ใช้ PN 1.23 · TX อัปเดต: ปิดเครื่อง → กด **M + Power** ค้าง → เสียบ USB → ก๊อปปี้ไฟล์ ·
 > RX อัปเดต: ปิดเครื่อง → กด **SCAN** ค้าง → เสียบ USB → ไดรฟ์ `BOOTLOADER` → ก๊อปปี้ไฟล์ **`-update.bin`** ด้วย Explorer →
 > ไดรฟ์หายใน 1 วิ = เสร็จ · รายละเอียดและวิธีย้อนกลับ: [คู่มืออัปเดต RX](docs/RX-UPDATE-GUIDE.md)
 
@@ -30,12 +32,12 @@ redistributed here.
 
 ### TX (tester)
 
-1. Check the download: `certutil -hashfile LPM-10A-TX_PN2.14-tone-recovery.bin SHA256` →
-   `a7402de6f18e39df55bbe53f5641efd5135f0de4d81f9407515cf9d8710c5527`
+1. Check the download: `certutil -hashfile LPM-10A-TX_PN2.20-cable-text-clear.bin SHA256` →
+   `9eaa0fdeded19a0f7c6bb77c386c8abad9ab8d9a4720341d7ec2a79a03866d02`
 2. Tester off. Hold **M + Power** until the firmware-update screen appears.
 3. Plug in USB-C; a removable drive appears.
 4. Copy the `.bin` onto the drive. Do not unplug while it writes.
-5. Long-press Power to shut down, then power on. Settings › About shows `Software:PN 2.14`.
+5. Long-press Power to shut down, then power on. Settings › About shows `Software:PN 2.20`.
 
 If the drive refuses the file, rename it exactly `LPM-10A-TX_V2.0.7_260610.bin` and copy again
 (some bootloaders match on the file name; the name inside the image is already the stock one).
@@ -72,8 +74,8 @@ explained: what stock does, what PN does, how it works and how it was checked.
 | Area | Stock | PN Custom |
 |---|---|---|
 | Length display | whole metres, cm forced on every entry | **m / cm / ft with one decimal**, unit remembered |
-| Cable calibration | none | **Zero 0.0–2.0 m and NVP 50–99 %** on the Length screen, saved (factory = 0.0 m / 69 %) |
-| Length stability | one TDR run (±0.3 m scatter at 14 m) | **four runs averaged per pair**; `~` marks pairs with fewer runs |
+| Cable calibration | none | **Zero 0.0–2.0 m and NVP 50–99 %** on the Length screen, saved (factory = 0.0 m / 69 %); **REF**: dial the known length of a cable and NVP is solved from it |
+| Length stability | one TDR run (±0.3 m scatter at 14 m) | **four runs averaged per pair**; `~` marks pairs with fewer runs; the Testing line counts the runs `1/4 … 4/4` |
 | Blind pairs | `0.0 m` | **`< 2 m`** (`< 200 cm`, `< 7 ft`): the PHY cannot time echoes inside ~2 m |
 | Low battery | one sample < 3150 mV starts an uncancellable 30 s shutdown | three consecutive samples; cancels on recovery or charging |
 | Battery gauge | 4 steps | 10-step Li-ion curve, red at ≤ 20 % |
@@ -81,11 +83,12 @@ explained: what stock does, what PN does, how it works and how it was checked.
 | Port FLASH | fixed phase counter | blink timed from the PHY link; 1.5 s on / 1 s off minimum; back-off 4 → 8 → 16 s |
 | PoE screen | voltage drawn once; blank without a supply | **voltage refreshed every 0.5 s**; "Detecting…" then "No PoE"; "Standard : Yes / No" |
 | Tone (SCAN) menu | Noiseless / Normal | **Digital 454 kHz** and **Analog 825 Hz** — the two the probe decodes |
-| Cable Test | Back leaves the screen; error text hidden under a button | Back returns to the Switch / Far-end choice; error line visible |
+| SPEED | resolved speed and duplex only | + a **Switch** row: the speeds the port advertises (`10/100/1000`, `10/100`, … `No autoneg`) — a 100 Mbps link on a gigabit port points at the cable, on a 10/100 port at the port |
+| Cable Test | one ADC sample per pin, "open" only 77 mV under the rail → random open / crossed wires on a cable plugged into nothing; Back leaves the screen; error text hidden under a button | **eleven samples per pin, the median decides**; Switch mode needs a real short; **Not connected** when nothing is at the far end; modes named Switch / **RX unit**; the message line is wiped before every test; Back returns to the mode choice; error line visible |
 | Language | Chinese / English | **ไทย / English** on every screen; picker on first boot |
 | Font | thin serif | Ubuntu Sans Mono + Sarabun (Thai), rendered from the firmware's own layout tables |
 | Reliability | heap leak on settings save, timer-path logging, FP crash frame | fixed; watchdog on the service task; fault records kept across warm reset |
-| Identity | `Software:V2.0.7`, fnirsi.cn | `Software:PN 2.14`, this repository's URL; bootloader-facing image name unchanged |
+| Identity | `Software:V2.0.7`, fnirsi.cn | `Software:PN 2.20`, this repository's URL, and `BATT / NVP / ZERO` on the About screen; bootloader-facing image name unchanged |
 
 ### TX (tester) — in detail
 
@@ -129,6 +132,12 @@ at 0.0 m / 69 %: `NVP = 69 × (L₂ − L₁) / (R₂ − R₁)`, `Zero = R₁ �
 2.9 m cable read 3.34 m and a 14 m cable 14.7 m → NVP ≈ 67 %, Zero ≈ 0.4 m; dialled in on the screen it
 settled at **Zero 0.4 m, NVP 68 %**. Worked example at those settings: run mean 1470 cm → 1470 − 40 = 1430
 → (1430 × 68 + 34) / 69 = 1409 → (1409 + 5) / 10 → **14.1 m**.
+
+**REF** (PN 2.18) does the long-cable step for you: with a result on screen, holding OK cycles NVP → ZERO →
+**REF**; REF starts at the measured length, UP / DOWN dial it to the cable's true length (0.1 m, 10 cm or
+0.1 ft per step) and every step solves `NVP = 69 × REF / (raw − 10·Zero)` from the mean of the timed pairs
+(rounded, 50–99 %), shows it in grey on the right and redraws the four readings. Zero stays the short-cable
+step; NVP is saved on leaving the screen as before.
 </details>
 
 <details>
@@ -139,7 +148,8 @@ seen on the bench (±0.2 m at 3 m, ±0.3 m at 14 m). Stock showed one run as is 
 the four pairs disagreed). PN runs the diagnostic **four times** and averages each pair over the runs in
 which it returned a non-zero value (`mean_i = floor(Σ runs_i / n_i)`); the 20 s timeout restarts per
 run, so a test takes four times longer. A pair that yielded only 1–3 runs is marked `~`. This halves the
-scatter and is why the calibration above settled from 0.5 m to 0.4 m.
+scatter and is why the calibration above settled from 0.5 m to 0.4 m. Since PN 2.15 the Testing line counts
+the runs at its right end, `1/4 … 4/4`, so the wait is understood.
 </details>
 
 <details>
@@ -233,12 +243,42 @@ use. Pair TX Digital with RX Digital and TX Analog with RX Analog.
 </details>
 
 <details>
-<summary><b>Cable Test: Back returns to the Switch / Far-end choice; the error line is visible</b></summary>
+<summary><b>Cable Test: "Not connected" instead of a guess; Switch / RX unit; Back and the error line</b></summary>
 
-Stock's Back key left the Cable Test screen from every step, and the red "Result error!!" line was
-painted underneath the Test Retry button. PN's Back returns to the Switch / Far end choice from the
-armed and result screens (a `tbb` byte and two spare `nop`s at the key handler), and the button moved
-9 px down so the error line sits above it.
+The wire map drives one tester pin and reads the other eight through the ADC. *Stock* took **one sample**
+per pin, 2 ms after switching the mux, and called a pin open only when all eight readings were above
+4000 of 4095 — 77 mV under the rail. A cable plugged into nothing floats on the tester's pull-up and picks
+up mains hum, so single samples crossed that line at random: Switch mode then called the pin connected
+(its rule was "any other pin at or below 4000"), far-end mode went on to guess which remote pin it had
+reached — a different pattern of open / crossed wires on every Test Retry, and no "nothing connected"
+state at all.
+
+*PN* (2.19) reads every sensed pin **eleven times, 1 ms apart** — a half-cycle of mains — and uses the
+median where stock used the sample (the highest of the eleven for far-end mode's open test: a floating
+wire touches the rail within a half-cycle, a wire on the RX unit's resistor ladder does not). Switch mode
+counts a pin connected only through a real short (≤ 1240, the far-end routine's own short value), since a
+switch port joins the two wires of a pair through its transformer winding. When all eight signal pins
+are open the screen says **Not connected** / ไม่พบปลายสาย; G (the shield) shows open on an unshielded cable
+or a switch and is not counted. The second mode is named for what you plug in, **RX unit** / เครื่องรับ. A
+test takes about 0.9 s instead of 0.15 s; the thresholds and the remote ladder table are stock's.
+(PN 2.20: the message line under the wires is wiped before every test — a Test Retry from the result
+screen never redrew it, so a message could outlive its result.)
+
+Stock's Back key also left the Cable Test screen from every step, and the red "Result error!!" line was
+painted underneath the Test Retry button. PN's Back returns to the Switch / RX unit choice from the armed
+and result screens (a `tbb` byte and two spare `nop`s at the key handler), and the button moved 9 px down
+so the message line sits above it.
+</details>
+
+<details>
+<summary><b>SPEED: what the port offers, next to what the link got</b></summary>
+
+Stock negotiates a link and prints the resolved speed and duplex from the PHY's status register — what
+you got, not what the port could do. PN (2.17) adds a **Switch** row from the two IEEE 802.3 registers
+every PHY has and stock never read: register 5 (the partner's advertised 10 / 100 abilities) and
+register 10 (1000BASE-T status). `10/100/1000`, `10/100`, `100/1000`, … or `No autoneg` for a fixed-speed
+port. A 100 Mbps link under a `10/100/1000` row means the cable lost pairs 4-5 / 7-8; under `10/100` it is
+the port. The row is empty after "Error!!". Display only; nothing is written to the PHY.
 </details>
 
 <details>
@@ -272,7 +312,9 @@ hardware/RTOS boundaries.
 <details>
 <summary><b>Identity and the update file</b></summary>
 
-About reports `Software:PN 2.14` and this repository's URL instead of `V2.0.7` / fnirsi.cn. The
+About reports `Software:PN 2.20` and this repository's URL instead of `V2.0.7` / fnirsi.cn, and since PN 2.16 one
+line under Factory Reset — `BATT 3874mV  NVP 68%  ZERO 0.4m` — the pack voltage and the Length calibration as
+stored. The
 container's internal image name stays FNIRSI's, because the bootloader may match on it. Since PN 2.3
 the file is one 4 KB flash page longer than stock (393 216 bytes) because the code cave ran out; the
 container header carries the payload length and the bootloader accepted the longer file on the tested
@@ -416,6 +458,9 @@ quantified against another probe.
 - **Cables of about 2 m and under cannot be measured** (the PHY's TDR blind zone); the Cable Test (wiremap)
   screen still finds the broken pair. Blind pairs read `< 2 m`.
 - The TX update file is one 4 KB page longer than stock (code cave grew); the bootloader accepts it.
+- A Cable Test takes about a second (eleven samples per pin). G (the shield) reads open on an unshielded cable
+  or a switch — normal, not counted as a fault. The wire-map thresholds are stock's, confirmed on one unit; the
+  `cable-diag` build in `experimental/` prints the deciding numbers if another unit disagrees.
 - Links that need more than 16 s to negotiate can still fail Port FLASH; the PoE "unstable supply" check
   can never trigger (vendor bug, left as is).
 - RX Digital evaluates every 40 ms and needs a full 240 ms frame to lock after a mode change; Analog reacts
@@ -435,7 +480,7 @@ LPM-10A/Firmware File/
   SHA256SUMS.txt                             checksums of the two files above
   README.md                                  what is in this folder
   FORMULA-AUDIT.md                           every measurement formula with verdicts: TX §1-6, receiver PN formulas §7
-  sdk/                                       TX toolkit: patches, assembler, verifier, Thai UI, tests
+  sdk/                                       TX toolkit: patch chain PN 2.9 → 2.20 (profiles.py), assembler, verifier, Thai UI, tests
   rx-sdk/                                    RX toolkit: patch chain PN 1.0 → 1.23 (profiles.py), container, emulator, tests
   experimental/                              build outputs of every PN version (the test suites compare against them)
   archive/                                   earlier release copies and their notes (history only)
@@ -444,6 +489,7 @@ docs/
   RX-UPDATE-PROCEDURE-2026-09-21.md     the SWD investigation that found the container requirement
   RX-SENSITIVITY-2026-09-21.md          knob / gain / rhythm measurements behind PN 1.15–1.23
   RX-NEXT-STEPS-2026-09-21.md           assessment of the next RX improvements and what was done about each
+  TX-NEXT-STEPS-2026-09-21.md           the same for the TX: what is left, what was done, where there is no room
   RX-FIELD-CHECKLIST-PN1.23.md          30-minute field measurements to compare builds
   RX-AUDIT.md                           the probe firmware, function by function
   ROADMAP.md                            what to test and build next
@@ -452,8 +498,10 @@ docs/
   img/                                  the pictures on this page (screens are rendered from the firmware's own layout tables and glyphs)
 ```
 
-Build: `python sdk/build.py --write` (TX) and `python rx-sdk/build.py --write` (RX, latest profile; `--profile pn1.xx` for another); outputs land in `experimental/`, and `publish_current.py` copies the release pair to the folder root with FNIRSI's
-images placed outside the repository (see each `build.py`). Every RX build writes both the raw image and the
+Build: `python sdk/build.py --write` (TX) and `python rx-sdk/build.py --write` (RX) emit the latest profile of each
+(`--profile pn2.xx` / `--profile pn1.xx` for another; `python -m unittest test_profiles` in either toolkit rebuilds every
+version and compares it with its published digest); outputs land in `experimental/`, and `publish_current.py` copies the
+release pair to the folder root with FNIRSI's images placed outside the repository (see each `build.py`). Every RX build writes both the raw image and the
 `-update.bin` container; `python -m lpm10rx.container check <file>` tells which one you have.
 
 ## Licences and credits

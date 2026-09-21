@@ -584,18 +584,22 @@ repository, or anywhere with `LPM10A_STOCK` pointing at it. Every tool checks it
 cd "LPM-10A/Firmware File/sdk"
 pip install capstone unicorn        # pillow + pymupdf only to rebuild the fonts
 python test_thumb.py                # assembler self-test against Capstone
-python build.py --list              # the patch set
-python build.py                     # dry run: every byte it would change, disassembled
-python build.py --write             # emit the unreleased base comparison build
-python build.py --portflash-status --write  # reproduce the PN 2.12 release
-python verify.py                    # full base-profile verifier
-python -m unittest test_portflash_status -v # release-profile regressions
+python build.py --list              # the patch set and the build profiles (one per PN version)
+python build.py                     # dry run of the latest profile: every byte it would change, disassembled
+python build.py --write             # emit the latest profile (PN 2.20, experimental/LPM-10A-TX_PN2.20-cable-text-clear.bin)
+python build.py --profile pn2.14 --write  # reproduce the release, or any earlier PN version
+python build.py --default --write   # the frozen baseline verify.py models (unreleased)
+python verify.py                    # full baseline verifier (235 checks, CPU emulation)
+python -m unittest test_profiles -v # every profile rebuilds its published image byte for byte
 python -m unittest test_audit -v     # audit regressions, including battery recovery
 ```
 
-`build.py --only a,b` builds a subset; include its required patches, shown by
-`--list` (for example `--only length-decimal,length-average`). Incomplete selections
-are rejected. `build.py` refuses to run on anything but the pinned stock image.
+`profiles.py` is the table of PN versions: each is its parent plus one module, with its
+output name and what the owner's unit confirmed. `build.py --with x --out f` adds an opt-in
+patch (for example `blind-zone-50cm`) to a profile; `--only a,b --out f` builds an exact
+subset, which must include its required patches, shown by `--list`. Custom builds need
+`--out` so they never impersonate a numbered PN file. `build.py` refuses to run on anything
+but the pinned stock image.
 
 What `verify.py` proves, section by section:
 

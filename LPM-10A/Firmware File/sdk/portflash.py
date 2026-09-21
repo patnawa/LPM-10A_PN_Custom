@@ -7,7 +7,7 @@ PATCH_ID = "portflash-recovery"
 
 def register(patch):
     @patch(PATCH_ID, "Correct PHY autoneg register and recover FLASH after link loss",
-           risk="untested", default=False, group="flash",
+           risk="low", default=False, group="flash",
            requires=("flash-blink", "version-string"))
     def recovery(img):
         # The vendor applies BMCR's ANENABLE/ANRESTART mask to ANAR (!).

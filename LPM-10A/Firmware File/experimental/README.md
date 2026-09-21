@@ -1,5 +1,44 @@
 # Experimental builds
 
+**TX PN 2.20 (2026-09-21, the release):** PN 2.19 passed every function on the owner's unit; its
+one report — the "Not connected" of an earlier unplugged test staying on screen after a Test Retry
+with the cable in a switch or the RX unit — was reproduced on the CPU model (a retry never redrew
+the text line) and fixed by [TX PN 2.20](LPM-10A-TX_PN2.20-cable-text-clear.bin)
+([checksum](TX-PN2.20-SHA256SUMS.txt), `sdk/test_cable_clear.py`), which is the file at the top
+of the Firmware File folder and in the release.
+
+**TX PN 2.19 cable-robust (2026-09-21, on the unit):** the owner reported
+random open / crossed wires in Cable Test on a cable not plugged into anything. Cause found
+in the firmware: one ADC sample per sensed pin against a threshold 77 mV under the rail, no
+"nothing connected" state. PN 2.19 reads eleven samples per pin and uses the median (the
+highest for the far-end open test), switch mode needs a real short, all pins open prints
+**Not connected** / ไม่พบปลายสาย, and the second mode is named **RX unit** / เครื่องรับ.
+[TX PN 2.19](LPM-10A-TX_PN2.19-cable-robust.bin) (superseded by 2.20 above); the
+[diag build](LPM-10A-TX_PN2.19-exp-cablediag.bin) prints the deciding numbers on the
+result screen if the thresholds ever need checking on another unit —
+[notes, checklist and the four-measurement protocol](TX-PN2.19-CABLE-README.txt),
+[checksums](TX-PN2.19-SHA256SUMS.txt). Simulated far ends with hum on the real routines:
+`sdk/test_cable_test.py`.
+
+**TX PN 2.15 … 2.18 (2026-09-21, on the unit as part of PN 2.19):** four small functions
+on top of PN 2.14, one per version so a problem bisects: PN 2.15 a run counter
+(`1/4 … 4/4`) on the Length screen's Testing line during the four-run average;
+PN 2.16 a `BATT / NVP / ZERO` line on the About screen; PN 2.17 a **Switch** row on
+the SPEED screen with the speeds the link partner advertises (IEEE registers 5 and
+10 — a 100 Mbps link on a `10/100/1000` port points at the cable); PN 2.18 a **REF**
+target on the Length screen (hold OK: NVP → ZERO → REF) that dials a known cable
+length and solves NVP from it. No measurement changes. PN 2.19 / 2.20 above include them all; on
+their own, [TX PN 2.18](LPM-10A-TX_PN2.18-length-reference.bin); see the
+[device notes and checklist](TX-PN2.16-2.18-README.txt),
+[checksums](TX-PN2.16-2.18-SHA256SUMS.txt) (PN 2.15:
+[notes](LENGTH-PROGRESS-PN2.15-README.txt), [checksum](LENGTH-PROGRESS-SHA256SUMS.txt))
+and the [TX assessment](../../../docs/TX-NEXT-STEPS-2026-09-21.md). Each is verified
+on the real screen, key and draw code under Unicorn (`sdk/test_length_progress.py`,
+`test_about_values.py`, `test_speed_partner.py`, `test_length_reference.py`); the chain
+passed on the owner's unit as PN 2.19 on 2026-09-21. Since this date every TX
+version is a profile in `sdk/profiles.py` and `sdk/test_profiles.py` rebuilds each
+file here byte for byte.
+
 **2026-09-20 archival prerelease:** these candidates and their research are
 preserved in the [development snapshot](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/tone-snapshot-2026-09-20).
 The owner is retaining the working device setup. RX update acceptance remains

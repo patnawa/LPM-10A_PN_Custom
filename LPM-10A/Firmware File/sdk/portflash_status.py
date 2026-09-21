@@ -9,7 +9,7 @@ VERSION = 'PN 2.12'
 
 def register(patch):
     @patch(PATCH_ID, 'Use PHY link status for FLASH control and its indicator',
-           risk='untested', default=False, group='flash',
+           risk='low', default=False, group='flash',
            requires=('portflash-recovery', 'battery-during-flash', 'settings-save-static'))
     def status(img):
         # MII BMSR bit 2 is link, latched low. Clear a historical drop with the

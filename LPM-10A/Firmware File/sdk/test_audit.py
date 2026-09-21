@@ -97,18 +97,19 @@ class FirmwareTests(unittest.TestCase):
 
     def test_cli_rejects_ambiguous_or_empty_selection(self):
         import build
+        # (a profile plus --with is a legitimate custom build since profiles.py; it needs --out to write)
         for args in (("--only", ""), ("--only", "font-pro", "--all"),
                      ("--only", "font-pro", "--with", "batt-grace"),
                      ("--portflash", "--roadmap"), ("--portflash", "--all"),
                      ("--portflash", "--only", "flash-blink"),
-                     ("--portflash", "--with", "batt-grace"),
+                     ("--portflash", "--with", "batt-grace", "--write"),
                      ("--audit", "--roadmap"), ("--audit", "--portflash"),
                      ("--audit", "--all"), ("--audit", "--only", "flash-blink"),
-                     ("--audit", "--with", "batt-grace"),
+                     ("--audit", "--with", "batt-grace", "--write"),
                      ("--portflash-status", "--audit"), ("--portflash-status", "--roadmap"),
                      ("--portflash-status", "--portflash"), ("--portflash-status", "--all"),
                      ("--portflash-status", "--only", "flash-blink"),
-                     ("--portflash-status", "--with", "batt-grace")):
+                     ("--portflash-status", "--with", "batt-grace", "--write")):
             with self.subTest(args=args), mock_patch("sys.argv", ["build.py", *args]), \
                     mock_patch.object(build, "Image") as loader, \
                     contextlib.redirect_stdout(io.StringIO()), \
@@ -128,10 +129,25 @@ class FirmwareTests(unittest.TestCase):
             self.assertTrue(hasattr(img, "avg_acc"))
 
     def test_all_patches_build_with_declared_dependencies(self):
+        """Every patch applies on top of what it declares: its `requires` chain, or, for a
+        profile module that pins its parent image's digest, that parent profile."""
+        from profiles import PROFILES
         by_id = {p.pid: p for p in patches.REGISTRY}
+        parent_of = {pid: prof.parent for prof in PROFILES.values() for pid in prof.own_patches if prof.parent}
+        profile_of = {pid: prof for prof in PROFILES.values() for pid in prof.own_patches}
         for selected in patches.REGISTRY:
             with self.subTest(patch=selected.pid):
                 img = Image(self.stock)
+                parent = set()
+                if selected.pid in parent_of:
+                    parent = PROFILES[parent_of[selected.pid]].patch_ids()
+                else:                                   # an experiment on top of a profile module (cable-diag)
+                    for pid in selected.requires:
+                        if pid in profile_of:
+                            parent |= profile_of[pid].patch_ids()
+                for p in patches.REGISTRY:
+                    if p.pid in parent:
+                        p(img)
                 def apply(p):
                     if p.pid in getattr(img, "applied_patches", set()):
                         return

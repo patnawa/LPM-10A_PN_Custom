@@ -1,5 +1,27 @@
 # LPM-10A firmware SDK
 
+**Build profiles (2026-09-21):** `python build.py --write` emits the latest profile;
+`profiles.py` lists every PN version as its parent plus one module, with its output file
+and hardware record, and `python -m unittest test_profiles` rebuilds each one in memory
+and compares it with the published digest. `--profile pn2.14` (or the old alias flags
+below) reproduces the release or any earlier version; `--default` builds the frozen
+baseline that `verify.py` models. Custom builds (`--only`, `--with`, `--all`) need `--out`.
+
+**PN 2.15 … 2.20 (PN 2.19 on the owner's unit 2026-09-21, PN 2.20 the release):** one module each on top of PN 2.14 —
+`length_progress.py` (run counter `1/4 … 4/4` on the Length Testing line),
+`about_values.py` (`BATT / NVP / ZERO` line on About), `speed_partner.py` (a Switch row on
+SPEED: the link partner's advertised speeds from IEEE registers 5 and 10) and
+`length_reference.py` (a REF target on Length: dial a known cable length, NVP is solved
+from it), `cable_test.py` (PN 2.19: the wire map reads eleven samples per pin and uses the
+median, a real-short rule in Switch mode, "Not connected", the RX unit label; plus the
+`cable-diag` experiment that prints the deciding numbers, `--with cable-diag --out …`),
+`cable_clear.py` (PN 2.20: the message line is wiped before every test).
+Each has a test file on the real screen / key / draw code under Unicorn, in English and
+Thai: `python -m unittest test_length_progress test_about_values test_speed_partner
+test_length_reference test_cable_test test_cable_clear -v`. See `../experimental/TX-PN2.16-2.18-README.txt`,
+`../experimental/TX-PN2.19-CABLE-README.txt` and
+[what is left on the TX](../../../docs/TX-NEXT-STEPS-2026-09-21.md).
+
 **PN 2.14 local two-mode candidate:** `python build.py --scan-recovery --write`
 uses the exact PN 2.12 parent with `Digital 454 kHz` / `Analog 825 Hz` labels in
 both languages. It retains only the two established tone modes, their original
@@ -72,9 +94,11 @@ sdk/
     symbols.py    recovered symbol database (functions, RAM map, tables)
     thumb.py      Thumb/Thumb-2 assembler, Capstone-verified
     image.py      container parser, patch primitives, code-cave allocator
-  patches.py      the patch set
-  build.py        build a modified firmware
-  verify.py       post-build verification (disassembly + CPU emulation)
+  patches.py      the patch set (the baseline, plus the modules registered at its end)
+  profiles.py     the PN versions: parent, module, output file, hardware record
+  build.py        build a modified firmware (the latest profile unless told otherwise)
+  verify.py       post-build verification of the baseline (disassembly + CPU emulation)
+  test_profiles.py  every profile rebuilds its published image byte for byte
   verify_scan.py  SCAN waveforms, interrupt paths, pause/resume and mode changes
   assets.py       export / replace the UI graphics
   fonts.py        export / rebuild the three on-screen fonts
@@ -102,10 +126,13 @@ needs `uharfbuzz`.
 
 ```bash
 python test_thumb.py            # assembler self-test
-python build.py --list          # what patches exist
-python build.py                 # dry run: prints every byte it would change
-python build.py --write         # emit LPM-10A-TX_PN2.9.bin (unreleased base candidate)
-python verify.py                # prove the result is what was intended
+python build.py --list          # what patches and profiles exist
+python build.py                 # dry run of the latest profile: prints every byte it would change
+python build.py --write         # emit the latest profile (experimental/LPM-10A-TX_PN2.20-cable-text-clear.bin)
+python build.py --profile pn2.14 --write   # an earlier version (PN 2.14 was the release before PN 2.20)
+python build.py --default --write   # the frozen baseline, LPM-10A-TX_PN2.9.bin (unreleased, what verify.py models)
+python verify.py                # prove the baseline is what was intended
+python -m unittest test_profiles -v  # every PN version rebuilds byte for byte
 python verify_scan.py           # fast SCAN-only regressions (also in verify.py)
 python -m unittest test_audit -v # allocator, dependency and battery-cancellation regressions
 ```
@@ -260,6 +287,14 @@ The assembler rejects anything it does not recognise rather than guessing, and
 | `poe-screen` | low | poe | PoE screen: the voltage column is **refreshed every 0.5 s** while a supply is present (stock drew it once per detection, from the sample just after the first one above 40 V, and not again while the screen was shown), every wire from one latched sample, cleared the moment the supply goes; **"Detecting..."** on entry and **"No PoE"** 3.5 s later without a supply (stock: blank, and its timeout only ever fired once per power-on because the counter was never re-armed). Five hooks and three literal-pool words, code in the cave, which grew the file by 4 KB |
 | `batt-grace` | low | tuning | Low-battery shutdown grace 30 s → 60 s (off by default) |
 
+The table above is the frozen baseline (`default=True`, what `verify.py` models). Everything since
+PN 2.9 is a module selected by a profile (`profiles.py`, `python build.py --list`): `roadmap.py`
+(service task, watchdog, calibration autosave, crash record), `portflash.py`, `audit_fixes.py`,
+`portflash_status.py`, `scan_sync.py` (retired), `scan_recovery.py`, and the PN 2.15 … 2.20 chain
+`length_progress.py`, `about_values.py`, `speed_partner.py`, `length_reference.py`,
+`cable_test.py`, `cable_clear.py`. Each module
+pins its parent image's SHA-256, writes its own version string and has its own test file.
+
 `risk=untested` patches are excluded unless you pass `--all`; they are things
 that look right on paper but need a real device to confirm. Everything else
 is verified by emulation; the PN 1.0 set has also passed the first-power-on
@@ -322,7 +357,12 @@ screen UP/DOWN change whichever value is drawn white (NVP by 1 %, Zero by
 (the RAM-arena byte `adj_target`, reset to NVP on every screen entry), and
 the four results are redrawn immediately.  The field procedure needs two
 cables: set Zero on a short one (about 3 m), NVP on a long one (15 m or
-more), then re-check the short one.  NVP lives in settings byte 0xA6 and the
+more), then re-check the short one.  Since PN 2.18 (`length_reference.py`) the
+OK hold also offers **REF** while a result is on screen: the header shows the
+measured length, UP/DOWN dial it to the cable's true length and every step
+solves `NVP = 69 × REF / (raw − 10 × Zero)` from the mean of the timed pairs
+(rounded, 50–99 %), so the long-cable step is one dial instead of a 1 %
+hunt; Zero is still set first.  NVP lives in settings byte 0xA6 and the
 unit in 0xA7, free bytes the stock defaults writer zeroes; Zero lives in
 0xC5, struct padding that stock never touches, which the hooked defaults
 writer clears.  All three are flashed at power-off with the rest of the

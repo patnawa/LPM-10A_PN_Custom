@@ -1,0 +1,212 @@
+"""Every build profile reproduces its released or archived image byte for byte (in memory, nothing written).
+
+    python -m unittest test_profiles -v
+
+The pinned digests are the ones published with each build (SHA256SUMS files in
+../archive and ../experimental, docs/releases).  The baseline is checked the same way.
+"""
+import contextlib
+import hashlib
+import io
+import os
+import unittest
+from unittest.mock import Mock, patch as mock_patch
+
+from lpm10a.image import Image
+import patches
+import build
+from profiles import PROFILES, LATEST, BY_FLAG, apply_profile, baseline_ids
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+FW_DIR = os.path.dirname(HERE)
+STOCK = os.path.join(FW_DIR, "LPM-10A-TX_V2.0.7_260610.bin")
+
+# what each profile must rebuild: (published digest, where the file was archived)
+PINNED = {
+    "baseline": ("f9d8cbfe3995e2e8e03a205808a93ec2c07fcc39fd6e6917ae1da40b74e4d6a0", "archive/LPM-10A-TX_PN2.9.bin"),
+    "pn2.9":    ("2a82c86de8bf9d81dd191ca742d83e6d4b6d359db22daf9a6b0c65f48b5583dd", None),
+    "pn2.10":   ("cedadd7057b46ae6a8153ae1a479d4f81cd49fcc53ae92033a083faed4ab76db", None),
+    "pn2.11":   ("de27a1448cc1977d00a2104abb9f48dda227e8d71c9040d986769f8e5ffe43f9", None),
+    "pn2.12":   ("3d2db80f8288744191fe1ddb2855a83b900166dd365e1583c6270dfb460a0076", None),
+    "pn2.13":   ("79ea4157e86e3a6613cb603d7e34e6b61e4f949844095b583bd4ff4f88da1fbd", None),
+    "pn2.14":   ("a7402de6f18e39df55bbe53f5641efd5135f0de4d81f9407515cf9d8710c5527", None),
+    "pn2.15":   ("e50d53a460870b4105986086e674552dc5dae18c04a92687ecaf6ec26b43445e", None),
+    "pn2.16":   ("1b6cbfab6f1f01e9e160ad706cbd00a32669278fe451c39ede2c7e9c7c88ac18", None),
+    "pn2.17":   ("78b50e5d003a957f3f941a8b50e39494bbbadb2179d1971bca9a39459e775071", None),
+    "pn2.18":   ("b5538e723044e540b497f37de2550bb715ec9113316a683600e1d81b768c8a9f", None),
+    "pn2.19":   ("8353e0b018d9ad2de7a98f3fe72ff8812dbc431504dbcf36adcc5b7fc080725d", None),
+    "pn2.20":   ("9eaa0fdeded19a0f7c6bb77c386c8abad9ab8d9a4720341d7ec2a79a03866d02", "LPM-10A-TX_PN2.20-cable-text-clear.bin"),
+}
+VERSION_SLOTS = (0x08011660, 0x08012E6C)        # About screen, boot log (patches.p_version)
+
+
+def build_ids(ids):
+    with contextlib.redirect_stdout(io.StringIO()):
+        img = Image(STOCK)
+        for p in patches.REGISTRY:
+            if p.pid in ids:
+                p(img)
+    return bytes(img.finalize().data)
+
+
+class ProfileImages(unittest.TestCase):
+    built = {}
+
+    @classmethod
+    def image(cls, name):
+        if name not in cls.built:
+            ids = set(baseline_ids()) if name == "baseline" else PROFILES[name].patch_ids()
+            cls.built[name] = build_ids(ids)
+        return cls.built[name]
+
+    def test_every_profile_matches_its_published_digest(self):
+        for name, (digest, _) in PINNED.items():
+            with self.subTest(profile=name):
+                self.assertEqual(hashlib.sha256(self.image(name)).hexdigest(), digest)
+
+    def test_archived_files_still_carry_the_pinned_digest(self):
+        for name, (digest, archived) in PINNED.items():
+            candidates = [archived] if archived else []
+            if name != "baseline":
+                candidates.append(PROFILES[name].output)
+            for rel in candidates:
+                path = os.path.join(FW_DIR, rel)
+                if not os.path.exists(path):
+                    continue
+                with self.subTest(file=rel):
+                    with open(path, "rb") as f:
+                        self.assertEqual(hashlib.sha256(f.read()).hexdigest(), digest)
+
+    def test_profile_version_names_the_build(self):
+        for prof in PROFILES.values():
+            data = self.image(prof.name)
+            for site in VERSION_SLOTS:
+                o = site - 0x0800A000 + 0x1000
+                with self.subTest(profile=prof.name, site=hex(site)):
+                    self.assertEqual(data[o:o + 8], prof.version.encode().ljust(8, b"\0"))
+
+    def test_apply_profile_is_the_registry_order_build(self):
+        with contextlib.redirect_stdout(io.StringIO()):
+            img = Image(STOCK)
+            apply_profile(img, PROFILES[LATEST])
+        self.assertEqual(bytes(img.finalize().data), self.image(LATEST))
+
+
+class ProfileChain(unittest.TestCase):
+    def test_parents_are_known_and_latest_is_last(self):
+        for prof in PROFILES.values():
+            self.assertTrue(prof.parent is None or prof.parent in PROFILES, prof.name)
+        self.assertEqual(list(PROFILES)[-1], LATEST)
+        self.assertEqual(LATEST, "pn2.20")
+        self.assertEqual({p.flag for p in PROFILES.values()}, set(BY_FLAG))
+
+    def test_each_profile_adds_exactly_its_own_patches(self):
+        registered = {p.pid for p in patches.REGISTRY}
+        for prof in PROFILES.values():
+            self.assertTrue(prof.own_patches <= registered, prof.name)
+            base = PROFILES[prof.parent].patch_ids() if prof.parent else set(baseline_ids())
+            self.assertEqual(prof.patch_ids() - base, prof.own_patches, prof.name)
+
+    def test_profiles_are_dependency_complete_and_never_untested(self):
+        by_id = {p.pid: p for p in patches.REGISTRY}
+        for prof in PROFILES.values():
+            ids = prof.patch_ids()
+            for pid in ids:
+                self.assertTrue(set(by_id[pid].requires) <= ids, f"{prof.name}: {pid} requires {by_id[pid].requires}")
+                if prof.name != "pn2.13":           # the retired Sync32 branch keeps its label
+                    self.assertNotEqual(by_id[pid].risk, "untested", f"{prof.name}: {pid}")
+        self.assertNotIn("scan-sync", PROFILES[LATEST].patch_ids())
+
+
+class BuildCli(unittest.TestCase):
+    """The parser through build.main(): which patches are applied and where the file goes (nothing built)."""
+
+    def select(self, *arguments):
+        applied, registry = [], []
+        for original in patches.REGISTRY:
+            def record(image, pid=original.pid):
+                applied.append(pid)
+            for field in ("pid", "title", "risk", "default", "group", "requires"):
+                setattr(record, field, getattr(original, field))
+            registry.append(record)
+        image = Mock(original=b"", data=bytearray(), log=[], name="fixture",
+                     payload_len=0, orig_payload_len=0, cave_ptr=0, cave_start=0, cave_end=0, extended=0)
+        image.summary.return_value = "name\nlength\ncave"
+        image.diff_offsets.return_value = []
+        image.save.return_value = "fixture-digest"
+        with mock_patch("sys.argv", ["build.py", *arguments]), \
+                mock_patch.object(build.patches, "REGISTRY", registry), \
+                mock_patch.object(build, "Image", return_value=image), \
+                mock_patch.object(build, "STOCK_SHA", hashlib.sha256(b"").hexdigest()), \
+                contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(build.main(), 0)
+        return applied, image
+
+    def ordered(self, ids):
+        return [p.pid for p in patches.REGISTRY if p.pid in ids]
+
+    def test_no_flags_builds_the_latest_profile(self):
+        applied, image = self.select("--write")
+        self.assertEqual(applied, self.ordered(PROFILES[LATEST].patch_ids()))
+        image.save.assert_called_once_with(PROFILES[LATEST].path(build.FW_DIR))
+        applied, image = self.select()
+        image.save.assert_not_called()
+
+    def test_default_is_the_frozen_baseline(self):
+        applied, image = self.select("--default", "--write")
+        self.assertEqual(applied, baseline_ids())
+        image.save.assert_called_once_with(build.OUT)
+
+    def test_every_profile_by_name_and_by_alias(self):
+        for prof in PROFILES.values():
+            for args in (("--profile", prof.name), (f"--{prof.flag}",)):
+                with self.subTest(args=args):
+                    applied, image = self.select(*args, "--write")
+                    self.assertEqual(applied, self.ordered(prof.patch_ids()))
+                    image.save.assert_called_once_with(prof.path(build.FW_DIR))
+
+    def test_with_adds_to_a_profile_or_the_baseline_and_needs_out_to_write(self):
+        applied, image = self.select("--with", "blind-zone-50cm", "--out", "bench/x.bin", "--write")
+        self.assertEqual(applied, self.ordered(PROFILES[LATEST].patch_ids() | {"blind-zone-50cm"}))
+        image.save.assert_called_once_with("bench/x.bin")
+        applied, image = self.select("--default", "--with", "batt-grace", "--out", "bench/y.bin", "--write")
+        self.assertEqual(applied, self.ordered(set(baseline_ids()) | {"batt-grace"}))
+        applied, image = self.select("--profile", "pn2.12", "--with", "batt-grace")     # dry run needs no --out
+        self.assertEqual(applied, self.ordered(PROFILES["pn2.12"].patch_ids() | {"batt-grace"}))
+        image.save.assert_not_called()
+
+    def test_only_builds_exactly_the_listed_set(self):
+        want = self.ordered(PROFILES["pn2.12"].patch_ids())
+        applied, image = self.select("--only", ",".join(want), "--out", "bench/custom.bin", "--write")
+        self.assertEqual(applied, want)
+        image.save.assert_called_once_with("bench/custom.bin")
+
+    def test_rejections_happen_before_the_stock_image_is_loaded(self):
+        exits = [("--scan-sync", "--scan-recovery"), ("--profile", "pn2.14", "--roadmap"),
+                 ("--default", "--profile", "pn2.14"), ("--only", "font-pro", "--all"),
+                 ("--only", "font-pro", "--with", "batt-grace"), ("--only", "font-pro", "--default"),
+                 ("--only", "font-pro", "--portflash"), ("--all", "--with", "batt-grace"), ("--all", "--default"),
+                 ("--all", "--scan-recovery"), ("--profile", "pn9.9"),
+                 ("--with", "batt-grace", "--write"), ("--only", "font-pro", "--write"), ("--all", "--write"),
+                 ("--all", "--out", "bench/all.bin"),                       # scan-sync and scan-recovery together
+                 ("--with", "scan-sync", "--out", "bench/both.bin")]        # on top of pn2.14
+        returns = [("--only", ""), ("--only", "no-such-patch"), ("--with", "no-such-patch"),
+                   ("--only", "length-blind-text"),                          # needs length-decimal
+                   ("--only", "scan-recovery")]                              # needs its parents
+        for args in exits + returns:
+            with self.subTest(args=args), mock_patch("sys.argv", ["build.py", *args]), \
+                    mock_patch.object(build, "Image") as loader, \
+                    contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                try:
+                    code = build.main()
+                except SystemExit as ex:
+                    code = ex.code
+                    self.assertIn(args, exits)
+                else:
+                    self.assertIn(args, returns)
+                self.assertEqual(code, 2)
+                loader.assert_not_called()
+
+
+if __name__ == "__main__":
+    unittest.main()

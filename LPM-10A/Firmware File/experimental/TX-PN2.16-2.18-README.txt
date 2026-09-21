@@ -1,0 +1,78 @@
+LPM-10A TX PN 2.16 / 2.17 / 2.18 - three small functions on top of PN 2.15 - 2026-09-21
+
+TX / main unit, one file per version (393216 bytes each, checksums in
+TX-PN2.16-2.18-SHA256SUMS.txt):
+
+  LPM-10A-TX_PN2.16-about-values.bin       = PN 2.15 + about-values
+  LPM-10A-TX_PN2.17-speed-partner.bin      = PN 2.16 + speed-partner
+  LPM-10A-TX_PN2.18-length-reference.bin   = PN 2.17 + length-reference   <- flash this one
+
+Status: on the owner's unit since 2026-09-21 as part of PN 2.19 / 2.20 ("every
+function passes"); CPU-verified on the real screen, key and draw code (sdk tests
+test_about_values / test_speed_partner / test_length_reference, 24 tests).
+PN 2.20 is the release.  Each file is the previous one plus one patch, so if PN 2.18
+misbehaves the earlier files bisect it; PN 2.15's run counter is in all three.
+Nothing about any measurement changes in the three: the Length, FLASH, PoE,
+SCAN and Cable Test code paths are PN 2.14's.
+
+PN 2.16  About screen: one 6x12 line under Factory Reset, both languages
+
+      BATT 3874mV  NVP 68%  ZERO 0.4m
+
+  the pack voltage from the same ADC helper the gauge uses (read when the
+  screen is drawn), and the Length calibration as stored (NVP 0 = factory 69 %,
+  an unset Zero = 0.0 m).  How: the About routine's epilogue already runs
+  through crash-record's cave code; its one `bl show` now calls a wrapper that
+  draws the fault record (if any) and then this line.
+
+PN 2.17  SPEED screen: a third row, "Switch" (Thai: สวิตช์), listing the
+  speeds the link partner advertises:
+
+      Speed      1000Mbps
+      Link Type  Full-duplex
+      Switch     10/100/1000        (or 10/100, 100/1000, 1000, ..., No autoneg)
+
+  Read from the IEEE 802.3 registers 5 (link partner ability) and 10
+  (1000BASE-T status) right after the link comes up, before stock reads its
+  status register 0x11; nothing is written to the PHY.  "No autoneg" = the
+  partner did not auto-negotiate (fixed-speed port).  What it is for: a
+  100 Mbps result with "Switch 10/100/1000" means the cable lost pairs 4-5 /
+  7-8; with "Switch 10/100" it is the port.  The row is drawn empty when the
+  screen opens, filled with the result, left empty after "Error!!".
+
+PN 2.18  Length screen: calibrate NVP from a cable of known length
+
+  Hold OK about a second to move the white value: NVP -> ZERO -> REF -> NVP.
+  REF is offered only while a result is on the screen.  With REF active the
+  left header text turns from "ZERO 0.4m" into "REF 20.3" (the measured
+  length, current unit) and UP / DOWN dial it to the cable's true length
+  (0.1 m, 10 cm or 0.1 ft per step, auto-repeat while held).  Every step
+  solves NVP = 69 x REF / (raw - 10 x Zero) from the mean of the timed pairs,
+  rounds it, keeps it in 50..99 %, shows it in grey on the right ("NVP 67%")
+  and redraws the four readings, which settle on the dialled length to
+  within NVP's 1 % step.  NVP is saved when leaving the screen as before;
+  leaving also puts the white value back on NVP.  Zero is not touched by
+  REF: set Zero on a short cable first (about 3 m, where a percent of NVP is
+  3 cm), then REF on the longest cable you can measure.
+
+Checklist on the unit (PN 2.18 covers everything)
+  1. About reads Software:PN 2.18 and shows the BATT / NVP / ZERO line; the
+     NVP and ZERO values match the Length screen's header.
+  2. SPEED with a gigabit switch port: Speed 1000Mbps, Link Type Full-duplex,
+     Switch 10/100/1000.  On a 100 Mbps port (or with a 2-pair cable): Speed
+     100Mbps and the Switch row telling which it is.  Thai: the label reads
+     สวิตช์, the value stays ASCII.
+  3. Length > Test Start on a cable of known length: hold OK twice -> the
+     left text reads REF and the measured length; press DOWN / UP until it
+     reads the true length; NVP on the right follows; the four readings
+     follow.  Leave the screen and come back: NVP kept, header back to
+     ZERO / NVP.  Test Start still starts a test while REF is shown.
+  4. Length on PN 2.15's behalf: 1/4 .. 4/4 at the right of the Testing line
+     during a test; the same cable reads the same as on PN 2.14 at the same
+     NVP / Zero.
+
+Build in sdk:  python build.py --write               (PN 2.18 is the latest profile)
+               python build.py --profile pn2.16 --write   (or pn2.17)
+Rollback:      flash LPM-10A-TX_PN2.14-tone-recovery.bin (same bootloader
+               procedure; the settings layout is unchanged, so the
+               calibration survives in both directions).
