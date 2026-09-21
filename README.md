@@ -7,6 +7,8 @@ Built by patching the shipped binaries — no vendor source — and verified by 
 
 ![tester](https://img.shields.io/badge/TX-PN%202.14-blue) ![receiver](https://img.shields.io/badge/RX-PN%201.23-blue) ![licence](https://img.shields.io/badge/licence-MIT-green)
 
+<img src="docs/img/length_screen.png" alt="Length screen: stock (whole metres) vs PN Custom (one decimal, Zero and NVP calibration)" width="1000">
+
 </div>
 
 ## Current firmware
@@ -55,6 +57,8 @@ sector-by-sector copy tools make the bootloader give up (`APPRUN.TXT`). **Back t
 Everything about the RX update — why it never worked, the container format, what was changed, status
 files, rollback, troubleshooting — is in **[docs/RX-UPDATE-GUIDE.md](docs/RX-UPDATE-GUIDE.md)** (Thai + English).
 
+<img src="docs/img/rx-update-container.png" alt="RX update: a raw image is ignored; the -update.bin container (32-byte name, 0x1000 header, image) is programmed" width="1000">
+
 ## What PN changes
 
 ### TX (tester)
@@ -77,6 +81,16 @@ files, rollback, troubleshooting — is in **[docs/RX-UPDATE-GUIDE.md](docs/RX-U
 | Reliability | heap leak on settings save, timer-path logging, FP crash frame | fixed; watchdog on the service task; fault records kept across warm reset |
 | Identity | `Software:V2.0.7`, fnirsi.cn | `Software:PN 2.14`, this repository's URL; bootloader-facing image name unchanged |
 
+<p>
+<img src="docs/img/scan-pn214-en.png" alt="Tone menu: Digital 454 kHz and Analog 825 Hz" width="180">
+<img src="docs/img/scan-pn214-th.png" alt="Tone menu in Thai" width="180">
+<img src="docs/img/about_screen.png" alt="About screen: stock vs PN Custom" width="620">
+</p>
+
+<img src="docs/img/battery_gauge.png" alt="Battery percentage vs pack voltage: stock 4 steps vs PN 10-step Li-ion curve" width="800">
+
+<img src="docs/img/thai/thai_overview.png" alt="Every screen of the Thai interface, rendered from the firmware's own draw code" width="1000">
+
 Formulas and their verification: [`LPM-10A/Firmware File/FORMULA-AUDIT.md`](LPM-10A/Firmware%20File/FORMULA-AUDIT.md).
 Why TDR needs NVP and how Zero was calibrated (0.4 m / 68 % on the owner's unit): [docs/README-DETAILED-2026-09-21.md](docs/README-DETAILED-2026-09-21.md#the-science-why-tdr-needs-nvp).
 
@@ -94,7 +108,13 @@ Why TDR needs NVP and how Zero was calibrated (0.4 m / 68 % on the owner's unit)
 | Detection | exact 16-bit code match | PN 1.12 detector: full-window code search with bounded bit errors, upper-rail handling, guarded sample ownership |
 | Low battery | uncancellable shutdown at one sample | recoverable |
 
-Everything above was measured live over SWD on the probe while sweeping the knob and moving the probe:
+<p>
+<img src="docs/img/rx-measurements.png" alt="RX: measured front-end gain per knob code (stock dropped code 3 to the lowest gain) and the pulse-rhythm curve" width="960">
+<img src="docs/img/rx-board.jpg" alt="The probe's board: Nations N32L406 MCU, 4-pin SWD header on the left, sensitivity potentiometer" width="200">
+</p>
+
+Everything above was measured live over SWD on the probe while sweeping the knob and moving the probe
+(the SWD header is the 4-pin row beside the MCU in the photo):
 [docs/RX-SENSITIVITY-2026-09-21.md](docs/RX-SENSITIVITY-2026-09-21.md). Pair TX **Digital** with RX Digital and
 TX **Analog 825 Hz** with RX Analog. Only one hardware unit has been tested; range and cable selectivity are not
 quantified against another probe.
@@ -137,6 +157,7 @@ docs/
   RX-FIELD-CHECKLIST-PN1.23.md          30-minute field measurements to compare builds
   README-DETAILED-2026-09-21.md         the full write-up: history, TDR science, maths, audits
   experiments/                          read-only SWD tools (rx_ro.py, rx_sens_capture.py, …)
+  img/                                  the pictures on this page (screens are rendered from the firmware's own layout tables and glyphs)
 ```
 
 Build: `python sdk/build.py --write` (TX) and `python rx-sdk/build.py --write` (RX, latest profile; `--profile pn1.xx` for another) with FNIRSI's
