@@ -8,7 +8,8 @@ Raw image:   APP_LPM-10RX_PN1.19-strong-cap.bin           26568 bytes (for hashe
              SHA-256 e2b85d16ae1ff8c6de08e18b51324f9c657ea40c53895f049fd0050683403849
 Vendor-facing version string stays 3.0.0 (the BOOTLOADER drive shows 3.0.0.TXT).
 
-HOW TO UPDATE (established 2026-09-21, docs/RX-UPDATE-PROCEDURE-2026-09-21.md)
+HOW TO UPDATE (full guide, Thai + English: docs/RX-UPDATE-GUIDE.md;
+               investigation: docs/RX-UPDATE-PROCEDURE-2026-09-21.md)
   1. Probe off. Hold SCAN, plug USB. A drive named BOOTLOADER appears.
   2. Copy the *-update.bin file onto it with Explorer (ordinary copy).
   3. Within about a second the drive disappears: the probe has programmed the

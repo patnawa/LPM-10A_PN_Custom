@@ -57,3 +57,42 @@ def unwrap(container):
     if off + length > len(container) or any(container[off + length:]):
         raise ValueError("payload length disagrees with the file")
     return name, bytes(container[off:off + length])
+
+
+def _main(argv=None):
+    """python -m lpm10rx.container wrap <raw.bin> [out.bin] [name]   |   check <file.bin>"""
+    import argparse
+    import hashlib
+    ap = argparse.ArgumentParser(description="RX update container: wrap a raw image, or check a file")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    w = sub.add_parser("wrap", help="wrap a raw receiver image into the update container")
+    w.add_argument("raw")
+    w.add_argument("out", nargs="?")
+    w.add_argument("--name", default=DEFAULT_NAME, help="internal name (default: the vendor file name)")
+    c = sub.add_parser("check", help="say whether a file is a raw image or a container, with hashes")
+    c.add_argument("file")
+    a = ap.parse_args(argv)
+    if a.cmd == "wrap":
+        raw = open(a.raw, "rb").read()
+        out = a.out or (a.raw[:-4] if a.raw.lower().endswith(".bin") else a.raw) + "-update.bin"
+        data = wrap(raw, a.name)
+        open(out, "wb").write(data)
+        print(f"wrote {out}: {len(data)} bytes, name {a.name!r}, payload {len(raw)} bytes")
+        print(f"sha256 {hashlib.sha256(data).hexdigest()}")
+        print("copy this file to the BOOTLOADER drive with Explorer")
+    else:
+        data = open(a.file, "rb").read()
+        try:
+            name, raw = unwrap(data)
+            print(f"container: name {name!r}, payload {len(raw)} bytes, payload sha256 {hashlib.sha256(raw).hexdigest()}")
+            print("the bootloader will program this file")
+        except ValueError:
+            sp = int.from_bytes(data[:4], "little")
+            kind = "raw image (vector table first)" if 0x20000000 <= sp <= 0x20006000 else "unknown"
+            print(f"{kind}: {len(data)} bytes, sha256 {hashlib.sha256(data).hexdigest()}")
+            print("NOT a container: the bootloader ignores it (UNKOWN.TXT); wrap it first")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(_main())
