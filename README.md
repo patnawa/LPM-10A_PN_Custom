@@ -128,6 +128,7 @@ docs/
   RX-SENSITIVITY-2026-09-21.md          knob / gain / rhythm measurements behind PN 1.15–1.19
   RX-AUDIT.md                           the probe firmware, function by function
   ROADMAP.md                            what to test and build next
+  RX-NEXT-STEPS-2026-09-21.md           detailed assessment of the next RX improvements
   README-DETAILED-2026-09-21.md         the full write-up: history, TDR science, maths, audits
   experiments/                          read-only SWD tools (rx_ro.py, rx_sens_capture.py, …)
 ```

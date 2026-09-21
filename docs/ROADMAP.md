@@ -152,6 +152,10 @@ toolkit (`LPM-10A/Firmware File/rx-sdk`). The uncancellable low-battery shutdown
 fixed in `APP_LPM-10RX_PN1.0.bin`; the exact-match tone decoder (whose 5 ms sample is
 0.94 % shorter than the transmitter's slot by construction) and the missing strength
 grading in digital mode are the next body of work after the transmitter is validated.
+**Next steps after PN 1.19, assessed in detail:** [RX-NEXT-STEPS-2026-09-21.md](RX-NEXT-STEPS-2026-09-21.md)
+(status file naming the PN build, AGC auto-range, 40 ms Digital updates, Digital matched filter,
+field protocol, build-profile refactor).
+
 **Resolved 2026-09-21:** the RX bootloader programs only a TX-style container
 (name + `0x1000` header + image), copied with an ordinary Explorer copy; raw
 images are ignored. `rx-sdk/build.py` now emits the `-update.bin` container, and
