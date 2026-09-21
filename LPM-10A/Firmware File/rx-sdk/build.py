@@ -4,7 +4,7 @@ LPM-10A receiver firmware build tool.
 
     python build.py --list                 show available patches
     python build.py                        dry run with the default patch set
-    python build.py --write                emit APP_LPM-10RX_PN1.0.bin
+    python build.py --write                emit APP_LPM-10RX_PN1.0.bin (+ the -update.bin container)
     python build.py --audit --write        emit the PN 1.5 audit candidate
     python build.py --followup --write     emit the PN 1.6 sampling/feedback candidate
     python build.py --precision --write    emit the PN 1.7 cable pinpointing candidate
@@ -16,6 +16,11 @@ LPM-10A receiver firmware build tool.
     python build.py --audio-clock --write  emit the PN 1.13 independent audio-clock test candidate
     python build.py --only a,b --write     build a specific set
     python build.py --all --write          include patches marked untested
+
+Every --write emits two files: the raw image (hashes, tests, emulation) and
+`<name>-update.bin`, the container the receiver bootloader actually programs
+(lpm10rx/container.py).  Copy the -update.bin file to the BOOTLOADER drive with
+Explorer; the raw image is ignored by the bootloader.
 
 The stock image is FNIRSI's and is not in the repository; see
 lpm10rx/image.py for where the tool looks for it.
@@ -30,6 +35,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from lpm10rx.image import Image, PatchError, STOCK_NAME   # noqa: E402
+from lpm10rx.container import wrap                         # noqa: E402
 from lpm10rx import symbols as S                          # noqa: E402
 import rx_patches as patches                               # noqa: E402
 from audit_fixes import PATCHES as AUDIT_PATCHES            # noqa: E402
@@ -53,6 +59,12 @@ def disasm(data, addr, n):
     o = addr - S.APP_BASE
     return [(i.address, i.bytes.hex(), f"{i.mnemonic} {i.op_str}".strip())
             for i in md.disasm(bytes(data[o:o + n]), addr)]
+
+
+def update_path(raw_path):
+    """`X.bin` -> `X-update.bin`: the container the bootloader accepts."""
+    root, ext = os.path.splitext(raw_path)
+    return f"{root}-update{ext or '.bin'}"
 
 
 def main():
@@ -224,12 +236,19 @@ def main():
 
     d = img.diff_offsets()
     print(f"\nbytes changed : {len(d)}")
-    print(f"file size     : {len(img.data)} (unchanged; raw image, no container)")
+    print(f"file size     : {len(img.data)} (unchanged raw image; the update file adds the 4 KB container header)")
 
     if args.write:
         out_sha = img.save(out)
         print(f"\nwrote {out}")
         print(f"sha256 {out_sha}")
+        # The receiver bootloader only programs the container, never the raw image.
+        update = update_path(out)
+        container = wrap(bytes(img.data))
+        with open(update, "wb") as output:
+            output.write(container)
+        print(f"wrote {update}  ({len(container)} bytes; copy THIS file to the BOOTLOADER drive)")
+        print(f"sha256 {hashlib.sha256(container).hexdigest()}")
     else:
         print("\n(dry run -- pass --write to emit the file)")
     return 0

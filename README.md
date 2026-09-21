@@ -2,6 +2,16 @@
 
 # LPM-10A PN Custom Firmware
 
+**RX update solved and RX PN 1.12 running on hardware (2026-09-21).** The receiver
+bootloader only programs a **container** (32-byte name, `payload_off 0x1000`, length,
+end, image at 0x1000 — the same layout as FNIRSI's TX file); the raw RX image FNIRSI ships
+is silently ignored (`UNKOWN.TXT`). Copy the `*-update.bin` that `rx-sdk/build.py` now
+emits with Explorer; the probe programs it in about a second and reboots. Proven by watching
+the bootloader's SRAM over SWD, then by stack return addresses that exist only in PN 1.12.
+The owner reports the one-second Digital tail is gone and the feedback is finer than stock.
+**Earlier RX "device pass" reports (PN 1.3–1.8) were tests of the factory firmware**, since
+no PN image had ever been installed. See [the procedure, evidence and rollback](docs/RX-UPDATE-PROCEDURE-2026-09-21.md).
+
 **Development snapshot, 2026-09-20:** [TX PN 2.14 / RX experiments and investigation](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/tone-snapshot-2026-09-20)
 is an archival prerelease. The owner is keeping the currently working devices;
 no new RX installation is recommended by this snapshot. **RX PN 1.13 uptake
@@ -163,13 +173,13 @@ fault-handling and ADC timeout margin bug fixes. See the
 | Device | Release | Firmware | Status |
 |---|---|---|---|
 | TX tester | [PN 2.12](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.12) | `LPM-10A-TX_PN2.12-portflash-status.bin` | CPU-verified; owner confirms Port FLASH fixed |
-| RX probe | [PN 1.8](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.8) | `APP_LPM-10RX_PN1.8-pinpoint.bin` | Experimental prerelease; 104 CPU test groups passed; owner reports device pass |
+| RX probe | PN 1.12 (local, [procedure](docs/RX-UPDATE-PROCEDURE-2026-09-21.md)) | `experimental/APP_LPM-10RX_PN1.12-overload-update.bin` | **Installed and running on the owner's probe 2026-09-21** (first PN RX image ever installed); copy the `-update.bin` container, not the raw image |
 
 **Use the file for the correct device; TX and RX firmware are not interchangeable.**
 Each release includes device-specific notes and a SHA-256 checksum file.
-The RX build requires the verified V3.0.0 input file; the owner's
-previous RX version is unconfirmed. Success on that probe does not establish
-compatibility with all revisions or a stock rollback procedure.
+The RX build requires the verified V3.0.0 input file. Rollback to the factory
+V3.0.0 image works with the same container procedure (verified 2026-09-21); the
+probe's earlier 3.0.1 build has no file and cannot be restored.
 
 The earlier PN 2.8 / RX PN 1.3 hardware report is a general functional pass, not a detailed
 range/noise or PoE-supply test matrix. The [implementation report](docs/ROADMAP-IMPLEMENTATION-2026-09-19.md)

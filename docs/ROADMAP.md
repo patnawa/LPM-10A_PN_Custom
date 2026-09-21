@@ -152,9 +152,15 @@ toolkit (`LPM-10A/Firmware File/rx-sdk`). The uncancellable low-battery shutdown
 fixed in `APP_LPM-10RX_PN1.0.bin`; the exact-match tone decoder (whose 5 ms sample is
 0.94 % shorter than the transmitter's slot by construction) and the missing strength
 grading in digital mode are the next body of work after the transmitter is validated.
-Update-mode entry was owner-confirmed on 2026-09-18 (probe off, hold SCAN,
-plug USB → a drive appears). Early notes asserted V3.0.1, but installed version
-was subsequently clarified as uncertain. The empty `3.0.1.TXT` seen on UDISK
+**Resolved 2026-09-21:** the RX bootloader programs only a TX-style container
+(name + `0x1000` header + image), copied with an ordinary Explorer copy; raw
+images are ignored. `rx-sdk/build.py` now emits the `-update.bin` container, and
+RX PN 1.12 is installed and running on the owner's probe, with the one-second
+Digital tail gone. Every earlier RX "device pass" was a test of the factory
+firmware. See [the procedure and evidence](RX-UPDATE-PROCEDURE-2026-09-21.md).
+Historical notes follow. Update-mode entry was owner-confirmed on 2026-09-18
+(probe off, hold SCAN, plug USB → a drive appears). Early notes asserted V3.0.1,
+but installed version was subsequently clarified as uncertain. The empty `3.0.1.TXT` seen on UDISK
 does not establish application version or downgrade behavior. On 2026-09-20,
 two authorized transfers of a PN 1.13 startup-lamp diagnostic did not produce
 its visible marker, although the lamp key works. Next steps require verified
