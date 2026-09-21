@@ -2,26 +2,15 @@
 """
 LPM-10A receiver firmware build tool.
 
-    python build.py --list                 show available patches
-    python build.py                        dry run with the default patch set
-    python build.py --write                emit APP_LPM-10RX_PN1.0.bin (+ the -update.bin container)
-    python build.py --audit --write        emit the PN 1.5 audit candidate
-    python build.py --followup --write     emit the PN 1.6 sampling/feedback candidate
-    python build.py --precision --write    emit the PN 1.7 cable pinpointing candidate
-    python build.py --pinpoint --write     emit the PN 1.8 interpolated feedback candidate
-    python build.py --robust --write       emit the PN 1.9 robust strength candidate
-    python build.py --sync --write         emit the PN 1.10 dual-protocol candidate
-    python build.py --tracking --write     emit the PN 1.11 Digital/Analog tracking candidate
-    python build.py --overload --write     emit the PN 1.12 Digital upper-rail candidate
-    python build.py --audio-clock --write  emit the PN 1.13 independent audio-clock test candidate
-    python build.py --mode-tone --write    emit the PN 1.14 per-mode speaker pitch candidate
-    python build.py --gain-norm --write    emit the PN 1.15 knob-independent strength candidate
-    python build.py --release-hold --write emit the PN 1.16 rejected-window hold candidate
-    python build.py --smooth-gain --write  emit the PN 1.17 gain dead-zone fix + rhythm smoothing candidate
-    python build.py --rail-strong --write  emit the PN 1.18 clipped-reading-is-strongest candidate
-    python build.py --strong-cap --write   emit the PN 1.19 fastest-rhythm-at-saturation candidate
-    python build.py --only a,b --write     build a specific set
-    python build.py --all --write          include patches marked untested
+    python build.py --list                     show available patches and profiles
+    python build.py --profile pn1.19 --write   build a PN version (see profiles.py; the default profile is the latest)
+    python build.py --write                    build the latest profile
+    python build.py --default --write          the PN 1.0 default patch set (battery fix only)
+    python build.py --only a,b --out X --write build a custom set (needs an explicit output name)
+    python build.py --all --out X --write      include patches marked untested
+
+The old per-version flags (--overload, --mode-tone, ... --strong-cap) still work
+as aliases for --profile.
 
 Every --write emits two files: the raw image (hashes, tests, emulation) and
 `<name>-update.bin`, the container the receiver bootloader actually programs
@@ -44,21 +33,7 @@ from lpm10rx.image import Image, PatchError, STOCK_NAME   # noqa: E402
 from lpm10rx.container import wrap                         # noqa: E402
 from lpm10rx import symbols as S                          # noqa: E402
 import rx_patches as patches                               # noqa: E402
-from audit_fixes import PATCHES as AUDIT_PATCHES            # noqa: E402
-from followup_fixes import PATCHES as FOLLOWUP_PATCHES      # noqa: E402
-from precision_fixes import PATCHES as PRECISION_PATCHES    # noqa: E402
-from pinpoint_fixes import PATCHES as PINPOINT_PATCHES      # noqa: E402
-from robust_fixes import PATCHES as ROBUST_PATCHES          # noqa: E402
-from sync_fixes import PATCHES as SYNC_PATCHES              # noqa: E402
-from tracking_fixes import PATCHES as TRACKING_PATCHES      # noqa: E402
-from overload_fixes import PATCHES as OVERLOAD_PATCHES      # noqa: E402
-from audio_clock_fixes import PATCHES as AUDIO_CLOCK_PATCHES  # noqa: E402
-from mode_tone import PATCHES as MODE_TONE_PATCHES           # noqa: E402
-from gain_norm import PATCHES as GAIN_NORM_PATCHES           # noqa: E402
-from release_hold import PATCHES as RELEASE_HOLD_PATCHES     # noqa: E402
-from smooth_gain import PATCHES as SMOOTH_GAIN_PATCHES       # noqa: E402
-from rail_strong import PATCHES as RAIL_STRONG_PATCHES       # noqa: E402
-from strong_cap import PATCHES as STRONG_CAP_PATCHES         # noqa: E402
+from profiles import PROFILES, LATEST, apply_profile       # noqa: E402
 
 FW_DIR = os.path.dirname(HERE)
 STOCK = os.path.join(FW_DIR, STOCK_NAME)
@@ -83,76 +58,39 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--write", action="store_true")
-    ap.add_argument("--all", action="store_true", help="include risk=untested")
-    ap.add_argument("--roadmap", action="store_true", help="build the PN 1.4 roadmap experiment")
-    ap.add_argument("--audit", action="store_true", help="build PN 1.5 with sampler handoff and DFT overflow fixes")
-    ap.add_argument("--followup", action="store_true", help="build PN 1.6 with fresh sample ownership and stable beep timing")
-    ap.add_argument("--precision", action="store_true", help="build PN 1.7 with finer digital strength feedback and faster release")
-    ap.add_argument("--pinpoint", action="store_true", help="build PN 1.8 with interpolated digital feedback across a wider strength range")
-    ap.add_argument("--robust", action="store_true", help="build PN 1.9 with robust code-based digital strength feedback")
-    ap.add_argument("--sync", action="store_true", help="build PN 1.10 with legacy Digital and Sync32 recognition")
-    ap.add_argument("--tracking", action="store_true", help="build PN 1.11 with faster Digital tracking and finer Analog feedback")
-    ap.add_argument("--overload", action="store_true", help="build PN 1.12 with Digital upper-rail fallback uncertainty")
-    ap.add_argument("--audio-clock", action="store_true", help="build PN 1.13 test candidate with audio countdown on the speaker timer")
-    ap.add_argument("--mode-tone", action="store_true", help="build PN 1.14 with Analog one octave below Digital and chirping key beeps")
-    ap.add_argument("--gain-norm", action="store_true", help="build PN 1.15: beep rate normalised by the measured knob gain step, audible floor")
-    ap.add_argument("--release-hold", action="store_true", help="build PN 1.16: a rejected window holds the last rhythm 160/60 ms instead of cutting it")
-    ap.add_argument("--smooth-gain", action="store_true", help="build PN 1.17: knob level 3 gets real mid gain; rhythm moves half way per update")
-    ap.add_argument("--rail-strong", action="store_true", help="build PN 1.18: a clipped reading sounds strongest instead of sparse")
-    ap.add_argument("--strong-cap", action="store_true", help="build PN 1.19: fastest rhythm at the front-end saturation score")
-    ap.add_argument("--only", help="comma-separated patch ids")
-    ap.add_argument("--out", help="output path (experimental builds use a distinct filename)")
+    ap.add_argument("--profile", metavar="NAME", help=f"a profile from profiles.py, e.g. {LATEST} (the default)")
+    ap.add_argument("--default", action="store_true", help="the PN 1.0 default patch set instead of a profile")
+    ap.add_argument("--all", action="store_true", help="include patches marked untested (custom build)")
+    ap.add_argument("--only", help="comma-separated patch ids (custom build)")
+    ap.add_argument("--out", help="output path (required for custom builds)")
+    for p in PROFILES.values():
+        ap.add_argument(f"--{p.flag}", dest=f"flag_{p.name}", action="store_true",
+                        help=f"alias for --profile {p.name}: {p.title}")
     args = ap.parse_args()
-    if args.strong_cap and (args.rail_strong or args.smooth_gain or args.release_hold or args.gain_norm or args.mode_tone or args.audio_clock or args.overload or args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
-        ap.error("--strong-cap is a fixed profile; do not combine it with other profile/patch selectors")
-    args.rail_strong = args.rail_strong or args.strong_cap
-    if args.rail_strong and not args.strong_cap and (args.smooth_gain or args.release_hold or args.gain_norm or args.mode_tone or args.audio_clock or args.overload or args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
-        ap.error("--rail-strong is a fixed profile; do not combine it with other profile/patch selectors")
-    args.smooth_gain = args.smooth_gain or args.rail_strong
-    if args.smooth_gain and not args.rail_strong and (args.release_hold or args.gain_norm or args.mode_tone or args.audio_clock or args.overload or args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
-        ap.error("--smooth-gain is a fixed profile; do not combine it with other profile/patch selectors")
-    args.release_hold = args.release_hold or args.smooth_gain
-    if args.release_hold and not args.smooth_gain and (args.gain_norm or args.mode_tone or args.audio_clock or args.overload or args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
-        ap.error("--release-hold is a fixed profile; do not combine it with other profile/patch selectors")
-    args.gain_norm = args.gain_norm or args.release_hold
-    if args.gain_norm and not args.release_hold and (args.mode_tone or args.audio_clock or args.overload or args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
-        ap.error("--gain-norm is a fixed profile; do not combine it with other profile/patch selectors")
-    args.mode_tone = args.mode_tone or args.gain_norm
-    if args.mode_tone and not args.gain_norm and (args.audio_clock or args.overload or args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
-        ap.error("--mode-tone is a fixed profile; do not combine it with other profile/patch selectors")
-    if args.audio_clock and (args.overload or args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
-        ap.error("--audio-clock is a fixed profile; do not combine it with other profile/patch selectors")
-    # PN 1.13 inherits the complete fixed PN 1.12 selection before its own patch.
-    # Keep the existing ancestry and custom-output guards on that same path.
-    args.overload = args.overload or args.audio_clock or args.mode_tone
-    if args.overload and (args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
-        ap.error("--overload is a fixed profile; do not combine it with other profile/patch selectors")
-    if args.tracking and (args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
-        ap.error("--tracking is a fixed profile; do not combine it with other profile/patch selectors")
-    if args.sync and (args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
-        ap.error("--sync is a fixed profile; do not combine it with other profile/patch selectors")
-    if args.robust and (args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
-        ap.error("--robust is a fixed profile; do not combine it with --pinpoint, --precision, --followup, --audit, --roadmap, --all or --only")
-    if args.pinpoint and (args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
-        ap.error("--pinpoint is a fixed profile; do not combine it with --precision, --followup, --audit, --roadmap, --all or --only")
-    if args.precision and (args.followup or args.audit or args.roadmap or args.all or args.only is not None):
-        ap.error("--precision is a fixed profile; do not combine it with --followup, --audit, --roadmap, --all or --only")
-    if args.followup and (args.audit or args.roadmap or args.all or args.only is not None):
-        ap.error("--followup is a fixed profile; do not combine it with --audit, --roadmap, --all or --only")
-    if args.audit and (args.roadmap or args.all or args.only is not None):
-        ap.error("--audit is a fixed profile; do not combine it with --roadmap, --all or --only")
-    if args.roadmap and (args.all or args.only is not None):
-        ap.error("--roadmap is a fixed profile; do not combine it with --all or --only")
 
     if args.list:
         print(f"{'id':24} {'risk':9} {'group':8} {'default':8} title")
         print("-" * 96)
         for p in patches.REGISTRY:
             print(f"{p.pid:24} {p.risk:9} {p.group:8} {'yes' if p.default else 'no':8} {p.title}")
+        print("\nprofiles (--profile NAME, or the alias flag):")
+        for p in PROFILES.values():
+            print(f"  {p.name:7} --{p.flag:13} {p.title}")
         return 0
 
-    if args.only is not None and (args.all or args.roadmap):
-        ap.error("--only cannot be combined with --all or --roadmap")
+    aliases = [p for p in PROFILES.values() if getattr(args, f"flag_{p.name}")]
+    if len(aliases) > 1 or (aliases and args.profile):
+        ap.error("choose one profile")
+    if aliases:
+        args.profile = aliases[0].name
+    custom = args.only is not None or args.all
+    if custom and (args.profile or args.default):
+        ap.error("--only/--all build a custom set; do not combine them with a profile or --default")
+    if custom and not args.out:
+        ap.error("custom builds need --out (they must not impersonate a numbered PN file)")
+    if args.default and args.profile:
+        ap.error("--default and --profile are exclusive")
+
     if args.only is not None:
         want = [x.strip() for x in args.only.split(",")]
         sel = [p for p in patches.REGISTRY if p.pid in want]
@@ -160,112 +98,22 @@ def main():
         if missing:
             print(f"unknown patch id(s): {', '.join(sorted(missing))}")
             return 2
+        out = args.out
+    elif args.all:
+        sel = list(patches.REGISTRY)
+        out = args.out
+    elif args.default:
+        sel = [p for p in patches.REGISTRY if p.default]
+        out = args.out or OUT
     else:
-        sel = [p for p in patches.REGISTRY if p.default or args.all or
-               ((args.roadmap or args.audit or args.followup or args.precision or args.pinpoint or args.robust or args.sync or args.tracking or args.overload) and p.pid in patches.ROADMAP_PATCHES) or
-               ((args.audit or args.followup or args.precision or args.pinpoint or args.robust or args.sync or args.tracking or args.overload) and p.pid in AUDIT_PATCHES) or
-               ((args.followup or args.precision or args.pinpoint or args.robust or args.sync or args.tracking or args.overload) and p.pid in FOLLOWUP_PATCHES) or
-               ((args.precision or args.pinpoint or args.robust or args.sync or args.tracking or args.overload) and p.pid in PRECISION_PATCHES) or
-               ((args.pinpoint or args.robust or args.sync or args.tracking or args.overload) and p.pid in PINPOINT_PATCHES) or
-               ((args.robust or args.sync or args.tracking or args.overload) and p.pid in ROBUST_PATCHES) or
-               (args.sync and p.pid in SYNC_PATCHES) or
-               ((args.tracking or args.overload) and p.pid in TRACKING_PATCHES) or
-               (args.overload and p.pid in OVERLOAD_PATCHES) or
-               (args.audio_clock and p.pid in AUDIO_CLOCK_PATCHES) or
-               (args.mode_tone and p.pid in MODE_TONE_PATCHES) or
-               (args.gain_norm and p.pid in GAIN_NORM_PATCHES) or
-               (args.release_hold and p.pid in RELEASE_HOLD_PATCHES) or
-               (args.smooth_gain and p.pid in SMOOTH_GAIN_PATCHES) or
-               (args.rail_strong and p.pid in RAIL_STRONG_PATCHES) or
-               (args.strong_cap and p.pid in STRONG_CAP_PATCHES)]
-
-    if any(p.pid in SYNC_PATCHES for p in sel) and any(p.pid in TRACKING_PATCHES | OVERLOAD_PATCHES | AUDIO_CLOCK_PATCHES | MODE_TONE_PATCHES | GAIN_NORM_PATCHES | RELEASE_HOLD_PATCHES | SMOOTH_GAIN_PATCHES | RAIL_STRONG_PATCHES | STRONG_CAP_PATCHES for p in sel):
-        ap.error("rx-sync cannot be combined with the rx-tracking .. rx-rail-strong chain")
-    if not args.strong_cap and any(p.pid in STRONG_CAP_PATCHES for p in sel) and not args.out:
-        ap.error("custom strong-cap patch selections require --out; use --strong-cap for PN 1.19")
-    if not args.rail_strong and any(p.pid in RAIL_STRONG_PATCHES for p in sel) and not args.out:
-        ap.error("custom rail-strong patch selections require --out; use --rail-strong for PN 1.18")
-    if not args.smooth_gain and any(p.pid in SMOOTH_GAIN_PATCHES for p in sel) and not args.out:
-        ap.error("custom smooth-gain patch selections require --out; use --smooth-gain for PN 1.17")
-    if not args.release_hold and any(p.pid in RELEASE_HOLD_PATCHES for p in sel) and not args.out:
-        ap.error("custom release-hold patch selections require --out; use --release-hold for PN 1.16")
-    if not args.gain_norm and any(p.pid in GAIN_NORM_PATCHES for p in sel) and not args.out:
-        ap.error("custom gain-norm patch selections require --out; use --gain-norm for PN 1.15")
-    if not args.mode_tone and any(p.pid in MODE_TONE_PATCHES for p in sel) and not args.out:
-        ap.error("custom mode-tone patch selections require --out; use --mode-tone for PN 1.14")
-    if not args.audio_clock and any(p.pid in AUDIO_CLOCK_PATCHES for p in sel) and not args.out:
-        ap.error("custom audio-clock patch selections require --out; use --audio-clock for PN 1.13")
-    if not args.overload and any(p.pid in OVERLOAD_PATCHES for p in sel) and not args.out:
-        ap.error("custom overload patch selections require --out; use --overload for PN 1.12")
-    if not args.tracking and not args.overload and any(p.pid in TRACKING_PATCHES for p in sel) and not args.out:
-        ap.error("custom tracking patch selections require --out; use --tracking for PN 1.11")
-    if not args.sync and any(p.pid in SYNC_PATCHES for p in sel) and not args.out:
-        ap.error("custom sync patch selections require --out; use --sync for PN 1.10")
-    if not args.robust and not args.sync and not args.tracking and not args.overload and any(p.pid in ROBUST_PATCHES for p in sel) and not args.out:
-        ap.error("custom robust patch selections require --out; use --robust for PN 1.9")
-    if not args.pinpoint and not args.robust and not args.sync and not args.tracking and not args.overload and any(p.pid in PINPOINT_PATCHES for p in sel) and not args.out:
-        ap.error("custom pinpoint patch selections require --out; use --pinpoint for PN 1.8")
-    if not args.precision and not args.pinpoint and not args.robust and not args.sync and not args.tracking and not args.overload and any(p.pid in PRECISION_PATCHES for p in sel) and not args.out:
-        ap.error("custom precision patch selections require --out; use --precision for PN 1.7")
-    if not args.followup and not args.precision and not args.pinpoint and not args.robust and not args.sync and not args.tracking and not args.overload and any(p.pid in FOLLOWUP_PATCHES for p in sel) and not args.out:
-        ap.error("custom followup patch selections require --out; use --followup for PN 1.6")
-    if not args.audit and not args.followup and not args.precision and not args.pinpoint and not args.robust and not args.sync and not args.tracking and not args.overload and any(p.pid in AUDIT_PATCHES for p in sel) and not args.out:
-        ap.error("custom audit patch selections require --out; use --audit for PN 1.5")
-    reliability = any(p.pid == "activity-before-autooff" for p in sel)
-    experimental = reliability or any(p.pid == "digital-correlation" for p in sel)
-    # A nonstandard subset must have an explicit name, not impersonate PN 1.2.
-    if reliability and not args.roadmap and not args.audit and not args.followup and not args.precision and not args.pinpoint and not args.robust and not args.sync and not args.tracking and not args.overload and {p.pid for p in sel} != {"batt-critical-recover", "activity-before-autooff", "digital-correlation"} and not args.out:
-        ap.error("the PN 1.2 candidate needs all three patches; give --out for a custom subset")
-    name = patches.RELIABILITY_EXPERIMENT if reliability else patches.DIGITAL_EXPERIMENT
-    if args.roadmap:
-        name = patches.ROADMAP_EXPERIMENT
-    if args.audit:
-        from audit_fixes import OUTPUT
-        name = OUTPUT
-    if args.followup:
-        from followup_fixes import OUTPUT
-        name = OUTPUT
-    if args.precision:
-        from precision_fixes import OUTPUT
-        name = OUTPUT
-    if args.pinpoint:
-        from pinpoint_fixes import OUTPUT
-        name = OUTPUT
-    if args.robust:
-        from robust_fixes import OUTPUT
-        name = OUTPUT
-    if args.sync:
-        from sync_fixes import OUTPUT
-        name = OUTPUT
-    if args.tracking:
-        from tracking_fixes import OUTPUT
-        name = OUTPUT
-    if args.overload:
-        from overload_fixes import OUTPUT
-        name = OUTPUT
-    if args.audio_clock:
-        from audio_clock_fixes import OUTPUT
-        name = OUTPUT
-    if args.mode_tone:
-        from mode_tone import OUTPUT
-        name = OUTPUT
-    if args.gain_norm:
-        from gain_norm import OUTPUT
-        name = OUTPUT
-    if args.release_hold:
-        from release_hold import OUTPUT
-        name = OUTPUT
-    if args.smooth_gain:
-        from smooth_gain import OUTPUT
-        name = OUTPUT
-    if args.rail_strong:
-        from rail_strong import OUTPUT
-        name = OUTPUT
-    if args.strong_cap:
-        from strong_cap import OUTPUT
-        name = OUTPUT
-    out = args.out or (os.path.join(FW_DIR, name) if experimental else OUT)
-    if experimental:
+        name = args.profile or LATEST
+        if name not in PROFILES:
+            ap.error(f"unknown profile {name!r}; known: {', '.join(PROFILES)}")
+        prof = PROFILES[name]
+        ids = prof.patch_ids()
+        sel = [p for p in patches.REGISTRY if p.pid in ids]
+        out = args.out or os.path.join(FW_DIR, prof.output)
+        print(f"profile {prof.name}: {prof.title}")
         print("EXPERIMENTAL V3.0.0-BASED RX IMAGE: bench validation and matching-device recovery required.")
 
     img = Image(STOCK)
@@ -279,14 +127,12 @@ def main():
 
     print(f"\napplying {len(sel)} patch(es):")
     touched = []
-    for p in sel:
-        before = len(img.log)
-        try:
-            p(img)
-        except PatchError as e:
-            print(f"  [FAIL] {p.pid}: {e}")
-            return 2
-        print(f"  [{p.risk:8}] {p.pid:24} {p.title}")
+
+    def report(p, before):
+        if p is None:
+            print(f"  [{'tag':8}] {'version-tag':24} version string names the build")
+        else:
+            print(f"  [{p.risk:8}] {p.pid:24} {p.title}")
         for addr, old, new, why, kind in img.log[before:]:
             if kind == "text":
                 print(f"              0x{addr:08X}  \"{old.decode()}\" -> \"{new.decode()}\"")
@@ -295,6 +141,18 @@ def main():
             else:
                 print(f"              0x{addr:08X}  {old.hex()} -> {new.hex()}   {why}")
                 touched.append((addr, max(len(old), len(new))))
+
+    try:
+        if custom or args.default:
+            for p in sel:
+                before = len(img.log)
+                p(img)
+                report(p, before)
+        else:
+            apply_profile(img, prof, report)
+    except PatchError as e:
+        print(f"  [FAIL] {e}")
+        return 2
 
     print("\ninstruction-level verification (stock -> patched):")
     for addr, n in touched:

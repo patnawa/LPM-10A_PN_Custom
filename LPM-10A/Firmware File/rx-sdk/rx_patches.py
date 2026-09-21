@@ -520,3 +520,7 @@ from rail_strong import register as _register_rail_strong
 _register_rail_strong(patch)
 from strong_cap import register as _register_strong_cap
 _register_strong_cap(patch)
+from fast_update import register as _register_fast_update
+_register_fast_update(patch)
+from auto_range import register as _register_auto_range
+_register_auto_range(patch)
