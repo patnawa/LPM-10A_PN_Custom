@@ -18,6 +18,8 @@ LPM-10A receiver firmware build tool.
     python build.py --gain-norm --write    emit the PN 1.15 knob-independent strength candidate
     python build.py --release-hold --write emit the PN 1.16 rejected-window hold candidate
     python build.py --smooth-gain --write  emit the PN 1.17 gain dead-zone fix + rhythm smoothing candidate
+    python build.py --rail-strong --write  emit the PN 1.18 clipped-reading-is-strongest candidate
+    python build.py --strong-cap --write   emit the PN 1.19 fastest-rhythm-at-saturation candidate
     python build.py --only a,b --write     build a specific set
     python build.py --all --write          include patches marked untested
 
@@ -55,6 +57,8 @@ from mode_tone import PATCHES as MODE_TONE_PATCHES           # noqa: E402
 from gain_norm import PATCHES as GAIN_NORM_PATCHES           # noqa: E402
 from release_hold import PATCHES as RELEASE_HOLD_PATCHES     # noqa: E402
 from smooth_gain import PATCHES as SMOOTH_GAIN_PATCHES       # noqa: E402
+from rail_strong import PATCHES as RAIL_STRONG_PATCHES       # noqa: E402
+from strong_cap import PATCHES as STRONG_CAP_PATCHES         # noqa: E402
 
 FW_DIR = os.path.dirname(HERE)
 STOCK = os.path.join(FW_DIR, STOCK_NAME)
@@ -94,10 +98,18 @@ def main():
     ap.add_argument("--gain-norm", action="store_true", help="build PN 1.15: beep rate normalised by the measured knob gain step, audible floor")
     ap.add_argument("--release-hold", action="store_true", help="build PN 1.16: a rejected window holds the last rhythm 160/60 ms instead of cutting it")
     ap.add_argument("--smooth-gain", action="store_true", help="build PN 1.17: knob level 3 gets real mid gain; rhythm moves half way per update")
+    ap.add_argument("--rail-strong", action="store_true", help="build PN 1.18: a clipped reading sounds strongest instead of sparse")
+    ap.add_argument("--strong-cap", action="store_true", help="build PN 1.19: fastest rhythm at the front-end saturation score")
     ap.add_argument("--only", help="comma-separated patch ids")
     ap.add_argument("--out", help="output path (experimental builds use a distinct filename)")
     args = ap.parse_args()
-    if args.smooth_gain and (args.release_hold or args.gain_norm or args.mode_tone or args.audio_clock or args.overload or args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
+    if args.strong_cap and (args.rail_strong or args.smooth_gain or args.release_hold or args.gain_norm or args.mode_tone or args.audio_clock or args.overload or args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
+        ap.error("--strong-cap is a fixed profile; do not combine it with other profile/patch selectors")
+    args.rail_strong = args.rail_strong or args.strong_cap
+    if args.rail_strong and not args.strong_cap and (args.smooth_gain or args.release_hold or args.gain_norm or args.mode_tone or args.audio_clock or args.overload or args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
+        ap.error("--rail-strong is a fixed profile; do not combine it with other profile/patch selectors")
+    args.smooth_gain = args.smooth_gain or args.rail_strong
+    if args.smooth_gain and not args.rail_strong and (args.release_hold or args.gain_norm or args.mode_tone or args.audio_clock or args.overload or args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
         ap.error("--smooth-gain is a fixed profile; do not combine it with other profile/patch selectors")
     args.release_hold = args.release_hold or args.smooth_gain
     if args.release_hold and not args.smooth_gain and (args.gain_norm or args.mode_tone or args.audio_clock or args.overload or args.tracking or args.sync or args.robust or args.pinpoint or args.precision or args.followup or args.audit or args.roadmap or args.all or args.only is not None):
@@ -163,10 +175,16 @@ def main():
                (args.mode_tone and p.pid in MODE_TONE_PATCHES) or
                (args.gain_norm and p.pid in GAIN_NORM_PATCHES) or
                (args.release_hold and p.pid in RELEASE_HOLD_PATCHES) or
-               (args.smooth_gain and p.pid in SMOOTH_GAIN_PATCHES)]
+               (args.smooth_gain and p.pid in SMOOTH_GAIN_PATCHES) or
+               (args.rail_strong and p.pid in RAIL_STRONG_PATCHES) or
+               (args.strong_cap and p.pid in STRONG_CAP_PATCHES)]
 
-    if any(p.pid in SYNC_PATCHES for p in sel) and any(p.pid in TRACKING_PATCHES | OVERLOAD_PATCHES | AUDIO_CLOCK_PATCHES | MODE_TONE_PATCHES | GAIN_NORM_PATCHES | RELEASE_HOLD_PATCHES | SMOOTH_GAIN_PATCHES for p in sel):
-        ap.error("rx-sync cannot be combined with rx-tracking, rx-overload, rx-audio-clock, rx-mode-tone, rx-gain-norm, rx-release-hold or rx-smooth-gain")
+    if any(p.pid in SYNC_PATCHES for p in sel) and any(p.pid in TRACKING_PATCHES | OVERLOAD_PATCHES | AUDIO_CLOCK_PATCHES | MODE_TONE_PATCHES | GAIN_NORM_PATCHES | RELEASE_HOLD_PATCHES | SMOOTH_GAIN_PATCHES | RAIL_STRONG_PATCHES | STRONG_CAP_PATCHES for p in sel):
+        ap.error("rx-sync cannot be combined with the rx-tracking .. rx-rail-strong chain")
+    if not args.strong_cap and any(p.pid in STRONG_CAP_PATCHES for p in sel) and not args.out:
+        ap.error("custom strong-cap patch selections require --out; use --strong-cap for PN 1.19")
+    if not args.rail_strong and any(p.pid in RAIL_STRONG_PATCHES for p in sel) and not args.out:
+        ap.error("custom rail-strong patch selections require --out; use --rail-strong for PN 1.18")
     if not args.smooth_gain and any(p.pid in SMOOTH_GAIN_PATCHES for p in sel) and not args.out:
         ap.error("custom smooth-gain patch selections require --out; use --smooth-gain for PN 1.17")
     if not args.release_hold and any(p.pid in RELEASE_HOLD_PATCHES for p in sel) and not args.out:
@@ -239,6 +257,12 @@ def main():
         name = OUTPUT
     if args.smooth_gain:
         from smooth_gain import OUTPUT
+        name = OUTPUT
+    if args.rail_strong:
+        from rail_strong import OUTPUT
+        name = OUTPUT
+    if args.strong_cap:
+        from strong_cap import OUTPUT
         name = OUTPUT
     out = args.out or (os.path.join(FW_DIR, name) if experimental else OUT)
     if experimental:

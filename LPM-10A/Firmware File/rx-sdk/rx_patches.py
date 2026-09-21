@@ -516,3 +516,7 @@ from release_hold import register as _register_release_hold
 _register_release_hold(patch)
 from smooth_gain import register as _register_smooth_gain
 _register_smooth_gain(patch)
+from rail_strong import register as _register_rail_strong
+_register_rail_strong(patch)
+from strong_cap import register as _register_strong_cap
+_register_strong_cap(patch)

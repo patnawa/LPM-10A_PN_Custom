@@ -177,7 +177,7 @@ fault-handling and ADC timeout margin bug fixes. See the
 | Device | Release | Firmware | Status |
 |---|---|---|---|
 | TX tester | [PN 2.12](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.12) | `LPM-10A-TX_PN2.12-portflash-status.bin` | CPU-verified; owner confirms Port FLASH fixed |
-| RX probe | [PN 1.17](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.17) ([procedure](docs/RX-UPDATE-PROCEDURE-2026-09-21.md)) | `experimental/APP_LPM-10RX_PN1.17-smooth-gain-update.bin` | **Running on the owner's probe 2026-09-21**: PN 1.12 detection + Analog one octave below Digital with mode chirps (1.14) + beep rate normalised by the measured knob gain step (1.15) + rejected windows bridged 160/60 ms (1.16) + knob level 3 gain dead zone closed and half-step rhythm smoothing (1.17); all measured live over SWD ([measurements](docs/RX-SENSITIVITY-2026-09-21.md)); copy the `-update.bin` container, not the raw image |
+| RX probe | [PN 1.19](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.19) ([procedure](docs/RX-UPDATE-PROCEDURE-2026-09-21.md)) | `experimental/APP_LPM-10RX_PN1.19-strong-cap-update.bin` | **Running on the owner's probe 2026-09-21**: PN 1.12 detection + Analog one octave below Digital with mode chirps (1.14) + beep rate normalised by the measured knob gain step (1.15) + rejected windows bridged (1.16) + knob gain dead zone closed and half-step smoothing (1.17) + saturated readings sound strongest at every knob position (1.18–1.19); all measured live over SWD ([measurements](docs/RX-SENSITIVITY-2026-09-21.md)); copy the `-update.bin` container, not the raw image |
 
 **Use the file for the correct device; TX and RX firmware are not interchangeable.**
 Each release includes device-specific notes and a SHA-256 checksum file.
@@ -620,8 +620,8 @@ LPM-10A/
     PN2.12-README.txt                 current TX changes and update notes
     PN2.12-SHA256SUMS.txt             current TX binary checksum
     experimental/LPM-10A-TX_PN2.12-portflash-status.bin  current TX release
-    experimental/APP_LPM-10RX_PN1.17-smooth-gain-update.bin   current RX build (copy THIS to the BOOTLOADER drive)
-    experimental/APP_LPM-10RX_PN1.17-smooth-gain.bin          its raw image (hashes, emulation)
+    experimental/APP_LPM-10RX_PN1.19-strong-cap-update.bin    current RX build (copy THIS to the BOOTLOADER drive)
+    experimental/APP_LPM-10RX_PN1.19-strong-cap.bin           its raw image (hashes, emulation)
     experimental/ROADMAP-MANIFEST.json            tested image hashes and profiles
     LPM-10A-TX_V2.0.7_260610.bin      stock image: NOT included, put FNIRSI's copy here to build
     MOD-README.txt                    historical PN 2.4 notes and checklist
@@ -631,8 +631,8 @@ LPM-10A/
     APP_LPM-10RX_PN1.0.bin            earlier receiver image (battery fix)
     APP_LPM-10RX_PN1.1-digital-experimental.bin   earlier RX digital prerelease
     APP_LPM-10RX_PN1.2-reliability-experimental.bin   previous RX prerelease
-    RX-PN1.17-README.txt              current RX notes, update procedure and what you hear
-    experimental/RX-PN1.16-1.17-SHA256SUMS.txt   current RX checksums
+    RX-PN1.19-README.txt              current RX notes, update procedure and what you hear
+    experimental/RX-PN1.16-1.19-SHA256SUMS.txt   current RX checksums
     RX-README.txt                     historical PN 1.0 notes
     rx-sdk/                           the receiver toolkit: patches, verifier, disassembler
 docs/img/                             the images on this page (screens are rendered from the firmware's own layout tables and glyphs)
@@ -643,7 +643,7 @@ docs/img/                             the images on this page (screens are rende
 The probe has its own firmware, audit and toolkit:
 [`docs/RX-AUDIT.md`](docs/RX-AUDIT.md) and
 [`LPM-10A/Firmware File/rx-sdk`](LPM-10A/Firmware%20File/rx-sdk/README.md).
-**[RX PN 1.17](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.17)** is the
+**[RX PN 1.19](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.19)** is the
 build running on the owner's probe (installed 2026-09-21):
 
 - Digital pulses at 2.5 kHz, **Analog one octave lower at 1.25 kHz**, and every key beep
@@ -656,6 +656,9 @@ build running on the owner's probe (installed 2026-09-21):
   the lowest gain), a momentary missed window keeps the rhythm (160 ms Digital / 60 ms
   Analog) while a lost signal still stops within ~¼ s, and each reading moves the rhythm
   half way toward its target so noise does not make it jump.
+- Touching the cable gives the fastest rhythm at every knob position: the front end
+  saturates at high gain (~2400 counts p-p, measured), so the curve's fastest point sits at
+  that saturation score and a clipped reading counts as strongest rather than "uncertain".
 - Detection, sampling, release and device binding are PN 1.12's, whose one-second
   Digital tail fix the owner confirmed the same day.
 
@@ -672,7 +675,7 @@ the probe restarts on the new firmware. The bootloader programs only that contai
 ships for the RX is silently ignored, which is why no RX update had ever worked before.
 Roll back with a container of the factory V3.0.0 image, built the same way. Match TX
 **Digital** to RX Digital, TX **Analog 825 Hz** to RX Analog. See
-[RX release notes](LPM-10A/Firmware%20File/RX-PN1.17-README.txt).
+[RX release notes](LPM-10A/Firmware%20File/RX-PN1.19-README.txt).
 
 **Earlier RX "device pass" reports (PN 1.3–1.8, 2026-09-19) were tests of the factory
 firmware**: those files were raw images the bootloader never installed.

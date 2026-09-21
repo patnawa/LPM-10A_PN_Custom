@@ -1,4 +1,0 @@
-3b8522146f8903c00decc4e1bf6cedc671cffe106c5fd18c172450fa916f46bc *APP_LPM-10RX_PN1.16-release-hold.bin
-c3f44fc5aa72a710ed6b185f1d563a5eaf73dc411bd4a4732e40296e8d5ad06a *APP_LPM-10RX_PN1.16-release-hold-update.bin
-80468c77d837d6798cc5205d65028424a421b3ae82c8f6659bbe40382a4feb7e *APP_LPM-10RX_PN1.17-smooth-gain.bin
-f78ec95cf2a2c9bf94c5686d6dab78f734ea93367e81e6ed739598ed5c241aeb *APP_LPM-10RX_PN1.17-smooth-gain-update.bin
