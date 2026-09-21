@@ -65,7 +65,8 @@ EVIDENCE
   is gone (PN 1.12), modes clearly distinguishable (1.14), knob no longer needs
   to be near maximum (1.15), choppiness gone / "better" (1.16-1.17), middle-vs-maximum knob
   difference gone / "OK" (1.18-1.19); PN1.22.TXT shown on the drive and
-  Digital "follows the probe in and out" (1.20-1.22).
+  Digital "follows the probe in and out" (1.20-1.22); PN 1.23 tested by the
+  owner: "works well in all three modes" (Digital, Analog, mains NCV).
   Note: earlier RX "device pass" reports for PN 1.3-1.8 were tests of the factory
   firmware; no PN image had been installed before 2026-09-21.
 

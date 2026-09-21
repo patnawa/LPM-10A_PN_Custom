@@ -16,7 +16,7 @@ Built by patching the shipped binaries — no vendor source — and verified by 
 | **TX** tester | **PN 2.14** | [Release v2.14](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.14) | `LPM-10A-TX_PN2.14-tone-recovery.bin` |
 | **RX** probe | **PN 1.23** | [Release rx-v1.23](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.23) | `APP_LPM-10RX_PN1.23-mains-tone-update.bin` |
 
-Both are the builds running on the owner's unit (2026-09-21). Each release carries its notes and a
+Both are the builds running on the owner's unit (2026-09-21; RX PN 1.23 tested in all three modes). Each release carries its notes and a
 SHA-256 file. **TX and RX firmware are not interchangeable.** FNIRSI's own files are not
 redistributed here.
 
