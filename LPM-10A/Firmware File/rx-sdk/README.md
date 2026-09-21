@@ -205,7 +205,7 @@ whose SHA-256 is not the V3.0.0 one.
 
 | | |
 |---|---|
-| Image | raw Cortex-M image, **no container**, loaded at `0x08006800`; the bootloader page below holds the UID-binding record (`0x08006700`) and the `_V3.` tag |
+| Image | the vendor file is a raw Cortex-M image loaded at `0x08006800`; the bootloader page below holds the UID-binding record (`0x08006700`) and the `_V3.` tag. **The bootloader only programs a container** (32-byte name, `payload_off 0x1000`, length, end, image at `0x1000`, padded to 4 KB): `build.py --write` emits it as `<name>-update.bin` via `lpm10rx/container.py` |
 | CPU | Nations N32L40x class: Cortex-M4F (FPU enabled), 16 MHz HSI, MSI, ADC1 at `0x40020800` |
 | Clock | 64 MHz (HSI × PLL 4); APB1 = APB2 = 32 MHz; timer clocks 64 MHz. Verified by `boot_emu.py`, which runs the real `SystemInit`, `rcc_init` and timer set-up and reads the registers back |
 | Toolchain | ARM Compiler (Keil MDK) at `-O0`: `b .+2` after almost every statement, addresses via `movw`/`movt`, no literal pools, ARM C library |
@@ -213,9 +213,11 @@ whose SHA-256 is not the V3.0.0 one.
 | Version page | flash page `0x0801F000` holds `3.0.0`; `main` rewrites it when it differs. No settings are stored |
 | Stack | `0x20001618`; about 5.6 KB of RAM in use |
 
-There is no code cave: the image has no zero tail, and growing a raw image is a
-bet on the bootloader. Patches are in-place, same length, which is easier than
-it sounds because `-O0` code is loose enough to rewrite tighter.
+There is no code cave inside the stock image, so patches up to PN 1.13 are
+in-place and same length. Since PN 1.14 new code is **appended after the image**
+with `Image.extend()` (the update container carries the payload length; the
+bootloader programmed the longer images on 2026-09-21), up to `EXTEND_LIMIT`
+`0x0801E000`, well below the version page.
 
 The full functional description (modes, decoder, speaker, battery, keys,
 device binding, what the bootloader question still blocks) is in [`../../../docs/RX-AUDIT.md`](../../../docs/RX-AUDIT.md).
@@ -258,14 +260,21 @@ def p_my_fix(img):
 
 ## Flashing and recovery status
 
-The owner confirmed update-mode entry on 2026-09-18: probe off, hold SCAN,
-connect USB; the "UDISK" drive appears. On 2026-09-19 the owner reported that
-both new TX and RX firmware work perfectly. The report does not establish
-stock rollback or compatibility with every revision. The previous installed
-RX version is uncertain; this patch requires the exact official V3.0.0 base.
+**Solved 2026-09-21** ([procedure and evidence](../../../docs/RX-UPDATE-PROCEDURE-2026-09-21.md)):
+probe off, hold SCAN, plug USB → `BOOTLOADER` drive → copy the `*-update.bin`
+container with Explorer → the probe programs it within about a second and
+restarts. Raw images are ignored (status file `UNKOWN.TXT`); a slow
+sector-by-sector writer makes the bootloader give up (`APPRUN.TXT`). The
+status file otherwise shows the installed version string (`3.0.0.TXT`).
 
-The [RX prerelease](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.1)
-contains the binary, notes and checksum. Verify the hash and confirm a stock
-recovery path for your device before flashing. TX and RX images and update
-procedures are separate. The application patch does not alter the UID-binding
-code or record outside the image. The bootloader itself has not been audited.
+Rollback: wrap the vendor `APP_LPM-10RX_V3.0.0_260416.bin` with
+`lpm10rx.container.wrap()` and copy it the same way (verified on the owner's
+unit). The probe's earlier 3.0.1 build has no file and cannot be restored.
+Every RX "device pass" reported before 2026-09-21 was a test of that factory
+build; the first PN image to run on hardware was PN 1.12, followed the same
+day by PN 1.14–1.17 (`docs/RX-SENSITIVITY-2026-09-21.md`).
+
+The application patches do not alter the UID-binding code or record outside
+the image. The bootloader code itself (flash `0x08000000–0x080067FF`, L1
+read-protected) has not been read; its behaviour is known only from the SRAM
+observations in the procedure document.
