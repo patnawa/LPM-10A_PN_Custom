@@ -1,4 +1,6 @@
-# LPM-10A TX firmware — measurement formula audit
+# LPM-10A firmware — measurement formula audit (TX §1–6, receiver PN formulas §7)
+
+*Updated 2026-09-21 for TX PN 2.14 and RX PN 1.23.*
 
 Every value the tester computes and shows was traced in the stock binary
 (`LPM-10A-TX_V2.0.7_260610.bin`, sha256 `29081ccb…`) by disassembly, and the
@@ -290,6 +292,24 @@ off for its own re-link (about 2–3 s, independent of `FLASH_OFF_MS`), a regula
 cycle of 4–5 s. Figures from the code and the standard, unmeasured.
 Emulated in verify.py §22.
 
+PN 2.7 (`flash-negotiation`): a wait that produced no link within its window
+backs the window off 4 → 8 → 16 s and the first window that produced a link is
+kept for the session (ports needing longer than 16 s, or rejecting the 10 Mb/s
+advertisement, can still fail). PN 2.12 (`portflash-status`, **device-confirmed
+on a D-Link gigabit switch, 2026-09-19**): the link is no longer read from GPIO
+PB5 during acquisition and hold — a sampled high/high/low input pattern could
+restart the 1500 ms hold indefinitely with the switch LED steadily on — but
+from the PHY's **MII BMSR register 1, read twice, bit 2 of the second read**
+(link status is latched low, so the first read clears a historical drop and
+the second samples the current state; `0xFFFF` on either read is rejected as
+an MDIO error). The tester's own indicator task reads the net task's published
+phase instead of doing its own GPIO/MDIO reads, so only one task touches the
+bit-banged bus; a real observed link loss still starts a fresh hold on
+recovery; battery monitoring and low-voltage detection stay active during
+FLASH; the auto-negotiation register used by FLASH and SPEED setup was
+corrected. Hold/off durations and back-off are unchanged. Sub-poll (< 500 ms)
+link interruptions can still be missed.
+
 ### 3.7 Auto Off during FLASH — `autooff-hold` — **FIXED in PN 2.3, was wrong in PN 1.0–2.2**
 
 The hold routine compared the state with 8 (QC Test) instead of 6 (FLASH): the
@@ -337,7 +357,8 @@ and only while no charger is connected); only a charger connection cancels it.
 Mod (`batt-debounce`): three consecutive low samples (≥ 3 s) are needed, and
 the 1 Hz tick cancels the
 countdown when the pack reads ≥ 3250 mV again (100 mV hysteresis) or the
-charger is connected. Emulated in verify.py §9.
+charger is connected. Emulated in verify.py §9. Since PN 2.12 the battery
+sample is not skipped during a FLASH blink session.
 
 ### 5.4 Charger state — `charger_state` 0x08010918
 
@@ -367,12 +388,122 @@ PC10 low = charging, PA15 low = standby (charge complete). GPIO reads. **OK**
 | `length-no-sticky` | new reading replaced by old one inside the tolerance band | measured value always displayed |
 | `batt-debounce` | one noisy ADC sample could start an uncancellable shutdown | 3 consecutive samples, cancels on recovery |
 | `batt-gauge` | 4-step gauge | 10-step Li-ion gauge |
-| `settings-leak` | 204 bytes leaked per save | freed on both exit paths |
+| `settings-leak` | 204 bytes leaked per save | freed on both exit paths (PN 1.x); since PN 2.11/2.12 a checked static writer with no heap allocation serves explicit save, default setup, power-off and changed Length calibration |
+| `length-average` (PN 1.2) | one run shown as is, ±0.3 m scatter at 14 m | four runs averaged per pair, `~` when fewer than four yielded a reading (§1.2) |
+| `length-blind-text` (PN 2.2) | a pair the PHY zeroed printed `0.0 m` | `< 2` / `< 200` / `< 7` (§1.6) |
+| `autooff-hold` (PN 1.0, FLASH half fixed in PN 2.3) | Auto Off counted during SCAN / FLASH sessions | held; compared the wrong state (8) for FLASH until PN 2.3 (§3.7) |
+| `poe-screen` (PN 2.3) | voltage drawn once, blank screen without a supply | refreshed every 0.5 s, "Detecting..." / "No PoE" re-armed every entry (§3.5) |
+| `flash-blink` (PN 2.3/2.4), `flash-negotiation` (PN 2.7), `portflash-status` (PN 2.12) | 5 s phase counter ignoring the link; GPIO sampling could stall the hold | link-timed 1.5 s / 1 s cycle from the PHY status register, 4 → 8 → 16 s back-off, device-confirmed (§3.6) |
+| SCAN timing (PN 2.6), RIGHT-key carrier cache (PN 2.14) | one high tick lost at the digital wrap, logging in the timer path, stale carrier after Pause, carrier cache not invalidated by RIGHT | exact 50-tick slots, logging bypassed, carrier driven correctly on resume and after RIGHT (docs/TONE-PERFORMANCE-AUDIT-2026-09-20.md) |
+| service task / watchdog / fault frame (PN 2.8, 2.9) | application queue calls in SysTick, timer-fed watchdog, FP crash frame | callbacks deferred to a service task, watchdog requires service-task progress, SHCSR handlers and the Cortex-M4F frame fixed, fault details kept across warm reset |
+| Thai UI (PN 2.0) | Chinese second language | Thai on every screen; English byte-identical to PN 1.3 (docs/THAI-UI.md) |
 
-The formulas were verified by disassembly and CPU emulation; PN 1.0 to PN 1.3
-have since run on one real unit (2026-09-18), which produced the length data in
-§1.6, confirmed the Zero + NVP calibration and passed every function with the
-four-run averaging in place. The PoE divider ratio and the
-class comparators are hardware facts that still await a reference PSE. The
-Zero and NVP settings exist precisely so that the length constant can be
-corrected on the bench.
+The TX formulas were verified by disassembly and CPU emulation, then on one
+real unit: PN 1.0–1.3 on 2026-09-18 (the length data in §1.6, Zero + NVP,
+four-run averaging), PN 2.2 / 2.4 the same day (Thai UI, FLASH blink), PN 2.8
+and 2.12 on 2026-09-19 (Port FLASH on a D-Link gigabit switch), and PN 2.14 is
+the build in daily use. The PoE supply paths, the divider ratio and the class
+comparators still await a reference PSE (no PoE switch or injector has been
+available); the no-supply path was checked on the unit.
+
+---
+
+## 7. Receiver (probe) — the PN formulas
+
+The stock receiver firmware is audited function by function in
+[`../../docs/RX-AUDIT.md`](../../docs/RX-AUDIT.md) (modes, decoder, DFT, speaker,
+battery, keys, device binding). What PN adds is arithmetic of its own, all of
+it measured on the owner's unit on 2026-09-21
+([`RX-SENSITIVITY-2026-09-21.md`](../../docs/RX-SENSITIVITY-2026-09-21.md)) and
+executed on a CPU model in `rx-sdk/test_rx_*.py`.
+
+### 7.1 Digital detection — PN 1.12 (`digital-correlation` … `rx-overload`)
+
+```
+frame       48 samples, one per 5 ms slot (trimmed mean of 5 readings in the slot's last 2.5 ms)
+threshold   trimmed mean of the frame (stock), plus PN 1.11's short-span local slicing
+code test   all 8 rotations of the repeated 0xB6B6 pattern over the 48 bits:
+            accept when <= 4 bit errors in total and <= 2 in each 16-bit block,
+            or stock's two exact sliding 16-bit matches (kept as a fallback)
+floor       sum |sample - threshold| >= 192 counts (4 per sample) and stock's high-sample sum
+strength    trimmed estimate over the 16 newest code-verified samples (one code period);
+            a window whose 16 newest raw samples are all 4095 -> 'uncertain' (interval 1)
+overlap     since PN 1.21 keep the newest 40 samples, collect 8 -> re-evaluate every 40 ms
+            (32 / 16 = 80 ms in PN 1.11-1.20); the first lock after a mode or gate change needs a full frame
+```
+
+A matched-filter alternative was modelled on 7 992 live windows and rejected
+(§ "ทำไมไม่ทำ matched filter" in `RX-NEXT-STEPS-2026-09-21.md`): the 8-chip code
+and 50 Hz hum (period 4 samples) give noise correlations up to 0.77.
+
+### 7.2 Analog detection — stock rule, PN arithmetic (PN 1.11)
+
+```
+window      64 samples every 0.325 ms (20.8 ms), 32-bin DFT, target bin 17 = 817 Hz
+noise       (sum of bins 1..31 - bin 1 - bin 17) / 12          (uxth, as stock)
+margin      bin17 - noise;  accept when margin > 10
+upper rail  >= 8 of 64 samples at 4095 in an accepted window -> 'uncertain' (interval 1)
+score       (margin - 10) x 40                                  (feeds the same curve as Digital)
+DFT         exact integer inner loop, bit-identical results, -74 % instructions
+```
+
+### 7.3 Strength score → quiet interval (PN 1.8, 1.15, 1.17, 1.19)
+
+```
+score'      = score x MULT[level] / 10,  MULT = {200, 92, 26, 26, 11, 11, 11, 10} for driven gain level 0..7
+              (measured p-p per knob code at one position: 95, 230, 780, 90->780, 1920, 1940, 2040, 2400;
+               level = the gain actually driven, see 7.4)
+interval    piecewise linear through (score', ms):
+              (0, 110) (800, 95) (2400, 85) (7200, 70) (24000, 45) (40000, 20); >= 40000 -> 20
+              (40 000 = the front end's measured saturation: touching the cable is 20 ms at every knob position)
+publish     if audio is fresh (RECENT > 500) and an interval is already published (not 0 / 'uncertain'):
+              new = old + (target - old) / 2, applied only when |half step| >= 3 ms  (PN 1.17)
+            otherwise the target directly
+pulse       30 ms on (Digital), 12 ms (Analog); 'uncertain' (1) is published as 20 ms since PN 1.18
+```
+
+### 7.4 Knob, gain steps and automatic range (PN 1.17, 1.22)
+
+```
+knob        PA2 trimmed mean every 500 ms; code = raw / 580 (0..7); gates: Digital raw >= 2, Analog code >= 1
+pins        PB12..14 = bits of the level; stock forces level 0 to 011 == level 3 -> PN maps level 3 to level 2
+AGC tick    (500 ms, main context)
+              knob level changed or first tick -> driven = knob, hold = 0
+              else p-p of the 48-sample buffer:
+                >= 1900 -> driven steps down one effective step (7..4 -> 2 -> 1 -> 0), hold = 4 ticks
+                <  450  -> driven steps up (0 -> 1 -> 2 -> knob), never above the knob, hold = 4 ticks
+                else keep;  a hold tick decrements and forbids changes
+state       0x20000200: [0] driven level, [1] 0, [2] hold, [3] last knob   (normaliser reads [0..1] as u16)
+ratios      1900 / 450 = 4.2 > 2.6 x 1.3: no oscillation between adjacent steps
+```
+
+### 7.5 Release and freshness (PN 1.7, 1.16)
+
+```
+accepted window   RECENT = 800 (Digital), then trimmed to 600 by the Analog analyzer
+rejected window   interval kept; RECENT = min(RECENT, 660 Digital / 560 Analog)
+audio             pulses scheduled only while RECENT > 500 and interval != 0
+release           Digital <= 40 ms (first rejected update) + 160 ms; Analog <= 21 + 60 ms
+keep-alive        800 ms power keep-alive is stock and separate
+```
+
+### 7.6 Speaker cadence (PN 1.14, 1.23)
+
+```
+TIM5 40 kHz; duty 900/700 flipped every N interrupts: Digital N = 8 (2.5 kHz), Analog 16 (1.25 kHz), mains 4 (5 kHz)
+key beep 100 ms: first 50 ms at the other mode's N -> Digital chirps low->high, Analog high->low
+```
+
+### 7.7 Mains (NCV) — stock, unchanged
+
+```
+64 samples every 1.55 ms from PD15 (not behind the gain stage); DFT bins 5 and 6 = 50.4 / 60.5 Hz
+level = max(bin5, bin6): > 350 -> 50 ms beep, 251..350 -> 100 ms, 151..250 -> 200 ms, else none (per 99 ms window)
+```
+
+### 7.8 Battery and identity (PN 1.0, 1.20)
+
+```
+critical state recoverable when the pack reads >= 3400 mV again (stock: uncancellable below 3280 mV)
+version string "PN1.xx" at 0x0800CDE4 -> written to page 0x0801F000 at boot -> BOOTLOADER drive shows PN1.xx.TXT
+```

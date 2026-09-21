@@ -276,7 +276,7 @@ About reports `Software:PN 2.14` and this repository's URL instead of `V2.0.7` /
 container's internal image name stays FNIRSI's, because the bootloader may match on it. Since PN 2.3
 the file is one 4 KB flash page longer than stock (393 216 bytes) because the code cave ran out; the
 container header carries the payload length and the bootloader accepted the longer file on the tested
-unit. Formulas, addresses and verdicts for every calculation: [`FORMULA-AUDIT.md`](LPM-10A/Firmware%20File/FORMULA-AUDIT.md).
+unit. Formulas, addresses and verdicts for every calculation, TX and RX: [`FORMULA-AUDIT.md`](LPM-10A/Firmware%20File/FORMULA-AUDIT.md).
 </details>
 
 <p>
@@ -435,7 +435,7 @@ LPM-10A/Firmware File/
   experimental/APP_LPM-10RX_PN1.23-mains-tone.bin         its raw image (hashes, emulation only)
   experimental/RX-PN1.20-1.23-SHA256SUMS.txt              RX checksums
   RX-PN1.23-README.txt                                    RX notes: update, what you hear, rollback
-  FORMULA-AUDIT.md                                        every TX measurement formula, with verdicts
+  FORMULA-AUDIT.md                                        every measurement formula with verdicts: TX §1-6, receiver PN formulas §7
   sdk/                                                    TX toolkit: patches, assembler, verifier, Thai UI
   rx-sdk/                                                 RX toolkit: patches (PN 1.0 → 1.23, profiles.py), container, emulator, tests
   (older PN builds and notes are kept alongside for reference)
