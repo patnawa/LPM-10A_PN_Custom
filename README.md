@@ -177,7 +177,7 @@ fault-handling and ADC timeout margin bug fixes. See the
 | Device | Release | Firmware | Status |
 |---|---|---|---|
 | TX tester | [PN 2.12](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.12) | `LPM-10A-TX_PN2.12-portflash-status.bin` | CPU-verified; owner confirms Port FLASH fixed |
-| RX probe | PN 1.15 (local, [procedure](docs/RX-UPDATE-PROCEDURE-2026-09-21.md)) | `experimental/APP_LPM-10RX_PN1.15-gain-norm-update.bin` | **Running on the owner's probe 2026-09-21**: PN 1.12 detection + Analog one octave below Digital with mode chirps (1.14) + beep rate normalised by the measured knob gain step (1.15, [measurements](docs/RX-SENSITIVITY-2026-09-21.md)); copy the `-update.bin` container, not the raw image |
+| RX probe | PN 1.17 (local, [procedure](docs/RX-UPDATE-PROCEDURE-2026-09-21.md)) | `experimental/APP_LPM-10RX_PN1.17-smooth-gain-update.bin` | **Running on the owner's probe 2026-09-21**: PN 1.12 detection + Analog one octave below Digital with mode chirps (1.14) + beep rate normalised by the measured knob gain step (1.15) + rejected windows bridged 160/60 ms (1.16) + knob level 3 gain dead zone closed and half-step rhythm smoothing (1.17); all measured live over SWD ([measurements](docs/RX-SENSITIVITY-2026-09-21.md)); copy the `-update.bin` container, not the raw image |
 
 **Use the file for the correct device; TX and RX firmware are not interchangeable.**
 Each release includes device-specific notes and a SHA-256 checksum file.

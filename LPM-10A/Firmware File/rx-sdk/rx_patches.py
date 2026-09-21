@@ -512,3 +512,7 @@ from mode_tone import register as _register_mode_tone
 _register_mode_tone(patch)
 from gain_norm import register as _register_gain_norm
 _register_gain_norm(patch)
+from release_hold import register as _register_release_hold
+_register_release_hold(patch)
+from smooth_gain import register as _register_smooth_gain
+_register_smooth_gain(patch)
