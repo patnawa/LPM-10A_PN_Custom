@@ -1,0 +1,65 @@
+LPM-10A TX PN 2.22 / 2.23 - REF reachable before a measurement - 2026-09-21
+
+  LPM-10A-TX_PN2.22-ref-anytime.bin   = PN 2.21 + length-ref-anytime
+  LPM-10A-TX_PN2.23-ref-reset.bin     = PN 2.22 + length-ref-reset     <- flash this one
+  397312 bytes each (as PN 2.21), sha256 in TX-PN2.22-SHA256SUMS.txt /
+  TX-PN2.23-SHA256SUMS.txt
+
+Status: PN 2.22 was on the unit 2026-09-21 and showed "REF 189.1" the first
+time REF was entered without a result: PN 2.22 took whatever the REF RAM cell
+held as "the value last dialled" if it was within 1 .. 300 m, and the cell is
+never initialised at power-up (18910 was in it).  PN 2.23 writes 10.0 m into
+the cell every time the Length screen is entered, so the first REF of a visit
+is 10.0 m (with a result on screen: the measured length) and "the value last
+dialled" means dialled on this visit.  CPU-verified end to end on the real
+code (sdk/test_length_ref_anytime.py 7 tests, test_length_ref_reset.py 8 --
+the whole Length measurement with a simulated PHY, the keys through
+Action_key_Process, the drawing through the GUI task, English and Thai; the
+189.1 reproduced on PN 2.22 and gone on PN 2.23).  Rollback = PN 2.21.
+
+What the owner met on PN 2.21 (2026-09-21): "ZERO does not change to REF, it
+goes back to NVP".  That is PN 2.18 as designed: REF was offered only while a
+result was on screen (the four "1-2 = 20.3 m" lines of the latest test); with
+nothing measured, or after "Out of range" / "Test timeout!!", the OK hold went
+ZERO -> NVP and REF was skipped without a word.  Measure first, and PN 2.21
+shows REF.
+
+PN 2.22 removes the condition.  Holding OK on the Length screen always cycles
+
+      NVP  ->  ZERO  ->  REF  ->  NVP ...
+
+  * REF entered with a result on screen: starts at the measured length, and
+    every UP / DOWN solves NVP at once and redraws the readings (PN 2.18
+    unchanged: "measure, then tell the tester the true length").
+
+  * REF entered without a result: starts at 10.0 m, or at the value dialled
+    earlier on this visit to the screen.  UP / DOWN dial it; NVP does not move
+    yet.  Press OK (Test
+    Start) with the cable's far end open: when the result arrives, NVP is
+    solved from it and the dialled REF, once, and the readings and the grey
+    "NVP nn%" are drawn with it ("tell the tester the length, then measure").
+    The measurement after that is an ordinary one, whatever the header shows -
+    a REF target left behind never re-fits NVP by itself.  Only dialling REF
+    again (with a result on screen) solves again.
+
+  * Holding OK out of REF, or entering the Length screen, forgets a REF that
+    was dialled but not yet applied.
+
+  * ZERO is still set first, on a short cable, exactly as before; REF never
+    changes Zero.  NVP is saved when leaving the screen (calibration autosave).
+
+On the unit, please check (both languages if convenient):
+
+  1. Length screen, nothing measured: hold OK -> ZERO white; hold OK -> header
+     reads "REF 10.0" white (PN 2.21: back to NVP; PN 2.22: REF 189.1);
+     hold OK -> NVP.  Leave the screen and come back: "REF 10.0" again.
+  2. In REF with nothing measured: UP / DOWN change "REF 10.0" in 0.1 m steps
+     (auto-repeat when held); the grey NVP on the right does not change.
+  3. Dial REF to the true length of a cable of known length (10 m or more, far
+     end open), press OK to measure: the four readings come back equal to the
+     dialled length (within 0.1 m) and the grey NVP shows the solved value.
+  4. Press OK again on the same cable: the same reading, NVP unchanged.  Plug
+     a different cable and measure: its true length, NVP unchanged.
+  5. The old order still works: measure, hold OK twice -> "REF" starts at the
+     measured length, UP / DOWN move the readings with it.
+  6. Settings > About: "Software:PN 2.23"; the other functions are PN 2.21's.

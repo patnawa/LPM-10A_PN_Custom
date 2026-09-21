@@ -586,7 +586,7 @@ pip install capstone unicorn        # pillow + pymupdf only to rebuild the fonts
 python test_thumb.py                # assembler self-test against Capstone
 python build.py --list              # the patch set and the build profiles (one per PN version)
 python build.py                     # dry run of the latest profile: every byte it would change, disassembled
-python build.py --write             # emit the latest profile (PN 2.21, experimental/LPM-10A-TX_PN2.21-cable-values.bin)
+python build.py --write             # emit the latest profile (PN 2.23, experimental/LPM-10A-TX_PN2.23-ref-reset.bin)
 python build.py --profile pn2.14 --write  # reproduce the release, or any earlier PN version
 python build.py --default --write   # the frozen baseline verify.py models (unreleased)
 python verify.py                    # full baseline verifier (235 checks, CPU emulation)

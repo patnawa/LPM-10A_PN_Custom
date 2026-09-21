@@ -169,7 +169,7 @@ colours), §16 (screen entry) and §16b (Factory Reset compared with stock).
 Worked example: a 55.40 m reading with NVP set to 75 % shows 60.2 m
 (5540 × 75 / 69 = 6022 cm).
 
-### 1.7 Known-length calibration — `length-reference` (PN 2.18 candidate)
+### 1.7 Known-length calibration — `length-reference` (PN 2.18), `length-ref-anytime` / `length-ref-reset` (PN 2.22 / 2.23)
 
 The inverse of 1.6, solved on the tester instead of by the user: with a result
 on screen, a third OK-hold target `REF` starts at the displayed length
@@ -184,6 +184,20 @@ Zero is not solved for — one cable fixes one unknown — and stays the short-
 cable step. Integer maths (`69 × REF ≤ 2 070 000`, 32-bit), no change to the
 measurement or to 1.4 / 1.6. Exercised end to end through `Action_key_Process`
 in `sdk/test_length_reference.py` (both languages, every unit, both clamps).
+
+PN 2.18 offers REF only while a result is on screen (the flag byte 0x200002B4
+== 2 and at least one timed pair), else the hold goes ZERO → NVP — met by the
+owner on 2026-09-21 as "ZERO does not change to REF". PN 2.22 always offers it:
+without a result REF starts at 10.0 m (PN 2.23: written on every screen entry —
+PN 2.22 showed the RAM cell's power-up content, `REF 189.1`, because it kept any
+value within 1 … 300 m as "last dialled") or the value dialled on this visit,
+dialling marks it pending, and the accept path of `APP_LENG_Test_Sequence`
+(0x08012C02, right after the flag is set to 2) solves the same formula from the
+new mean once and clears the mark; leaving REF or entering the screen clears it
+too. Same integer maths; `sdk/test_length_ref_anytime.py` runs the whole sequence
+with a simulated PHY and checks the fit (REF 20.0 m on a 2031 cm mean → 68 %), that
+the next measurement is not re-fitted, and that the PN 2.18 order still solves at
+once; `test_length_ref_reset.py` repeats it on PN 2.23 with 18910 in the cell.
 
 ---
 

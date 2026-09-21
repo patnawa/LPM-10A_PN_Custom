@@ -1,6 +1,6 @@
 """Copy the current TX/RX release files from experimental/ to this folder and rewrite SHA256SUMS.txt.
 
-    python publish_current.py LPM-10A-TX_PN2.21-cable-values.bin APP_LPM-10RX_PN1.23-mains-tone-update.bin
+    python publish_current.py LPM-10A-TX_PN2.23-ref-reset.bin APP_LPM-10RX_PN1.23-mains-tone-update.bin
 """
 import hashlib
 import os
@@ -8,7 +8,7 @@ import shutil
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-names = sys.argv[1:] or ["LPM-10A-TX_PN2.21-cable-values.bin", "APP_LPM-10RX_PN1.23-mains-tone-update.bin"]
+names = sys.argv[1:] or ["LPM-10A-TX_PN2.23-ref-reset.bin", "APP_LPM-10RX_PN1.23-mains-tone-update.bin"]
 for old in os.listdir(HERE):
     if old.endswith(".bin") and old not in names:
         os.remove(os.path.join(HERE, old))

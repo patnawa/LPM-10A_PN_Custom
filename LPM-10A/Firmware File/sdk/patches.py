@@ -2029,3 +2029,9 @@ _register_cable_clear(patch)
 
 from cable_values import register as _register_cable_values
 _register_cable_values(patch)
+
+from length_ref_anytime import register as _register_length_ref_anytime
+_register_length_ref_anytime(patch)
+
+from length_ref_reset import register as _register_length_ref_reset
+_register_length_ref_reset(patch)

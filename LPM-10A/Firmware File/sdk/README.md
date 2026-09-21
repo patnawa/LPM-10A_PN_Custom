@@ -7,7 +7,7 @@ and compares it with the published digest. `--profile pn2.14` (or the old alias 
 below) reproduces the release or any earlier version; `--default` builds the frozen
 baseline that `verify.py` models. Custom builds (`--only`, `--with`, `--all`) need `--out`.
 
-**PN 2.15 … 2.21 (PN 2.21 the release, every step on the owner's unit 2026-09-21):** one module each on top of PN 2.14 —
+**PN 2.15 … 2.23 (PN 2.23 the release, every step on the owner's unit 2026-09-21):** one module each on top of PN 2.14 —
 `length_progress.py` (run counter `1/4 … 4/4` on the Length Testing line),
 `about_values.py` (`BATT / NVP / ZERO` line on About), `speed_partner.py` (a Switch row on
 SPEED: the link partner's advertised speeds from IEEE registers 5 and 10) and
@@ -16,10 +16,13 @@ from it), `cable_test.py` (PN 2.19: the wire map reads eleven samples per pin an
 median, a real-short rule in Switch mode, "Not connected", the RX unit label; plus the
 `cable-diag` experiment that prints the deciding numbers, `--with cable-diag --out …`),
 `cable_clear.py` (PN 2.20: the message line is wiped before every test), `cable_values.py`
-(PN 2.21: the reading that decided each wire at its right end; the partner pin in Switch mode).
+(PN 2.21: the reading that decided each wire at its right end; the partner pin in Switch mode),
+`length_ref_anytime.py` (PN 2.22: REF reachable before a measurement; a REF dialled first is applied
+to the next result once), `length_ref_reset.py` (PN 2.23: REF starts at 10.0 m on every screen entry —
+PN 2.22 showed the RAM cell's power-up content, `REF 189.1`, on the unit).
 Each has a test file on the real screen / key / draw code under Unicorn, in English and
 Thai: `python -m unittest test_length_progress test_about_values test_speed_partner
-test_length_reference test_cable_test test_cable_clear test_cable_values -v`. See `../experimental/TX-PN2.16-2.18-README.txt`,
+test_length_reference test_cable_test test_cable_clear test_cable_values test_length_ref_anytime test_length_ref_reset -v`. See `../experimental/TX-PN2.16-2.18-README.txt`,
 `../experimental/TX-PN2.19-CABLE-README.txt` and
 [what is left on the TX](../../../docs/TX-NEXT-STEPS-2026-09-21.md).
 
@@ -129,7 +132,7 @@ needs `uharfbuzz`.
 python test_thumb.py            # assembler self-test
 python build.py --list          # what patches and profiles exist
 python build.py                 # dry run of the latest profile: prints every byte it would change
-python build.py --write         # emit the latest profile (experimental/LPM-10A-TX_PN2.21-cable-values.bin)
+python build.py --write         # emit the latest profile (experimental/LPM-10A-TX_PN2.23-ref-reset.bin, the release)
 python build.py --profile pn2.14 --write   # an earlier version (PN 2.14 was the release before PN 2.20)
 python build.py --default --write   # the frozen baseline, LPM-10A-TX_PN2.9.bin (unreleased, what verify.py models)
 python verify.py                # prove the baseline is what was intended
@@ -293,9 +296,9 @@ The assembler rejects anything it does not recognise rather than guessing, and
 The table above is the frozen baseline (`default=True`, what `verify.py` models). Everything since
 PN 2.9 is a module selected by a profile (`profiles.py`, `python build.py --list`): `roadmap.py`
 (service task, watchdog, calibration autosave, crash record), `portflash.py`, `audit_fixes.py`,
-`portflash_status.py`, `scan_sync.py` (retired), `scan_recovery.py`, and the PN 2.15 … 2.20 chain
+`portflash_status.py`, `scan_sync.py` (retired), `scan_recovery.py`, and the PN 2.15 … 2.23 chain
 `length_progress.py`, `about_values.py`, `speed_partner.py`, `length_reference.py`,
-`cable_test.py`, `cable_clear.py`, `cable_values.py`. Each module
+`cable_test.py`, `cable_clear.py`, `cable_values.py`, `length_ref_anytime.py`, `length_ref_reset.py`. Each module
 pins its parent image's SHA-256, writes its own version string and has its own test file.
 
 `risk=untested` patches are excluded unless you pass `--all`; they are things
@@ -365,7 +368,12 @@ OK hold also offers **REF** while a result is on screen: the header shows the
 measured length, UP/DOWN dial it to the cable's true length and every step
 solves `NVP = 69 × REF / (raw − 10 × Zero)` from the mean of the timed pairs
 (rounded, 50–99 %), so the long-cable step is one dial instead of a 1 %
-hunt; Zero is still set first.  NVP lives in settings byte 0xA6 and the
+hunt; Zero is still set first.  Without a result PN 2.18 skips REF (the hold
+goes ZERO → NVP); PN 2.22 / 2.23 (`length_ref_anytime.py`, `length_ref_reset.py`)
+always offer it, starting at 10.0 m on every screen entry, and apply a
+REF dialled beforehand to the next result, once.  The RAM arena is not initialised
+at power-up: a cell whose content is shown must be written on a known path first
+(PN 2.22's lesson, `REF 189.1`).  NVP lives in settings byte 0xA6 and the
 unit in 0xA7, free bytes the stock defaults writer zeroes; Zero lives in
 0xC5, struct padding that stock never touches, which the hooked defaults
 writer clears.  All three are flashed at power-off with the rest of the

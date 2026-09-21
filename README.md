@@ -15,15 +15,16 @@ Built by patching the shipped binaries — no vendor source — and verified by 
 
 | Device | Version | Download | File to copy |
 |---|---|---|---|
-| **TX** tester | **PN 2.21** | [Release v2.21](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.21) | `LPM-10A-TX_PN2.21-cable-values.bin` |
+| **TX** tester | **PN 2.23** | [Release v2.23](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.23) | `LPM-10A-TX_PN2.23-ref-reset.bin` |
 | **RX** probe | **PN 1.23** | [Release rx-v1.23](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.23) | `APP_LPM-10RX_PN1.23-mains-tone-update.bin` |
 
 Both are the builds running on the owner's unit (2026-09-21: RX PN 1.23 in all three modes; TX PN 2.19 every
-function, PN 2.20 the one fix it needed, PN 2.21 the readings on the Cable Test wires). The seven TX versions
-since PN 2.14 are one chain, each file the previous plus one patch. Each release carries its notes and a
-SHA-256 file. **TX and RX firmware are not interchangeable.** FNIRSI's own files are not redistributed here.
+function, PN 2.20 the one fix it needed, PN 2.21 the readings on the Cable Test wires, PN 2.23 the REF target
+before a measurement). The nine TX versions since PN 2.14 are one chain, each file the previous plus one
+patch. Each release carries its notes and a SHA-256 file. **TX and RX firmware are not interchangeable.**
+FNIRSI's own files are not redistributed here.
 
-> **สรุปภาษาไทย:** TX ใช้ PN 2.21, RX ใช้ PN 1.23 · TX อัปเดต: ปิดเครื่อง → กด **M + Power** ค้าง → เสียบ USB → ก๊อปปี้ไฟล์ ·
+> **สรุปภาษาไทย:** TX ใช้ PN 2.23, RX ใช้ PN 1.23 · TX อัปเดต: ปิดเครื่อง → กด **M + Power** ค้าง → เสียบ USB → ก๊อปปี้ไฟล์ ·
 > RX อัปเดต: ปิดเครื่อง → กด **SCAN** ค้าง → เสียบ USB → ไดรฟ์ `BOOTLOADER` → ก๊อปปี้ไฟล์ **`-update.bin`** ด้วย Explorer →
 > ไดรฟ์หายใน 1 วิ = เสร็จ · รายละเอียดและวิธีย้อนกลับ: [คู่มืออัปเดต RX](docs/RX-UPDATE-GUIDE.md)
 
@@ -31,12 +32,12 @@ SHA-256 file. **TX and RX firmware are not interchangeable.** FNIRSI's own files
 
 ### TX (tester)
 
-1. Check the download: `certutil -hashfile LPM-10A-TX_PN2.21-cable-values.bin SHA256` →
-   `23fbc3b4404c866dc8a7961ac7b1cf8ebcfb0bf3b4b2338c6f798d07db0a353e`
+1. Check the download: `certutil -hashfile LPM-10A-TX_PN2.23-ref-reset.bin SHA256` →
+   `8351bbf503d5360a1773b5caf5b574968719493bf961fc5de3015f76ca768528`
 2. Tester off. Hold **M + Power** until the firmware-update screen appears.
 3. Plug in USB-C; a removable drive appears.
 4. Copy the `.bin` onto the drive. Do not unplug while it writes.
-5. Long-press Power to shut down, then power on. Settings › About shows `Software:PN 2.21`.
+5. Long-press Power to shut down, then power on. Settings › About shows `Software:PN 2.23`.
 
 If the drive refuses the file, rename it exactly `LPM-10A-TX_V2.0.7_260610.bin` and copy again
 (some bootloaders match on the file name; the name inside the image is already the stock one).
@@ -73,7 +74,7 @@ explained: what stock does, what PN does, how it works and how it was checked.
 | Area | Stock | PN Custom |
 |---|---|---|
 | Length display | whole metres, cm forced on every entry | **m / cm / ft with one decimal**, unit remembered |
-| Cable calibration | none | **Zero 0.0–2.0 m and NVP 50–99 %** on the Length screen, saved (factory = 0.0 m / 69 %); **REF**: dial the known length of a cable and NVP is solved from it |
+| Cable calibration | none | **Zero 0.0–2.0 m and NVP 50–99 %** on the Length screen, saved (factory = 0.0 m / 69 %); **REF**: dial the known length of a cable and NVP is solved from it — after the measurement or before it |
 | Length stability | one TDR run (±0.3 m scatter at 14 m) | **four runs averaged per pair**; `~` marks pairs with fewer runs; the Testing line counts the runs `1/4 … 4/4` |
 | Blind pairs | `0.0 m` | **`< 2 m`** (`< 200 cm`, `< 7 ft`): the PHY cannot time echoes inside ~2 m |
 | Low battery | one sample < 3150 mV starts an uncancellable 30 s shutdown | three consecutive samples; cancels on recovery or charging |
@@ -87,7 +88,7 @@ explained: what stock does, what PN does, how it works and how it was checked.
 | Language | Chinese / English | **ไทย / English** on every screen; picker on first boot |
 | Font | thin serif | Ubuntu Sans Mono + Sarabun (Thai), rendered from the firmware's own layout tables |
 | Reliability | heap leak on settings save, timer-path logging, FP crash frame | fixed; watchdog on the service task; fault records kept across warm reset |
-| Identity | `Software:V2.0.7`, fnirsi.cn | `Software:PN 2.21`, this repository's URL, and `BATT / NVP / ZERO` on the About screen; bootloader-facing image name unchanged |
+| Identity | `Software:V2.0.7`, fnirsi.cn | `Software:PN 2.23`, this repository's URL, and `BATT / NVP / ZERO` on the About screen; bootloader-facing image name unchanged |
 
 ### TX (tester) — in detail
 
@@ -132,11 +133,13 @@ at 0.0 m / 69 %: `NVP = 69 × (L₂ − L₁) / (R₂ − R₁)`, `Zero = R₁ �
 settled at **Zero 0.4 m, NVP 68 %**. Worked example at those settings: run mean 1470 cm → 1470 − 40 = 1430
 → (1430 × 68 + 34) / 69 = 1409 → (1409 + 5) / 10 → **14.1 m**.
 
-**REF** (PN 2.18) does the long-cable step for you: with a result on screen, holding OK cycles NVP → ZERO →
-**REF**; REF starts at the measured length, UP / DOWN dial it to the cable's true length (0.1 m, 10 cm or
-0.1 ft per step) and every step solves `NVP = 69 × REF / (raw − 10·Zero)` from the mean of the timed pairs
-(rounded, 50–99 %), shows it in grey on the right and redraws the four readings. Zero stays the short-cable
-step; NVP is saved on leaving the screen as before.
+**REF** (PN 2.18, PN 2.22 / 2.23) does the long-cable step for you: holding OK cycles NVP → ZERO → **REF**.
+With a result on screen REF starts at the measured length, UP / DOWN dial it to the cable's true length
+(0.1 m, 10 cm or 0.1 ft per step) and every step solves `NVP = 69 × REF / (raw − 10·Zero)` from the mean of
+the timed pairs (rounded, 50–99 %), shows it in grey on the right and redraws the four readings. Without a
+result REF starts at 10.0 m: dial it to the cable's true length, press OK to measure (far end open) and the
+result is fitted to it once — the measurement after that is an ordinary one, a REF target left behind never
+re-fits NVP by itself. Zero stays the short-cable step; NVP is saved on leaving the screen as before.
 </details>
 
 <details>
@@ -319,7 +322,7 @@ hardware/RTOS boundaries.
 <details>
 <summary><b>Identity and the update file</b></summary>
 
-About reports `Software:PN 2.21` and this repository's URL instead of `V2.0.7` / fnirsi.cn, and since PN 2.16 one
+About reports `Software:PN 2.23` and this repository's URL instead of `V2.0.7` / fnirsi.cn, and since PN 2.16 one
 line under Factory Reset — `BATT 3874mV  NVP 68%  ZERO 0.4m` — the pack voltage and the Length calibration as
 stored. The
 container's internal image name stays FNIRSI's, because the bootloader may match on it. Since PN 2.3
@@ -489,7 +492,7 @@ LPM-10A/Firmware File/
   SHA256SUMS.txt                             checksums of the two files above
   README.md                                  what is in this folder
   FORMULA-AUDIT.md                           every measurement formula with verdicts: TX §1-6, receiver PN formulas §7
-  sdk/                                       TX toolkit: patch chain PN 2.9 → 2.21 (profiles.py), assembler, verifier, Thai UI, tests
+  sdk/                                       TX toolkit: patch chain PN 2.9 → 2.23 (profiles.py), assembler, verifier, Thai UI, tests
   rx-sdk/                                    RX toolkit: patch chain PN 1.0 → 1.23 (profiles.py), container, emulator, tests
   experimental/                              build outputs of every PN version (the test suites compare against them)
   archive/                                   earlier release copies and their notes (history only)

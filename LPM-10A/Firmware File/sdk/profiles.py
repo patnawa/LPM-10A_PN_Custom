@@ -21,7 +21,7 @@ from collections import OrderedDict
 
 import patches
 import roadmap, portflash, audit_fixes, portflash_status, scan_sync, scan_recovery, length_progress  # noqa: E401
-import about_values, speed_partner, length_reference, cable_test, cable_clear, cable_values  # noqa: E401
+import about_values, speed_partner, length_reference, cable_test, cable_clear, cable_values, length_ref_anytime, length_ref_reset  # noqa: E401
 
 
 class Profile:
@@ -97,7 +97,13 @@ _CHAIN = [
      "on the owner's unit 2026-09-21: the retry check passes (release v2.20; superseded by PN 2.21)"),
     ("pn2.21", "cable-values",     cable_values,     "pn2.20", "experimental/LPM-10A-TX_PN2.21-cable-values.bin",
      "PN 2.21 Cable Test: every wire ends with the reading that decided it (partner pin in switch mode)",
-     "on the owner's unit 2026-09-21, both modes with retries (release v2.21); the owner asked for the diag numbers"),
+     "on the owner's unit 2026-09-21, both modes with retries (release v2.21; superseded by PN 2.23); the owner asked for the diag numbers"),
+    ("pn2.22", "length-ref-anytime", length_ref_anytime, "pn2.21", "experimental/LPM-10A-TX_PN2.22-ref-anytime.bin",
+     "PN 2.22 Length: REF reachable before a measurement; a REF dialled first is applied to the next result",
+     "flashed 2026-09-21: the first REF without a result read 'REF 189.1' (the RAM cell's power-up content is in range) -> PN 2.23"),
+    ("pn2.23", "length-ref-reset",   length_ref_reset,   "pn2.22", "experimental/LPM-10A-TX_PN2.23-ref-reset.bin",
+     "PN 2.23 Length: REF starts at 10.0 m on every screen entry (PN 2.22 showed the RAM cell's power-up content)",
+     "on the owner's unit 2026-09-21: REF 10.0 the first time, the fit works (release v2.23)"),
 ]
 
 PROFILES = OrderedDict((n, Profile(n, *rest)) for n, *rest in _CHAIN)

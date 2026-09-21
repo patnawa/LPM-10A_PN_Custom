@@ -40,8 +40,14 @@ the release (`docs/releases/v2.20.md`). **PN 2.21 candidate** (`cable-values`, s
 diag build's numbers, so the reading that decided each wire is drawn at its right end in the wire's colour — the
 partner pin and reading in Switch mode (a swapped single wire shows the wrong letter), the ladder value in RX unit
 mode; no decision changes (`test_cable_values.py`). Passed on the unit the same day — release v2.21
-(`docs/releases/v2.21.md`). The chain PN 2.15 → … → 2.21 stays one patch per file in `experimental/` for bisecting; device notes in `experimental/TX-PN2.16-2.18-README.txt`, `TX-PN2.19-CABLE-README.txt` and the
-release's `TX-PN2.20-README.txt`.
+(`docs/releases/v2.21.md`). **PN 2.22** (candidate, `length_ref_anytime.py`): the owner's first use of REF hit
+PN 2.18's silent skip (no result on screen → the hold goes ZERO → NVP); the hold now always offers REF, and a
+REF dialled before a measurement is applied to the next result once (`test_length_ref_anytime.py`, the whole
+sequence with a simulated PHY). On the unit PN 2.22's first REF read `REF 189.1` — the RAM cell's power-up content,
+kept because it was within 1 … 300 m — so **PN 2.23** (`length_ref_reset.py`) writes 10.0 m into it on every screen
+entry; passed on the unit the same evening — release v2.23 (`docs/releases/v2.23.md`). The chain PN 2.15 → … → 2.23
+stays one patch per file in `experimental/` for bisecting; device notes in `experimental/TX-PN2.16-2.18-README.txt`,
+`TX-PN2.19-CABLE-README.txt`, `TX-PN2.22-2.23-REF-README.txt` and the release's `TX-PN2.23-README.txt`.
 
 ## Where there is no room (checked, so nobody chases them)
 

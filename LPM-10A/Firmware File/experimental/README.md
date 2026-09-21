@@ -1,6 +1,21 @@
 # Experimental builds
 
-**TX PN 2.21 (2026-09-21, the release):** the owner liked the
+**TX PN 2.22 / 2.23 (2026-09-21; PN 2.23 the release):** on PN 2.21 the
+owner held OK on the Length screen and saw ZERO go back to NVP instead of REF — PN 2.18 offered REF only
+while a result was on screen and skipped it silently otherwise. PN 2.22 makes the hold always cycle
+NVP → ZERO → REF: with a result, REF starts at the measured length and every step solves NVP as before;
+without one, REF starts at 10.0 m, UP / DOWN dial it, and the next measurement is fitted to it once — the
+measurement after that is an ordinary one, so a REF target left behind never re-fits NVP by itself.
+On the unit PN 2.22's first REF read `REF 189.1`: it kept whatever the REF RAM cell held at power-up
+whenever that was within 1 … 300 m. **PN 2.23** writes 10.0 m into the cell on every entry to the Length
+screen; passed on the unit the same evening. [TX PN 2.23](LPM-10A-TX_PN2.23-ref-reset.bin) (also the file at the
+top of the Firmware File folder and in release v2.23; [checksum](TX-PN2.23-SHA256SUMS.txt)),
+[TX PN 2.22](LPM-10A-TX_PN2.22-ref-anytime.bin) ([checksum](TX-PN2.22-SHA256SUMS.txt)),
+[notes and the on-unit checklist](TX-PN2.22-2.23-REF-README.txt), `sdk/test_length_ref_anytime.py` (7 tests:
+the whole measurement with a simulated PHY, the keys through the real dispatcher, the drawing through the
+real GUI task) and `test_length_ref_reset.py` (8: the same on PN 2.23, plus the 189.1 reproduced and gone).
+
+**TX PN 2.21 (2026-09-21, on the unit; superseded by 2.23):** the owner liked the
 diag build's numbers — they tell the state of the cable, not just pass / fail — so PN 2.21 puts
 the reading that decided each wire at its right end, in the wire's colour: Switch mode
 `2   60` (the partner pin through the switch and the reading; `- 4037` = nothing reached), RX unit
@@ -8,9 +23,8 @@ mode `1655` (the ladder value = the remote pin: 1655 pin 1 … 3679 pin 8, 3900 
 single wire shows the wrong partner letter where stock only draws green; a crossover cable reads
 like a straight one in Switch mode (whole pairs are swapped, as in stock) and shows its crossing
 lines and values in RX unit mode. No change to any decision. Passed on the owner's unit the same day.
-[TX PN 2.21](LPM-10A-TX_PN2.21-cable-values.bin) (also the file at the top of the Firmware File folder
-and in release v2.21), [checksum](TX-PN2.21-SHA256SUMS.txt), `sdk/test_cable_values.py` (6 tests on the
-real routines with simulated far ends and hum).
+[TX PN 2.21](LPM-10A-TX_PN2.21-cable-values.bin) (release v2.21), [checksum](TX-PN2.21-SHA256SUMS.txt),
+`sdk/test_cable_values.py` (6 tests on the real routines with simulated far ends and hum).
 
 **TX PN 2.20 (2026-09-21, on the unit; superseded by 2.21):** PN 2.19 passed every function on the owner's unit; its
 one report — the "Not connected" of an earlier unplugged test staying on screen after a Test Retry

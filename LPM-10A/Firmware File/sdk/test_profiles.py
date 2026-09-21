@@ -36,7 +36,9 @@ PINNED = {
     "pn2.18":   ("b5538e723044e540b497f37de2550bb715ec9113316a683600e1d81b768c8a9f", None),
     "pn2.19":   ("8353e0b018d9ad2de7a98f3fe72ff8812dbc431504dbcf36adcc5b7fc080725d", None),
     "pn2.20":   ("9eaa0fdeded19a0f7c6bb77c386c8abad9ab8d9a4720341d7ec2a79a03866d02", None),
-    "pn2.21":   ("23fbc3b4404c866dc8a7961ac7b1cf8ebcfb0bf3b4b2338c6f798d07db0a353e", "LPM-10A-TX_PN2.21-cable-values.bin"),
+    "pn2.21":   ("23fbc3b4404c866dc8a7961ac7b1cf8ebcfb0bf3b4b2338c6f798d07db0a353e", None),
+    "pn2.22":   ("371ed6e2ff8e7aa303a917ddc012f3871bb54c5ffa2f1af96a254db85a0b7c7a", None),
+    "pn2.23":   ("8351bbf503d5360a1773b5caf5b574968719493bf961fc5de3015f76ca768528", "LPM-10A-TX_PN2.23-ref-reset.bin"),
 }
 VERSION_SLOTS = (0x08011660, 0x08012E6C)        # About screen, boot log (patches.p_version)
 
@@ -98,7 +100,7 @@ class ProfileChain(unittest.TestCase):
         for prof in PROFILES.values():
             self.assertTrue(prof.parent is None or prof.parent in PROFILES, prof.name)
         self.assertEqual(list(PROFILES)[-1], LATEST)
-        self.assertEqual(LATEST, "pn2.21")
+        self.assertEqual(LATEST, "pn2.23")
         self.assertEqual({p.flag for p in PROFILES.values()}, set(BY_FLAG))
 
     def test_each_profile_adds_exactly_its_own_patches(self):
