@@ -44,7 +44,8 @@ cable-diag (not in any profile; `--with cable-diag --out ...`): the result scree
 prints, on every row, the lowest median among the eight sensed pins, which pin it was
 and that pin's highest sample -- the numbers that decide the result.  For the owner's
 four measurements: nothing plugged in, a cable open at the far end, the cable in a
-switch, the cable in the RX unit.
+switch, the cable in the RX unit. On PN 2.21 and later these diagnostic rows replace
+the compact cable-values rows, so the two text formats do not overlap.
 """
 import hashlib
 import struct
@@ -233,9 +234,10 @@ def register(patch):
            risk='low', default=False, group='measure', requires=(PATCH_ID,))
     def cable_diag(img):
         release, med, hi = img.cable['release'], img.cable['med'], img.cable['hi']
+        previous = getattr(img, 'cable_values', {}).get('hook', release)
         for site in RELEASE_SITES:
-            if img.read(site, 4) != assemble(site, f'bl {release}'):
-                raise PatchError(f"cable-diag: 0x{site:08X} does not call cable-robust's release hook")
+            if img.read(site, 4) != assemble(site, f'bl {previous}'):
+                raise PatchError(f"cable-diag: 0x{site:08X} does not call the expected cable result hook")
         diag = img.emit_code(f'''
         diag:                           ; after the result is drawn: per driven pin, the deciding numbers
                 push {{r4, r5, r6, r7, lr}}
@@ -314,6 +316,6 @@ def register(patch):
         fmt_row: .asciz "?%5d%5d"
         ''', extra_syms=dict(MED=med, HI=hi), why='Cable Test diag: lowest median, its pin, that pin\'s highest sample')
         for site in RELEASE_SITES:
-            img.poke(site, assemble(site, f'bl {release}').hex(), assemble(site, f'bl {diag}'),
+            img.poke(site, assemble(site, f'bl {previous}').hex(), assemble(site, f'bl {diag}'),
                      'wire map: print the deciding numbers per row')
         img.cable['diag'] = diag

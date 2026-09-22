@@ -2035,3 +2035,29 @@ _register_length_ref_anytime(patch)
 
 from length_ref_reset import register as _register_length_ref_reset
 _register_length_ref_reset(patch)
+
+from speed_partner_validity import register as _register_speed_partner_validity
+_register_speed_partner_validity(patch)
+
+
+def _register_release_stage(module_name, title, parent_id):
+    # These standalone builders import profiles to construct their historical
+    # parents. Import only while applying a completed profile, never while
+    # constructing the registry. Each apply() keeps its exact-parent digest.
+    @patch(module_name.replace('_', '-'), title, risk='low', default=False,
+           group='release', requires=(parent_id,))
+    def release_stage(img):
+        from importlib import import_module
+        return import_module(module_name).apply(img)
+
+
+_register_release_stage('qc_continuity', 'QC: continuous acquisition and transactional Init',
+                        'speed-partner-validity')
+_register_release_stage('qc_classic', 'QC: classic screen with automatic testing and selective redraw',
+                        'qc-continuity')
+_register_release_stage('length_integrity', 'Length lifecycle, REF and progress guards; qualify QC passes',
+                        'qc-classic')
+_register_release_stage('qc_timing', 'QC: normalize counts to actual elapsed time and migrate calibration',
+                        'length-integrity')
+_register_release_stage('qc_display', 'QC: correct entry artwork ordering and reject stale bitmaps',
+                        'qc-timing')

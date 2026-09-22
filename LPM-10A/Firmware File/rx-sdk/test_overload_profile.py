@@ -43,10 +43,7 @@ class OverloadProfile(unittest.TestCase):
                     ('--overload', '--only', 'rx-overload'),
                     ('--only', 'rx-overload'),
                     ('--only', 'rx-overload', '--write'),
-                    ('--only', 'rx-tracking,rx-overload'),
-                    ('--only', 'rx-overload,rx-sync', '--out', 'bench/rx.bin'),
-                    ('--only', 'rx-overload,rx-tracking,rx-sync', '--out', 'bench/rx.bin'),
-                    ('--all', '--out', 'bench/rx.bin')]
+                    ('--only', 'rx-tracking,rx-overload')]
         for args in invalid:
             with self.subTest(args=args), patch('sys.argv', ['build.py', *args]), \
                  patch.object(build, 'Image') as loader, contextlib.redirect_stderr(io.StringIO()):
@@ -55,8 +52,16 @@ class OverloadProfile(unittest.TestCase):
                 self.assertEqual(error.exception.code, 2)
                 loader.assert_not_called()
 
+    def test_incompatible_custom_ancestry_rejects_before_writing(self):
+        for args, failed_patch in (
+                (('--only', 'rx-overload,rx-sync', '--out', 'bench/rx.bin'), 'rx-sync'),
+                (('--only', 'rx-overload,rx-tracking,rx-sync', '--out', 'bench/rx.bin'), 'rx-sync'),
+                (('--all', '--out', 'bench/rx.bin'), 'rx-tracking')):
+            with self.subTest(args=args):
+                test_robust_profile.assert_custom_rejected(self, args, failed_patch)
+
     def test_earlier_profiles_do_not_include_overload(self):
-        for args in ((), ('--roadmap',), ('--audit',), ('--followup',), ('--precision',),
+        for args in (('--default',), ('--roadmap',), ('--audit',), ('--followup',), ('--precision',),
                      ('--pinpoint',), ('--robust',), ('--sync',), ('--tracking',)):
             selected, _ = self.select(*args)
             self.assertNotIn('rx-overload', selected)

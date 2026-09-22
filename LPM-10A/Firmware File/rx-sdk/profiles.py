@@ -11,6 +11,7 @@ Adding PN 1.x: write the module (PATCHES, OUTPUT, PARENT_SHA256, apply, register
 register it at the end of rx_patches.py, and append one Profile line here.
 """
 from collections import OrderedDict
+from lpm10rx.image import PatchError
 
 import rx_patches
 import audit_fixes, followup_fixes, precision_fixes, pinpoint_fixes, robust_fixes  # noqa: E401
@@ -39,8 +40,14 @@ class Profile:
 
     def patch_ids(self):
         ids = set(self.own_patches)
+        seen = {self.name}
         p = self.parent
         while p is not None:
+            if p not in PROFILES:
+                raise PatchError(f"profile {self.name}: unknown parent {p!r}")
+            if p in seen:
+                raise PatchError(f"profile {self.name}: cyclic parent chain at {p!r}")
+            seen.add(p)
             ids |= PROFILES[p].own_patches
             p = PROFILES[p].parent
         return ids
@@ -78,6 +85,11 @@ LATEST = list(PROFILES)[-1]
 def apply_profile(img, profile, log=None):
     """Apply every patch of the profile in registry order, then its version tag."""
     ids = profile.patch_ids()
+    registered = [p.pid for p in rx_patches.REGISTRY]
+    missing = ids - set(registered)
+    duplicate = {pid for pid in ids if registered.count(pid) > 1}
+    if missing or duplicate:
+        raise PatchError(f"profile {profile.name}: missing patches {sorted(missing)}, duplicate patches {sorted(duplicate)}")
     for p in rx_patches.REGISTRY:
         if p.pid in ids:
             before = len(img.log)

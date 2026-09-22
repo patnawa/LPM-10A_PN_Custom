@@ -29,9 +29,7 @@ class TrackingProfile(unittest.TestCase):
     def test_invalid_selectors_reject_before_loading(self):
         invalid = [('--tracking',flag) for flag in ('--sync','--robust','--pinpoint',
                    '--precision','--followup','--audit','--roadmap','--all')]
-        invalid += [('--tracking','--only',''),('--only','rx-tracking'),
-                    ('--only','rx-tracking,rx-sync','--out','bench/rx.bin'),
-                    ('--all','--out','bench/rx.bin')]
+        invalid += [('--tracking','--only',''),('--only','rx-tracking')]
         for args in invalid:
             with self.subTest(args=args),patch('sys.argv',['build.py',*args]), \
                  patch.object(build,'Image') as loader,contextlib.redirect_stderr(io.StringIO()):
@@ -40,8 +38,15 @@ class TrackingProfile(unittest.TestCase):
                 self.assertEqual(error.exception.code,2)
                 loader.assert_not_called()
 
+    def test_incompatible_custom_ancestry_rejects_before_writing(self):
+        for args, failed_patch in (
+                (('--only', 'rx-tracking,rx-sync', '--out', 'bench/rx.bin'), 'rx-sync'),
+                (('--all', '--out', 'bench/rx.bin'), 'rx-tracking')):
+            with self.subTest(args=args):
+                test_robust_profile.assert_custom_rejected(self, args, failed_patch)
+
     def test_earlier_profiles_do_not_include_tracking(self):
-        for args in ((),('--roadmap',),('--audit',),('--followup',),('--precision',),
+        for args in (('--default',),('--roadmap',),('--audit',),('--followup',),('--precision',),
                      ('--pinpoint',),('--robust',),('--sync',)):
             selected,_ = self.select(*args)
             self.assertNotIn('rx-tracking',selected)

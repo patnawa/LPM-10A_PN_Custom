@@ -1,6 +1,10 @@
 import os
 import struct
 import unittest
+import contextlib
+import io
+import tempfile
+from pathlib import Path
 
 from lpm10rx import container
 
@@ -32,6 +36,37 @@ class ContainerTests(unittest.TestCase):
             container.wrap(self.raw, "x" * 32)
         with self.assertRaises(ValueError):
             container.wrap(b"abc")
+
+    def test_rejects_empty_and_unaligned_payload_headers(self):
+        for length in (0, 1, 3, 5):
+            with self.subTest(length=length):
+                broken = bytearray(container.wrap(b"\0" * 8))
+                struct.pack_into("<II", broken, 0x24, length, 0x1000 + length - 1)
+                with self.assertRaises(ValueError):
+                    container.unwrap(broken)
+
+    def test_rejects_truncated_or_extra_zero_padding(self):
+        valid = container.wrap(self.raw)
+        for broken in (valid[:-1], valid[:0x1000 + len(self.raw)], valid + b"\0", valid + bytes(0x1000)):
+            with self.subTest(size=len(broken)), self.assertRaises(ValueError):
+                container.unwrap(broken)
+
+    def test_rejects_malformed_names(self):
+        for name in (b"\0" * 32, b"X" * 32, b"name\0junk".ljust(32, b"\0"), b"\xff\0".ljust(32, b"\0")):
+            broken = bytearray(container.wrap(self.raw))
+            broken[:32] = name
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                container.unwrap(broken)
+        with self.assertRaises(ValueError):
+            container.wrap(self.raw, "valid\0hidden")
+
+    def test_check_exits_nonzero_for_an_invalid_container(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "fixture.bin"
+            for data, status in ((container.wrap(self.raw), 0), (self.raw, 1), (b"", 1)):
+                path.write_bytes(data)
+                with self.subTest(status=status), contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(container._main(["check", str(path)]), status)
 
     def test_matches_the_device_accepted_container_if_present(self):
         # The exact file the owner's probe programmed on 2026-09-21 (payload = stock

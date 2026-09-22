@@ -39,8 +39,7 @@ class AudioClockProfile(unittest.TestCase):
         invalid += [('--audio-clock', '--only', ''),
                     ('--audio-clock', '--only', 'rx-audio-clock'),
                     ('--only', 'rx-audio-clock'),
-                    ('--only', 'rx-audio-clock', '--write'),
-                    ('--only', 'rx-audio-clock,rx-sync', '--out', 'bench/rx.bin')]
+                    ('--only', 'rx-audio-clock', '--write')]
         for args in invalid:
             with self.subTest(args=args), patch('sys.argv', ['build.py', *args]), \
                     patch.object(build, 'Image') as loader, contextlib.redirect_stderr(io.StringIO()):
@@ -48,6 +47,10 @@ class AudioClockProfile(unittest.TestCase):
                     build.main()
                 self.assertEqual(error.exception.code, 2)
                 loader.assert_not_called()
+
+    def test_incompatible_custom_ancestry_rejects_before_writing(self):
+        test_robust_profile.assert_custom_rejected(
+            self, ('--only', 'rx-audio-clock,rx-sync', '--out', 'bench/rx.bin'), 'rx-sync')
 
     def test_preserved_profiles_exclude_audio_clock(self):
         for args in ((), ('--roadmap',), ('--audit',), ('--followup',), ('--precision',),

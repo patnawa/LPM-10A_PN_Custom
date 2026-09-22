@@ -4,6 +4,8 @@ The assembler is only trustworthy if an independent disassembler agrees with
 it, so every encoder here is checked against Capstone's view of the bytes.
 """
 import sys, os
+import struct
+import unittest
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lpm10a.thumb import assemble, verify, AsmError
 
@@ -48,6 +50,8 @@ CASES = [
     ("add r0, r9",               "add r0, sb"),   # Capstone prints r9 as its alias "sb"
     ("lsls r0, r1, #4",          "lsls r0, r1, #4"),
     ("lsrs r0, r1, #31",         "lsrs r0, r1, #0x1f"),
+    ("lsrs r0, r1, #32",         "lsrs r0, r1, #0x20"),
+    ("lsls r0, r1, #0",          "movs r0, r1"),
     ("ands r0, r1",              "ands r0, r1"),
     ("orrs r0, r1",              "orrs r0, r1"),
     ("bics r0, r1",              "bics r0, r1"),
@@ -74,19 +78,6 @@ CASES = [
     ("udiv r0, r0, r1",          "udiv r0, r0, r1"),
 ]
 
-fails = 0
-
-print("=== single-instruction round trip ===")
-for src, want in CASES:
-    code = assemble(ORG, src)
-    dis = verify(code, ORG)
-    got = dis[0][2] if dis else "<undecodable>"
-    ok = got == want
-    fails += not ok
-    print(f"  [{'ok' if ok else 'FAIL'}] {src:24} -> {code.hex():12} {got}"
-          + ("" if ok else f"   (expected {want})"))
-
-print("\n=== branches resolve to the right target ===")
 BR = [
     ("b",   "b     0x%x" % (ORG + 0x20)),
     ("bl",  "bl    0x%x" % 0x0800F9C0),
@@ -95,61 +86,107 @@ BR = [
     ("cbz", "cbz   r0, 0x%x" % (ORG + 0x10)),
     ("cbnz","cbnz  r3, 0x%x" % (ORG + 0x40)),
 ]
-for mn, src in BR:
-    code = assemble(ORG, src)
-    addr, hexs, text = verify(code, ORG)[0]
-    want_target = int(src.split("0x")[1], 16)
-    got_target = int(text.split("#")[-1].split("0x")[-1], 16) if "#" in text else None
-    ok = got_target == want_target and text.split()[0] == mn.replace(".w", ".w")
-    fails += not ok
-    print(f"  [{'ok' if ok else 'FAIL'}] {src:28} -> {hexs:10} {text}")
 
-print("\n=== literal pool ===")
-src = """
-        push {r4, lr}
-        ldr  r0, =0x20000178
-        ldr  r1, =0xDEADBEEF
-        ldr  r2, =0x20000178
-        movs r3, #0
-        strh r3, [r0]
-        pop  {r4, pc}
-"""
-code = assemble(ORG, src)
-print(f"  {len(code)} bytes")
-for a, hx, t in verify(code, ORG):
-    print(f"    0x{a:08x}: {hx:10} {t}")
-import struct
-pool = [struct.unpack_from("<I", code, i)[0] for i in range(len(code) - 8, len(code), 4)]
-ok = pool == [0x20000178, 0xDEADBEEF]
-fails += not ok
-print(f"  [{'ok' if ok else 'FAIL'}] pool deduplicated: {[hex(x) for x in pool]}")
 
-print("\n=== labels and forward/backward refs ===")
-src = """
-top:
-        movs r0, #0
-        cmp  r0, #1
-        beq  done
-        b    top
-done:
-        bx   lr
-"""
-code = assemble(ORG, src)
-dis = verify(code, ORG)
-for a, hx, t in dis:
-    print(f"    0x{a:08x}: {hx:10} {t}")
-ok = (f"0x{ORG+8:x}" in dis[2][2]) and (f"0x{ORG:x}" in dis[3][2])
-fails += not ok
-print(f"  [{'ok' if ok else 'FAIL'}] beq->done, b->top resolved")
+class ThumbTests(unittest.TestCase):
+    def test_single_instruction_round_trip(self):
+        for source, expected in CASES:
+            with self.subTest(source=source):
+                code = assemble(ORG, source)
+                dis = verify(code, ORG)
+                self.assertEqual(len(dis), 1)
+                self.assertEqual(dis[0][2], expected)
+                self.assertEqual(len(bytes.fromhex(dis[0][1])), len(code))
 
-print("\n=== rejects what it does not understand ===")
-for bad in ["frobnicate r0, r1", "movs r0, #256", "strh r0, [r1, #3]", "push {r4, r8}"]:
-    try:
-        assemble(ORG, bad)
-        print(f"  [FAIL] {bad!r} was silently accepted")
-        fails += 1
-    except AsmError as e:
-        print(f"  [ok]   {bad:26} rejected: {e}")
+    def test_branches_reach_the_requested_target(self):
+        for mnemonic, source in BR:
+            with self.subTest(source=source):
+                text = verify(assemble(ORG, source), ORG)[0][2]
+                self.assertEqual(text.split()[0], mnemonic)
+                self.assertEqual(int(text.split("#")[-1], 16),
+                                 int(source.split("0x")[1], 16))
 
-print("\n" + ("ALL TESTS PASSED" if not fails else f"{fails} FAILURE(S)"))
-sys.exit(1 if fails else 0)
+    def test_literal_pool_deduplicated_and_loads_reach_it(self):
+        code = assemble(ORG, """
+            push {r4, lr}
+            ldr r0, =0x20000178
+            ldr r1, =0xDEADBEEF
+            ldr r2, =0x20000178
+            movs r3, #0
+            strh r3, [r0]
+            pop {r4, pc}
+        """)
+        self.assertEqual(struct.unpack_from("<II", code, len(code) - 8),
+                         (0x20000178, 0xDEADBEEF))
+        for offset, expected in ((2, 0x20000178), (4, 0xDEADBEEF), (6, 0x20000178)):
+            opcode = struct.unpack_from("<H", code, offset)[0]
+            target = ((ORG + offset + 4) & ~3) + (opcode & 255) * 4
+            self.assertEqual(struct.unpack_from("<I", code, target - ORG)[0], expected)
+
+    def test_labels_and_forward_backward_references(self):
+        code = assemble(ORG, """
+        top:
+            movs r0, #0
+            cmp r0, #1
+            beq done
+            b top
+        done:
+            bx lr
+        """)
+        dis = verify(code, ORG)
+        self.assertEqual(dis[2][2], f"beq #0x{ORG + 8:x}")
+        self.assertEqual(dis[3][2], f"b #0x{ORG:x}")
+
+    def test_invalid_operands_are_rejected_instead_of_misassembled(self):
+        for source in (
+            "frobnicate r0, r1", "movs r0, #256", "strh r0, [r1, #3]",
+            "push {r4, r8}", "push {r0, r0}", "pop {r2, r2}",
+            "push {r0-r3, r2}", "push {r3-r0}", "pop {}",
+            "movw r0, #65536", "movt r0, #-1", "lsrs r0, r1, #0",
+            "lsrs r0, r1, #33", "lsls r0, r1, #32",
+        ):
+            with self.subTest(source=source), self.assertRaises(AsmError):
+                assemble(ORG, source)
+
+    def test_invalid_layout_cannot_corrupt_branch_targets(self):
+        for directive in (".space -2", ".space", ".align 0", ".align -4", ".align 3"):
+            with self.subTest(directive=directive), self.assertRaises(AsmError):
+                assemble(ORG, f"b target\n{directive}\ntarget: bx lr")
+        with self.assertRaises(AsmError):
+            assemble(ORG, "target: nop\nb target\ntarget: bx lr")
+
+    def test_unsupported_addressing_and_extra_operands_are_rejected(self):
+        # A post-index store must not silently become a non-updating store.
+        # Likewise a three-register ALU operation must not become a two-register
+        # operation with a different destination/input relationship.
+        for source in (
+            "str r0, [r1], #4", "ldr r0, [r1], #4",
+            "ands r0, r1, r2", "orrs r0, r1, r2",
+            "mov r0, r1, r2", "cmp r0, r1, r2", "nop r0",
+            "movs r0, #1, #2", "adds r0, #1, #2, #3",
+            "mul r0, r1, r2, r3", "mls r0, r1, r2, r3, r4",
+            "b 0x08067ca0, r0", "bx lr, r0", "mrs r0, primask, r1",
+        ):
+            with self.subTest(source=source), self.assertRaises(AsmError):
+                assemble(ORG, source)
+
+    def test_missing_operands_raise_assembly_errors(self):
+        for source in (
+            "mov", "mov r0", "str r0", "mul r0, r1", "mls r0, r1, r2",
+            "b", "bx", "mrs r0", "cbz r0", "mov r0, r1,",
+            "mov r0,, r1", "str r0, [r1",
+        ):
+            with self.subTest(source=source), self.assertRaises(AsmError):
+                assemble(ORG, source)
+
+    def test_valid_alignment_keeps_branch_target_on_instruction(self):
+        for alignment in (2, 4, 8, 16):
+            with self.subTest(alignment=alignment):
+                code = assemble(ORG, f"b target\n.align {alignment}\ntarget: bx lr")
+                target = int(verify(code[:2], ORG)[0][2].split("#")[-1], 16)
+                self.assertEqual(target % alignment, 0)
+                self.assertEqual(code[target - ORG:], bytes.fromhex("7047"))
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,6 +1,16 @@
 # Experimental builds
 
-**TX PN 2.22 / 2.23 (2026-09-21; PN 2.23 the release):** on PN 2.21 the
+**TX PN2.26 release (2026-09-22):** the owner reports all functions passed on
+the tester. [Firmware](LPM-10A-TX_PN2.26-qc-display.bin),
+[release notes](TX-PN2.26-README.txt), [SHA256](TX-PN2.26-SHA256SUMS.txt).
+It retains the classic automatic QC screen, normalizes measurement timing,
+fixes the Init prompt overlap, and includes Length lifecycle/REF/progress
+corrections. If QC requests Init, disconnect all cables and hold Right.
+The default build reproduces this exact release; Q, R, PN2.24 and PN2.25
+remain here as historical steps. See the
+[device report and visual regression](../../../docs/TX-QC-DISPLAY-PN2.26-2026-09-22.md).
+
+**TX PN 2.22 / 2.23 (2026-09-21; superseded by PN2.26):** on PN 2.21 the
 owner held OK on the Length screen and saw ZERO go back to NVP instead of REF — PN 2.18 offered REF only
 while a result was on screen and skipped it silently otherwise. PN 2.22 makes the hold always cycle
 NVP → ZERO → REF: with a result, REF starts at the measured length and every step solves NVP as before;
@@ -8,8 +18,8 @@ without one, REF starts at 10.0 m, UP / DOWN dial it, and the next measurement i
 measurement after that is an ordinary one, so a REF target left behind never re-fits NVP by itself.
 On the unit PN 2.22's first REF read `REF 189.1`: it kept whatever the REF RAM cell held at power-up
 whenever that was within 1 … 300 m. **PN 2.23** writes 10.0 m into the cell on every entry to the Length
-screen; passed on the unit the same evening. [TX PN 2.23](LPM-10A-TX_PN2.23-ref-reset.bin) (also the file at the
-top of the Firmware File folder and in release v2.23; [checksum](TX-PN2.23-SHA256SUMS.txt)),
+screen; passed on the unit the same evening. [TX PN 2.23](LPM-10A-TX_PN2.23-ref-reset.bin)
+(archived release v2.23; [checksum](TX-PN2.23-SHA256SUMS.txt)),
 [TX PN 2.22](LPM-10A-TX_PN2.22-ref-anytime.bin) ([checksum](TX-PN2.22-SHA256SUMS.txt)),
 [notes and the on-unit checklist](TX-PN2.22-2.23-REF-README.txt), `sdk/test_length_ref_anytime.py` (7 tests:
 the whole measurement with a simulated PHY, the keys through the real dispatcher, the drawing through the

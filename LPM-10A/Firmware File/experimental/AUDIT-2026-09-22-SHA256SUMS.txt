@@ -1,0 +1,3 @@
+007bbeff0deeca6a7d3df63ce4732a0f03350ae01cb3e6e541b067198fcec478  LPM-10A-TX_PN2.23S-speed-validity.bin
+0c000550e4143032070bed34ab62ff24ec18fe60d53824a81ecb3d77c4e7e8c0  APP_LPM-10RX_PN1.23F-gain-freshness.bin
+9822a28a85508cb7f62bb0339d36210a2d2a25bedc414387ce1948c0712e3bb9  APP_LPM-10RX_PN1.23F-gain-freshness-update.bin

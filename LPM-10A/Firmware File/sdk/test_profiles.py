@@ -9,13 +9,14 @@ import contextlib
 import hashlib
 import io
 import os
+import tempfile
 import unittest
 from unittest.mock import Mock, patch as mock_patch
 
-from lpm10a.image import Image
+from lpm10a.image import Image, PatchError
 import patches
 import build
-from profiles import PROFILES, LATEST, BY_FLAG, apply_profile, baseline_ids
+from profiles import PROFILES, LATEST, BY_FLAG, apply_profile, baseline_ids, profile_patches
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FW_DIR = os.path.dirname(HERE)
@@ -39,6 +40,12 @@ PINNED = {
     "pn2.21":   ("23fbc3b4404c866dc8a7961ac7b1cf8ebcfb0bf3b4b2338c6f798d07db0a353e", None),
     "pn2.22":   ("371ed6e2ff8e7aa303a917ddc012f3871bb54c5ffa2f1af96a254db85a0b7c7a", None),
     "pn2.23":   ("8351bbf503d5360a1773b5caf5b574968719493bf961fc5de3015f76ca768528", "LPM-10A-TX_PN2.23-ref-reset.bin"),
+    "pn2.23s":  ("007bbeff0deeca6a7d3df63ce4732a0f03350ae01cb3e6e541b067198fcec478", None),
+    "pn2.23q":  ("969c775eba1f40805f9e64325a4e0838edf39fa0e964652a47c1158d0f7d5115", None),
+    "pn2.23r":  ("cd94672633420a44e9bf9232de87adcc794cc57068035a260ffb6e4ffa35e8b4", None),
+    "pn2.24":   ("b3716f6538f8980c075fb85e925cb2ba1d86e46440174d450615fa98253131e7", None),
+    "pn2.25":   ("b6d407b662331bf4cf2fdb4f007a595cf75c61d31fa4986dea47d23aaf3c25ae", None),
+    "pn2.26":   ("c77579f018bb820532b3c5974ae63fbf04c4e60359188f7e39a8a8f9a1533df8", None),
 }
 VERSION_SLOTS = (0x08011660, 0x08012E6C)        # About screen, boot log (patches.p_version)
 
@@ -100,7 +107,7 @@ class ProfileChain(unittest.TestCase):
         for prof in PROFILES.values():
             self.assertTrue(prof.parent is None or prof.parent in PROFILES, prof.name)
         self.assertEqual(list(PROFILES)[-1], LATEST)
-        self.assertEqual(LATEST, "pn2.23")
+        self.assertEqual(LATEST, "pn2.26")
         self.assertEqual({p.flag for p in PROFILES.values()}, set(BY_FLAG))
 
     def test_each_profile_adds_exactly_its_own_patches(self):
@@ -119,6 +126,52 @@ class ProfileChain(unittest.TestCase):
                 if prof.name != "pn2.13":           # the retired Sync32 branch keeps its label
                     self.assertNotEqual(by_id[pid].risk, "untested", f"{prof.name}: {pid}")
         self.assertNotIn("scan-sync", PROFILES[LATEST].patch_ids())
+
+
+class ProfileExtras(unittest.TestCase):
+    """Use real patch functions: mocked CLI selection cannot catch parent-hash failures."""
+
+    def test_tuning_extras_change_only_the_requested_bytes_after_latest(self):
+        with contextlib.redirect_stdout(io.StringIO()):
+            base = Image(STOCK)
+            apply_profile(base, PROFILES[LATEST])
+            base.finalize()
+            for extra, site, replacement in (("blind-zone-50cm", 0x0801253A, b"\x32\x28"),
+                                               ("batt-grace", 0x0800E6EA, b"\x3c\x20")):
+                with self.subTest(extra=extra):
+                    img = Image(STOCK)
+                    applied = []
+                    apply_profile(img, PROFILES[LATEST], extra=(extra,),
+                                  log=lambda p, before: applied.append(p.pid))
+                    expected = bytearray(base.data)
+                    offset = base.f(site)
+                    expected[offset:offset + len(replacement)] = replacement
+                    self.assertEqual(bytes(img.finalize().data), bytes(expected))
+                    self.assertEqual(applied[-1], extra)
+
+    def test_invalid_api_extras_fail_before_any_image_changes(self):
+        for profile, extras in ((LATEST, ("no-such-patch",)),
+                                (LATEST, ("scan-sync",)),
+                                ("pn2.12", ("cable-diag",))):
+            with self.subTest(profile=profile, extras=extras), contextlib.redirect_stdout(io.StringIO()):
+                img = Image(STOCK)
+                with self.assertRaises(PatchError):
+                    apply_profile(img, PROFILES[profile], extra=extras)
+                self.assertEqual(bytes(img.data), img.original)
+                self.assertEqual(img.log, [])
+                self.assertEqual(img.ram_allocs, [])
+
+    def test_repeated_profile_patch_in_extras_is_applied_once(self):
+        selected = profile_patches(PROFILES[LATEST], ("length-ref-reset", "length-ref-reset"))
+        self.assertEqual([p.pid for p in selected],
+                         [p.pid for p in patches.REGISTRY if p.pid in PROFILES[LATEST].patch_ids()])
+
+    def test_real_cli_builds_documented_custom_examples(self):
+        for extra in ("blind-zone-50cm", "batt-grace", "cable-diag", "speed-partner-validity"):
+            with self.subTest(extra=extra), mock_patch("sys.argv", ["build.py", "--with", extra]), \
+                    contextlib.redirect_stdout(io.StringIO()) as output:
+                result = build.main()
+            self.assertEqual(result, 0, output.getvalue())
 
 
 class BuildCli(unittest.TestCase):
@@ -155,6 +208,18 @@ class BuildCli(unittest.TestCase):
         applied, image = self.select()
         image.save.assert_not_called()
 
+    def test_real_default_and_explicit_latest_emit_the_device_tested_binary(self):
+        for selection in ((), ('--profile', 'pn2.26')):
+            with self.subTest(selection=selection), tempfile.TemporaryDirectory() as folder:
+                output = os.path.join(folder, 'tx.bin')
+                with mock_patch('sys.argv', ['build.py', *selection, '--out', output, '--write']), \
+                        contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(build.main(), 0)
+                with open(output, 'rb') as artifact:
+                    data = artifact.read()
+                self.assertEqual(hashlib.sha256(data).hexdigest(), PINNED['pn2.26'][0])
+                self.assertEqual(len(data), 401408)
+
     def test_default_is_the_frozen_baseline(self):
         applied, image = self.select("--default", "--write")
         self.assertEqual(applied, baseline_ids())
@@ -170,12 +235,12 @@ class BuildCli(unittest.TestCase):
 
     def test_with_adds_to_a_profile_or_the_baseline_and_needs_out_to_write(self):
         applied, image = self.select("--with", "blind-zone-50cm", "--out", "bench/x.bin", "--write")
-        self.assertEqual(applied, self.ordered(PROFILES[LATEST].patch_ids() | {"blind-zone-50cm"}))
+        self.assertEqual(applied, self.ordered(PROFILES[LATEST].patch_ids()) + ["blind-zone-50cm"])
         image.save.assert_called_once_with("bench/x.bin")
         applied, image = self.select("--default", "--with", "batt-grace", "--out", "bench/y.bin", "--write")
         self.assertEqual(applied, self.ordered(set(baseline_ids()) | {"batt-grace"}))
         applied, image = self.select("--profile", "pn2.12", "--with", "batt-grace")     # dry run needs no --out
-        self.assertEqual(applied, self.ordered(PROFILES["pn2.12"].patch_ids() | {"batt-grace"}))
+        self.assertEqual(applied, self.ordered(PROFILES["pn2.12"].patch_ids()) + ["batt-grace"])
         image.save.assert_not_called()
 
     def test_only_builds_exactly_the_listed_set(self):

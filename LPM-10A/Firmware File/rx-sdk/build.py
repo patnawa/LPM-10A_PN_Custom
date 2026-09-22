@@ -84,6 +84,8 @@ def main():
     if aliases:
         args.profile = aliases[0].name
     custom = args.only is not None or args.all
+    if args.only is not None and args.all:
+        ap.error("--only and --all are exclusive")
     if custom and (args.profile or args.default):
         ap.error("--only/--all build a custom set; do not combine them with a profile or --default")
     if custom and not args.out:
@@ -116,7 +118,11 @@ def main():
         print(f"profile {prof.name}: {prof.title}")
         print("EXPERIMENTAL V3.0.0-BASED RX IMAGE: bench validation and matching-device recovery required.")
 
-    img = Image(STOCK)
+    try:
+        img = Image(STOCK)
+    except PatchError as error:
+        print(f"REFUSING TO BUILD: {error}")
+        return 2
     sha = hashlib.sha256(img.original).hexdigest()
     print(f"stock size  : {len(img.original)} bytes, load 0x{S.APP_BASE:08X}")
     print(f"sha256      : {sha}")

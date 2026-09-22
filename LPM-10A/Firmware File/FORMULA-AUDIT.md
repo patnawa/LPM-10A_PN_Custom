@@ -201,6 +201,11 @@ once; `test_length_ref_reset.py` repeats it on PN 2.23 with 18910 in the cell.
 
 ---
 
+**PN2.24 follow-up:** retains the arithmetic above, but keeps a pending REF
+through an unusable result, binds Length work/messages to their visit/test,
+and redraws only the counter between averaging runs. See
+[the Length/QC report](../../docs/TX-LENGTH-QC-PN2.24-2026-09-22.md).
+
 ## 2. Link speed / duplex — `LENG_link_test` 0x0800D47C, `LENG_speed_result` 0x0801A9A8
 
 PHY register 0x11 (PHY-specific status) is read after auto-negotiation:
@@ -372,6 +377,40 @@ otherwise                → connected
 ```
 
 **OK** — a threshold test, no unit conversion involved.
+
+**PN2.23Q experiment (2026-09-22):** replaces the GUI scan call with a
+20-second sequence of bounded single-pin acquisitions, retained fault history,
+and staged five-sample calibration. The stock scheduler already requested QC
+once a second; it did not retain transient faults. See the
+[implementation and validation](../../docs/TX-QC-FLEX-PN2.23Q-2026-09-22.md).
+The stock formulas above still describe the released PN2.23 behavior.
+
+**PN2.23R follow-up:** owner feedback rejected Q's table and repeated blanking.
+R restores the original QC graphic with changed-pin-only rendering and
+continuous automatic acquisition; it keeps Q's calibration/session guards.
+See [the classic QC report](../../docs/TX-QC-CLASSIC-PN2.23R-2026-09-22.md).
+
+**PN2.24 follow-up:** a single synthetic 7-count dip below an unplugged
+baseline could light a passing pin on R. Three consecutive passing samples
+are now required for green; OPEN/CHECK revokes green immediately. The
+electrical threshold and calibration are unchanged. See
+[noise reproduction and hardware limits](../../docs/TX-LENGTH-QC-PN2.24-2026-09-22.md).
+
+**PN2.25 timing correction:** the native QC sampler returned raw TIM8 counts
+after a ten-tick task delay, making both calibration and live readings depend
+on the actual wake time. The new sampler normalizes to a nominal 10 ms using
+the measured SysTick interval and rejects counter overflow or invalid timing.
+Legacy baselines require an unplugged Init once after upgrade. The original
+decision threshold, classic screen and automatic testing remain. See
+[timing reproduction, arithmetic and validation](../../docs/TX-QC-TIMING-PN2.25-2026-09-22.md).
+
+**PN2.26 display correction:** the owner found a garbled QC entry on PN2.25.
+Queued connector artwork could paint over the Init prompt after baseline
+validation. PN2.26 orders those draws and rejects stale connector messages,
+retaining the timing correction and classic automatic screen. See
+[the reproduced framebuffer defect and correction](../../docs/TX-QC-DISPLAY-PN2.26-2026-09-22.md).
+The owner confirmed every PN2.26 function passed on the device on 2026-09-22;
+the exact tested image is now the default TX release.
 
 ### 4.1 Wire map (Cable Test) — far end 0x0800C4E0, switch 0x0800CB68 — **FIXED in the PN 2.19 candidate**
 

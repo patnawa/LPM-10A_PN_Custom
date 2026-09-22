@@ -5,7 +5,7 @@
 Unofficial firmware for the **FNIRSI LPM-10A** network cable tester (TX) and its tone probe (RX).
 Built by patching the shipped binaries — no vendor source — and verified by emulation and on a real unit.
 
-![tester](https://img.shields.io/badge/TX-PN%202.14-blue) ![receiver](https://img.shields.io/badge/RX-PN%201.23-blue) ![licence](https://img.shields.io/badge/licence-MIT-green)
+![tester](https://img.shields.io/badge/TX-PN%202.26-blue) ![receiver](https://img.shields.io/badge/RX-PN%201.23-blue) ![licence](https://img.shields.io/badge/licence-MIT-green)
 
 <img src="docs/img/hero.png" alt="LPM-10A PN Custom Firmware: TX PN 2.14, RX PN 1.23 — Length, PoE and tone screens rendered from the firmware's own draw code" width="1000">
 
@@ -15,16 +15,18 @@ Built by patching the shipped binaries — no vendor source — and verified by 
 
 | Device | Version | Download | File to copy |
 |---|---|---|---|
-| **TX** tester | **PN 2.23** | [Release v2.23](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.23) | `LPM-10A-TX_PN2.23-ref-reset.bin` |
+| **TX** tester | **PN 2.26** | [Release v2.26](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.26) | `LPM-10A-TX_PN2.26-qc-display.bin` |
 | **RX** probe | **PN 1.23** | [Release rx-v1.23](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.23) | `APP_LPM-10RX_PN1.23-mains-tone-update.bin` |
 
-Both are the builds running on the owner's unit (2026-09-21: RX PN 1.23 in all three modes; TX PN 2.19 every
-function, PN 2.20 the one fix it needed, PN 2.21 the readings on the Cable Test wires, PN 2.23 the REF target
-before a measurement). The nine TX versions since PN 2.14 are one chain, each file the previous plus one
-patch. Each release carries its notes and a SHA-256 file. **TX and RX firmware are not interchangeable.**
+The owner reports **PN2.26 tested on the device: every function passed (2026-09-22)**.
+This release keeps the classic automatic QC screen, corrects measurement timing and the overlapping Init
+prompt, and improves Length lifecycle, REF and progress updates. See the
+[PN2.26 validation report](docs/TX-QC-DISPLAY-PN2.26-2026-09-22.md).
+The published RX release remains PN 1.23, tested in all three modes on 2026-09-21.
+Each release carries its notes and a SHA-256 file. **TX and RX firmware are not interchangeable.**
 FNIRSI's own files are not redistributed here.
 
-> **สรุปภาษาไทย:** TX ใช้ PN 2.23, RX ใช้ PN 1.23 · TX อัปเดต: ปิดเครื่อง → กด **M + Power** ค้าง → เสียบ USB → ก๊อปปี้ไฟล์ ·
+> **สรุปภาษาไทย:** TX ใช้ PN 2.26, RX ใช้ PN 1.23 · TX อัปเดต: ปิดเครื่อง → กด **M + Power** ค้าง → เสียบ USB → ก๊อปปี้ไฟล์ ·
 > RX อัปเดต: ปิดเครื่อง → กด **SCAN** ค้าง → เสียบ USB → ไดรฟ์ `BOOTLOADER` → ก๊อปปี้ไฟล์ **`-update.bin`** ด้วย Explorer →
 > ไดรฟ์หายใน 1 วิ = เสร็จ · รายละเอียดและวิธีย้อนกลับ: [คู่มืออัปเดต RX](docs/RX-UPDATE-GUIDE.md)
 
@@ -32,12 +34,14 @@ FNIRSI's own files are not redistributed here.
 
 ### TX (tester)
 
-1. Check the download: `certutil -hashfile LPM-10A-TX_PN2.23-ref-reset.bin SHA256` →
-   `8351bbf503d5360a1773b5caf5b574968719493bf961fc5de3015f76ca768528`
+1. Check the download: `certutil -hashfile LPM-10A-TX_PN2.26-qc-display.bin SHA256` →
+   `c77579f018bb820532b3c5974ae63fbf04c4e60359188f7e39a8a8f9a1533df8`
 2. Tester off. Hold **M + Power** until the firmware-update screen appears.
 3. Plug in USB-C; a removable drive appears.
 4. Copy the `.bin` onto the drive. Do not unplug while it writes.
-5. Long-press Power to shut down, then power on. Settings › About shows `Software:PN 2.23`.
+5. Long-press Power to shut down, then power on. Settings › About shows `Software:PN2.26`.
+6. If QC Test requests Init, **disconnect all cables and hold Right until Init succeeds**.
+   This is required once for calibration made before PN2.25; a successful PN2.25 Init is retained.
 
 If the drive refuses the file, rename it exactly `LPM-10A-TX_V2.0.7_260610.bin` and copy again
 (some bootloaders match on the file name; the name inside the image is already the stock one).
@@ -88,7 +92,8 @@ explained: what stock does, what PN does, how it works and how it was checked.
 | Language | Chinese / English | **ไทย / English** on every screen; picker on first boot |
 | Font | thin serif | Ubuntu Sans Mono + Sarabun (Thai), rendered from the firmware's own layout tables |
 | Reliability | heap leak on settings save, timer-path logging, FP crash frame | fixed; watchdog on the service task; fault records kept across warm reset |
-| Identity | `Software:V2.0.7`, fnirsi.cn | `Software:PN 2.23`, this repository's URL, and `BATT / NVP / ZERO` on the About screen; bootloader-facing image name unchanged |
+| QC Test | raw pulse counts depend on the actual task delay | **Classic screen and continuous automatic testing**; counts normalized to the actual measurement duration; three passing observations before green, immediate fault classification; clean Init prompt |
+| Identity | `Software:V2.0.7`, fnirsi.cn | `Software:PN2.26`, this repository's URL, and `BATT / NVP / ZERO` on the About screen; bootloader-facing image name unchanged |
 
 ### TX (tester) — in detail
 
@@ -322,14 +327,15 @@ hardware/RTOS boundaries.
 <details>
 <summary><b>Identity and the update file</b></summary>
 
-About reports `Software:PN 2.23` and this repository's URL instead of `V2.0.7` / fnirsi.cn, and since PN 2.16 one
+About reports `Software:PN2.26` and this repository's URL instead of `V2.0.7` / fnirsi.cn, and since PN 2.16 one
 line under Factory Reset — `BATT 3874mV  NVP 68%  ZERO 0.4m` — the pack voltage and the Length calibration as
 stored. The
 container's internal image name stays FNIRSI's, because the bootloader may match on it. Since PN 2.3
 the file is one 4 KB flash page longer than stock (393 216 bytes) because the code cave ran out; the
 container header carries the payload length and the bootloader accepted the longer file (and, in the
 `cable-diag` experiment, a two-page-longer one) on the tested
-unit. Formulas, addresses and verdicts for every calculation, TX and RX: [`FORMULA-AUDIT.md`](LPM-10A/Firmware%20File/FORMULA-AUDIT.md).
+unit. The current PN2.26 update is **401,408 bytes**, accepted on the owner's tester.
+Formulas, addresses and verdicts for every calculation, TX and RX: [`FORMULA-AUDIT.md`](LPM-10A/Firmware%20File/FORMULA-AUDIT.md).
 </details>
 
 <p>
@@ -486,13 +492,13 @@ quantified against another probe.
 
 ```
 LPM-10A/Firmware File/
-  LPM-10A-TX_PN2.14-tone-recovery.bin        current TX build — copy to the tester's update drive
+  LPM-10A-TX_PN2.26-qc-display.bin          current TX build — copy to the tester's update drive
   APP_LPM-10RX_PN1.23-mains-tone-update.bin  current RX build — copy to the probe's BOOTLOADER drive
-  TX-PN2.14-README.txt, RX-PN1.23-README.txt notes for each: what it does, how to update, how to roll back
+  TX-PN2.26-README.txt, RX-PN1.23-README.txt notes for each: what it does, how to update, how to roll back
   SHA256SUMS.txt                             checksums of the two files above
   README.md                                  what is in this folder
   FORMULA-AUDIT.md                           every measurement formula with verdicts: TX §1-6, receiver PN formulas §7
-  sdk/                                       TX toolkit: patch chain PN 2.9 → 2.23 (profiles.py), assembler, verifier, Thai UI, tests
+  sdk/                                       TX toolkit: patch chain PN 2.9 → 2.26 (profiles.py), assembler, verifier, Thai UI, tests
   rx-sdk/                                    RX toolkit: patch chain PN 1.0 → 1.23 (profiles.py), container, emulator, tests
   experimental/                              build outputs of every PN version (the test suites compare against them)
   archive/                                   earlier release copies and their notes (history only)
@@ -515,6 +521,51 @@ Build: `python sdk/build.py --write` (TX) and `python rx-sdk/build.py --write` (
 version and compares it with its published digest); outputs land in `experimental/`, and `publish_current.py` copies the
 release pair to the folder root with FNIRSI's images placed outside the repository (see each `build.py`). Every RX build writes both the raw image and the
 `-update.bin` container; `python -m lpm10rx.container check <file>` tells which one you have.
+
+The [2026-09-22 deep audit](docs/DEEP-AUDIT-2026-09-22.md) documents new RX gain/sample
+and TX capability-display findings, opt-in corrections, and build/publication fixes.
+From `rx-sdk`, `python verify_release.py` checks the complete current RX update against
+an exact profile rebuild. The experimental corrections do not change the released pair above.
+
+The [PN1.23G follow-up](docs/RX-DIGITAL-GAIN-PN1.23G-2026-09-22.md) addresses
+Digital audio dropouts reported on PN1.23F during probe motion or knob changes.
+The owner confirmed the Digital dropout is fixed on PN1.23G (2026-09-22).
+Its update file, device feedback and measured emulator results are in the report.
+
+The [PN2.23Q QC experiment](docs/TX-QC-FLEX-PN2.23Q-2026-09-22.md) adds a
+20-second TX crimp-test session, retained per-pin fault history and stable
+five-sample calibration. Build with `python qc_continuity.py --write` from
+`sdk`; the update is in `experimental/`. CPU/GUI-tested; device validation is
+pending. This opt-in candidate does not change the published release pair.
+
+Owner feedback on Q led to [PN2.23R](docs/TX-QC-CLASSIC-PN2.23R-2026-09-22.md):
+the original QC graphic, continuous automatic testing, and changed-pin-only
+drawing to remove repeated screen blanking. Build with `python qc_classic.py --write`
+from `sdk`. The owner reported R passed, then reported random QC lights with
+the connector unplugged.
+
+[PN2.24](docs/TX-LENGTH-QC-PN2.24-2026-09-22.md) follows up with three-observation
+QC pass confirmation and immediate fault indication. It also fixes Length
+work surviving rapid reentry, stale queued screen text and loss of pending
+REF after an unusable result, and reduces repeated Testing-box redraws.
+Build with `python length_integrity.py --write` from `sdk`; the combined TX
+update is `experimental/LPM-10A-TX_PN2.24-length-qc.bin`. The owner subsequently
+reported changing QC indicators with a complete stationary cable on PN2.24.
+
+[PN2.25](docs/TX-QC-TIMING-PN2.25-2026-09-22.md) corrects the shared QC sampler:
+counts are normalized using actual elapsed time, since a ten-tick RTOS wait
+was not a fixed measurement interval. It retains the classic automatic screen
+and Length fixes. Its archived builder is `qc_timing.py`. The owner then
+reported a garbled screen immediately on QC entry: queued artwork was painting
+over the Init prompt. PN2.25 is superseded by PN2.26 below.
+
+[PN2.26](docs/TX-QC-DISPLAY-PN2.26-2026-09-22.md) fixes that reproduced display
+ordering defect while retaining the timing and Length fixes. The owner
+confirmed every function passed on the device on 2026-09-22; it is now the
+default TX release. `python build.py --write` from `sdk` reproduces
+`experimental/LPM-10A-TX_PN2.26-qc-display.bin`; the same bytes are published
+in the Firmware File root and [release v2.26](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.26).
+If QC requests Init, disconnect all cables and hold Right.
 
 ## Licences and credits
 

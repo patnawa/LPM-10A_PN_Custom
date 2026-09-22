@@ -1,12 +1,27 @@
-"""CLI profile-boundary regressions; no vendor image or assembler required."""
+"""Synthetic CLI routing plus real parent-guard rejection of custom builds."""
 import contextlib
 import hashlib
 import io
 import os
 import unittest
-from unittest.mock import Mock, patch as mock_patch
+from unittest.mock import Mock, mock_open, patch as mock_patch
 
 import build
+from lpm10rx.container import wrap
+import version_tag
+
+
+def assert_custom_rejected(test, args, failed_patch):
+    """Custom syntax is valid; incompatible ancestry must fail before writing."""
+    output = io.StringIO()
+    with mock_patch("sys.argv", ["build.py", *args, "--write"]), \
+            mock_patch.object(build.Image, "save") as save, \
+            mock_patch("build.open", mock_open(), create=True) as container_open, \
+            contextlib.redirect_stdout(output):
+        test.assertEqual(build.main(), 2)
+    test.assertIn(f"[FAIL] {failed_patch} requires the complete, exact", output.getvalue())
+    save.assert_not_called()
+    container_open.assert_not_called()
 
 
 class RobustProfileTests(unittest.TestCase):
@@ -20,15 +35,28 @@ class RobustProfileTests(unittest.TestCase):
             for name in ("pid", "title", "risk", "default", "group"):
                 setattr(record, name, getattr(original, name))
             registry.append(record)
-        image = Mock(original=b"", data=bytearray(), log=[])
+        raw = b"test"
+        image = Mock(original=raw, data=bytearray(raw), log=[])
+        # Byte-exact version-tagging is covered by test_profiles; here retain
+        # its real selection/identity behavior over an inert image.
+        image.read.return_value = version_tag.STOCK
         image.diff_offsets.return_value = []
         image.save.return_value = "fixture-digest"
         with mock_patch("sys.argv", ["build.py", *args]), \
                 mock_patch.object(build.patches, "REGISTRY", registry), \
                 mock_patch.object(build, "Image", return_value=image), \
-                mock_patch.object(build.S, "STOCK_SHA256", hashlib.sha256(b"").hexdigest()), \
+                mock_patch.object(build.S, "STOCK_SHA256", hashlib.sha256(raw).hexdigest()), \
+                mock_patch("build.open", mock_open(), create=True) as container_open, \
                 contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(build.main(), 0)
+        if "--write" in args:
+            image.save.assert_called_once()
+            output_path = image.save.call_args.args[0]
+            container_open.assert_called_once_with(build.update_path(output_path), "wb")
+            container_open().write.assert_called_once_with(wrap(bytes(image.data)))
+        else:
+            image.save.assert_not_called()
+            container_open.assert_not_called()
         return applied, image
 
     def test_robust_is_complete_pinpoint_parent_then_new_patch(self):
@@ -44,7 +72,7 @@ class RobustProfileTests(unittest.TestCase):
         audit = [*roadmap, "mains-sampler-publish-last", "dft-square-overflow"]
         followup = [*audit, "rx-followup"]
         precision = [*followup, "rx-precision"]
-        profiles = [((), ["batt-critical-recover"]), (("--roadmap",), roadmap),
+        profiles = [(("--default",), ["batt-critical-recover"]), (("--roadmap",), roadmap),
                     (("--audit",), audit), (("--followup",), followup),
                     (("--precision",), precision),
                     (("--pinpoint",), [*precision, "rx-pinpoint"])]
@@ -53,6 +81,15 @@ class RobustProfileTests(unittest.TestCase):
                 actual, image = self.select(*args)
                 self.assertEqual(actual, expected)
                 image.save.assert_not_called()
+
+    def test_implicit_and_explicit_latest_select_identical_tagged_profile(self):
+        expected = [p.pid for p in build.patches.REGISTRY if p.pid in build.PROFILES[build.LATEST].patch_ids()]
+        for args in ((), ("--profile", build.LATEST)):
+            with self.subTest(args=args):
+                selected, image = self.select(*args, "--write")
+                self.assertEqual(selected, expected)
+                self.assertEqual(image.version_tag, build.LATEST.upper())
+                image.save.assert_called_once_with(os.path.join(build.FW_DIR, build.PROFILES[build.LATEST].output))
 
     def test_robust_allows_explicit_output_path(self):
         _, image = self.select("--robust", "--write", "--out", "bench/receiver.bin")

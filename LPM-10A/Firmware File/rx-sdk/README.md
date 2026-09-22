@@ -1,5 +1,35 @@
 # LPM-10A receiver (probe) firmware SDK
 
+**Current release: PN 1.23.** `python build.py --write` builds the latest profile
+and its update container. `python verify_release.py` verifies the published
+current update against an exact rebuild; pass an image path and `--profile pn1.xx`
+to check another registered profile. The older `verify.py` models historical
+PN 1.0–1.2 behavior. The version notes below are historical.
+
+**Digital gain continuity candidate (2026-09-22):**
+`python digital_gain_continuity.py --write` builds **PN1.23G**, its RX update
+container and checksums in `experimental/`. It addresses the owner's PN1.23F
+report of Digital audio dropouts while moving the probe or turning the knob
+under strong input. The reproduced quiet gap falls from 238 ms to 28–37 ms.
+Already-confirmed feedback keeps its existing deadline while all samples are
+reacquired; gain changes cannot renew it. Analog/Mains retain their behavior.
+CPU-tested; the owner confirmed the Digital dropout is fixed on the device
+on 2026-09-22. The timing figures above are emulator measurements. See the
+[diagnosis, measurements and firmware](../../../docs/RX-DIGITAL-GAIN-PN1.23G-2026-09-22.md).
+Run `python -m unittest test_rx_digital_strong_gain test_rx_digital_gain_continuity test_digital_gain_build -q`.
+The default release profile remains PN 1.23.
+
+**Earlier audit experiment (2026-09-22):** `python auto_range_freshness.py` dry-builds
+`PN1.23F` in memory. It invalidates stale sample windows before a gain change
+and prevents mains amplitude from controlling the cable-tracing gain. Run
+`python -m unittest test_rx_auto_range_freshness -v` for the CPU regressions.
+The owner reports Digital motion/knob dropouts on this candidate; PN1.23G above
+adds continuity while retaining its ownership correction. It is not a release profile. The module's
+`build_candidate()` returns the distinctively tagged image without writing files.
+
+The [deep audit](../../../docs/DEEP-AUDIT-2026-09-22.md) records the reproductions,
+tooling corrections, validation scope and next functional work.
+
 **PN 1.13 audio-clock test candidate:** `python build.py --audio-clock --write`
 builds [APP_LPM-10RX_PN1.13-audio-clock.bin](../experimental/APP_LPM-10RX_PN1.13-audio-clock.bin).
 Moves the shared BEEP/GAP countdowns to TIM5, which already generates speaker

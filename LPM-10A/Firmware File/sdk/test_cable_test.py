@@ -250,5 +250,25 @@ class CableDiag(unittest.TestCase):
         self.assertEqual(h.texts, [("Not connected", 68, 271, 0xF800)], "the release hook still runs first")
 
 
+class CableDiagLatest(CableDiag):
+    """Diagnostics can replace the latest compact values without drawing both."""
+
+    @classmethod
+    def setUpClass(cls):
+        from profiles import LATEST
+        cls.img = build(LATEST, extra=("cable-diag",))
+        cls.data = bytes(cls.img.finalize().data)
+
+    def test_rx_unit_diagnostics_keep_one_row_per_wire_in_both_languages(self):
+        for lang in (1, 2):
+            with self.subTest(lang=lang):
+                h = Harness(self.data, FAR_END, "remote", lang=lang)
+                rows = [t for k, t, x, y, fg, ex in h.s.log if k == "ascii" and ex["size"] == 12]
+                self.assertEqual(len(rows), 9, "the compact cable-values hook must not also draw")
+                self.assertEqual([int(t[1:6]) for t in rows], TAB)
+                self.assertEqual([int(t[6:]) for t in rows], TAB)
+                self.assertEqual(h.status, [OK] * 9)
+
+
 if __name__ == "__main__":
     unittest.main()

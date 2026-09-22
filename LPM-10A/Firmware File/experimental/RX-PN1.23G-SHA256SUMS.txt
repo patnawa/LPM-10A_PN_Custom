@@ -1,0 +1,2 @@
+a0822e2f454e08d0a213e63a1bbf0cac9948776dd8b067560d4786605b0307bb  APP_LPM-10RX_PN1.23G-digital-gain.bin
+f3a05aac4077ee1c050abab041083fe6db291614dfc7aaa51f335e1516a4db65  APP_LPM-10RX_PN1.23G-digital-gain-update.bin

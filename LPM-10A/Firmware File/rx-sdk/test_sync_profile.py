@@ -1,4 +1,4 @@
-"""Sync32 CLI profile/output boundaries without vendor binaries or assembler."""
+"""Sync32 CLI profile/output boundaries using synthetic selection fixtures."""
 import contextlib
 import io
 import os

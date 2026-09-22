@@ -9,19 +9,42 @@ Every profile starts from the BASELINE: the patches registered with default=True
 patches.py.  That set is frozen -- verify.py models it byte for byte and its image is
 archived as LPM-10A-TX_PN2.9.bin (never released on its own; `build.py --default`).
 A profile's module writes its own version string last, so the About screen names the
-profile, not the baseline.  Patches are always applied in registry order, which is what
-makes every archived image reproducible (test_profiles.py checks each one).
+profile, not the baseline. Profile patches run in registry order, which makes every
+archived image reproducible (test_profiles.py checks each one). Optional extras run
+after the complete profile, in their registry order, so they cannot invalidate the
+profile modules' exact-parent checks.
 
 Adding PN 2.x: write the module (PATCHES or PATCH_ID, VERSION, register()), register it
 at the end of patches.py, append one Profile line here with its output name and
 hardware record, then run `python -m unittest test_profiles`.
+Standalone candidate builders with apply() instead use _register_release_stage()
+and ReleaseStage metadata, preserving their original entry points and avoiding
+imports back into profiles while this registry is being constructed.
 """
 import os
 from collections import OrderedDict
+from importlib import import_module
 
 import patches
+from lpm10a.image import PatchError
 import roadmap, portflash, audit_fixes, portflash_status, scan_sync, scan_recovery, length_progress  # noqa: E401
 import about_values, speed_partner, length_reference, cable_test, cable_clear, cable_values, length_ref_anytime, length_ref_reset  # noqa: E401
+import speed_partner_validity
+
+
+class ReleaseStage:
+    """Metadata for candidate builders that import profiles for their parent.
+
+    Load their version only after this registry exists; eagerly importing QC
+    builders here would cycle through qc_continuity -> profiles.
+    """
+    def __init__(self, module_name):
+        self.module_name = module_name
+        self.PATCH_ID = module_name.replace('_', '-')
+
+    @property
+    def VERSION(self):
+        return import_module(self.module_name).VERSION
 
 
 class Profile:
@@ -104,6 +127,24 @@ _CHAIN = [
     ("pn2.23", "length-ref-reset",   length_ref_reset,   "pn2.22", "experimental/LPM-10A-TX_PN2.23-ref-reset.bin",
      "PN 2.23 Length: REF starts at 10.0 m on every screen entry (PN 2.22 showed the RAM cell's power-up content)",
      "on the owner's unit 2026-09-21: REF 10.0 the first time, the fit works (release v2.23)"),
+    ("pn2.23s", "speed-partner-validity", speed_partner_validity, "pn2.23", "experimental/LPM-10A-TX_PN2.23S-speed-validity.bin",
+     "PN2.23S SPEED: failed partner ability reads display Unknown",
+     "included in PN2.26: all functions passed on the owner's device, 2026-09-22"),
+    ("pn2.23q", "qc-continuity", ReleaseStage("qc_continuity"), "pn2.23s", "experimental/LPM-10A-TX_PN2.23Q-qc-flex.bin",
+     "PN2.23Q continuous QC acquisition and stable Init (historical candidate)",
+     "owner rejected the session-table interface and flicker; superseded by PN2.23R"),
+    ("pn2.23r", "qc-classic", ReleaseStage("qc_classic"), "pn2.23q", "experimental/LPM-10A-TX_PN2.23R-qc-auto.bin",
+     "PN2.23R classic QC screen, automatic continuous testing and selective redraw",
+     "owner reported test pass, 2026-09-22; later QC noise reports led to PN2.25 and PN2.26"),
+    ("pn2.24", "length-integrity", ReleaseStage("length_integrity"), "pn2.23r", "experimental/LPM-10A-TX_PN2.24-length-qc.bin",
+     "PN2.24 Length lifecycle/REF/progress guards and QC passing-sample qualification",
+     "owner reported unstable QC indicators with a stationary cable; superseded by PN2.25"),
+    ("pn2.25", "qc-timing", ReleaseStage("qc_timing"), "pn2.24", "experimental/LPM-10A-TX_PN2.25-qc-timing.bin",
+     "PN2.25 elapsed-time-normalized QC counts and baseline migration",
+     "owner reported garbled QC entry artwork; superseded by PN2.26"),
+    ("pn2.26", "qc-display", ReleaseStage("qc_display"), "pn2.25", "experimental/LPM-10A-TX_PN2.26-qc-display.bin",
+     "PN2.26 QC entry artwork follows calibration state; stale bitmaps cannot cover Init",
+     "all functions passed on the owner's device, 2026-09-22 (release v2.26)"),
 ]
 
 PROFILES = OrderedDict((n, Profile(n, *rest)) for n, *rest in _CHAIN)
@@ -111,12 +152,35 @@ BY_FLAG = {p.flag: p for p in PROFILES.values()}
 LATEST = list(PROFILES)[-1]
 
 
+def profile_patches(profile, extra=()):
+    """Validate and order a complete profile, followed by its optional patches.
+
+    Several modules verify the exact parent image. Inserting an experiment into
+    that chain invalidates its digest even when the experiment changes unrelated
+    bytes. Finish the reproducible profile first, then apply extras in registry
+    order, once each. Validate the whole selection before the caller edits bytes.
+    """
+    base = profile.patch_ids()
+    ids = base | set(extra)
+    registered = {p.pid for p in patches.REGISTRY}
+    unknown = ids - registered
+    if unknown:
+        raise PatchError(f"unknown patch id(s): {', '.join(sorted(unknown))}")
+    if {'scan-sync', 'scan-recovery'} <= ids:
+        raise PatchError('scan-sync and scan-recovery are alternative profiles; select only one')
+    selected = [p for p in patches.REGISTRY if p.pid in ids]
+    for p in selected:
+        missing = set(p.requires) - ids
+        if missing:
+            raise PatchError(f"{p.pid} requires: {', '.join(sorted(missing))}")
+    return ([p for p in selected if p.pid in base]
+            + [p for p in selected if p.pid not in base])
+
+
 def apply_profile(img, profile, log=None, extra=()):
-    """Apply the profile's patches (plus any extra ids) in registry order."""
-    ids = profile.patch_ids() | set(extra)
-    for p in patches.REGISTRY:
-        if p.pid in ids:
-            before = len(img.log)
-            p(img)
-            if log is not None:
-                log(p, before)
+    """Apply the immutable profile, then any extras, with validation before edits."""
+    for p in profile_patches(profile, extra):
+        before = len(img.log)
+        p(img)
+        if log is not None:
+            log(p, before)

@@ -1,11 +1,77 @@
 # LPM-10A firmware SDK
 
+**PN2.26 release (2026-09-22):** the owner reports every function passed on the
+device. `python build.py --write` (or `python qc_display.py --write`)
+builds `experimental/LPM-10A-TX_PN2.26-qc-display.bin` on exact PN2.25.
+It fixes the owner's reproduced garbled QC entry: a delayed T568B bitmap
+was painting over the Init prompt. It retains the classic automatic screen,
+PN2.25 timing normalization and PN2.24 Length fixes. Use this candidate
+instead of PN2.25. If QC requests Init, disconnect all cables and hold Right.
+See [display reproduction and validation](../../../docs/TX-QC-DISPLAY-PN2.26-2026-09-22.md).
+The tested artifact is now the default TX build and
+[release v2.26](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.26).
+
+**PN2.25 QC timing correction (2026-09-22):** `python qc_timing.py --write`
+builds `experimental/LPM-10A-TX_PN2.25-qc-timing.bin` on exact PN2.24.
+The owner reports changing indicators with a complete stationary cable.
+The shared Init/live sampler now normalizes counts by actual SysTick elapsed
+time: a ten-tick task delay alone was producing different counts for a fixed
+input frequency. It retains the classic screen, automatic testing and Length
+fixes. **Disconnect all cables and hold Right for Init once after upgrading**;
+legacy calibration is rejected until a new normalized baseline is saved.
+See [reproduction and validation](../../../docs/TX-QC-TIMING-PN2.25-2026-09-22.md).
+The owner subsequently reported the entry display defect fixed in PN2.26 above.
+
+**PN2.24 Length/QC follow-up (2026-09-22):** `python length_integrity.py --write`
+builds `experimental/LPM-10A-TX_PN2.24-length-qc.bin` on exact PN2.23R.
+Length work and queued text belong to their originating visit/test; an
+unusable result keeps a pending REF until calibration succeeds. Later
+averaging runs update only the counter. QC retains the original automatic
+screen and requires three consecutive passing observations per pin before
+green, while OPEN/CHECK revokes green immediately. See
+[reproductions, implementation and limits](../../../docs/TX-LENGTH-QC-PN2.24-2026-09-22.md).
+Physical Length and unplugged-QC confirmation is pending.
+
+**QC classic follow-up (2026-09-22):** `python qc_classic.py --write` builds
+`experimental/LPM-10A-TX_PN2.23R-qc-auto.bin`. After owner feedback that Q's
+table was difficult to use and flickered, R restores the original QC graphic
+and continuous automatic testing. It redraws only changed pin indicators,
+retains stable calibration and task/session protections, and removes the
+20-second stop and short-key session controls. See
+[the correction and validation](../../../docs/TX-QC-CLASSIC-PN2.23R-2026-09-22.md).
+Q below is retained as a historical experiment. The owner reported R passed,
+then reported random QC lights without a cable; the PN2.24 follow-up above
+addresses isolated-noise sensitivity reproduced from that report.
+
+**QC flex-test experiment (2026-09-22):** `python qc_continuity.py --write`
+builds `experimental/LPM-10A-TX_PN2.23Q-qc-flex.bin` on the exact PN2.23S parent.
+QC runs a bounded 20-second session, retains per-pin fault episodes after
+recovery, and stages five-sample calibration before replacing any baseline.
+OK stops/starts a new session; Right starts a new session; existing Init and
+Back remain available. Actual Thumb/GUI tests cover timer sharing, cancellation,
+rapid reentry and stale queued messages. Device validation is pending.
+See [operation and validation](../../../docs/TX-QC-FLEX-PN2.23Q-2026-09-22.md).
+The default release profile is now PN2.26; Q remains a historical experiment.
+
 **Build profiles (2026-09-21):** `python build.py --write` emits the latest profile;
 `profiles.py` lists every PN version as its parent plus one module, with its output file
 and hardware record, and `python -m unittest test_profiles` rebuilds each one in memory
 and compares it with the published digest. `--profile pn2.14` (or the old alias flags
 below) reproduces the release or any earlier version; `--default` builds the frozen
 baseline that `verify.py` models. Custom builds (`--only`, `--with`, `--all`) need `--out`.
+`--with` applies experiments after the complete profile, preserving the exact-parent
+checks in its build chain. The `cable-diag` experiment also works on PN 2.21 and later:
+its detailed diagnostic rows replace the compact readings to avoid overlapping text.
+
+**SPEED correction (2026-09-22):** the historical standalone build is
+`python build.py --profile pn2.23 --with speed-partner-validity --out candidate.bin --write`.
+An all-ones read from either partner ability register
+now shows `Unknown`, instead of interpreting a failed MDIO read as advertised speeds.
+The candidate requires PN 2.23 and identifies itself as `PN2.23S` on About and at boot.
+Valid zero ability words still show `No autoneg`; retry and `Error!!` behavior stays
+the same. CPU-tested in English and Thai with actual read/draw paths via
+`python -m unittest test_speed_partner_validity`. This correction is included
+in PN2.26, which the owner reports passed every function on 2026-09-22.
 
 **PN 2.15 … 2.23 (PN 2.23 the release, every step on the owner's unit 2026-09-21):** one module each on top of PN 2.14 —
 `length_progress.py` (run counter `1/4 … 4/4` on the Length Testing line),
@@ -132,7 +198,7 @@ needs `uharfbuzz`.
 python test_thumb.py            # assembler self-test
 python build.py --list          # what patches and profiles exist
 python build.py                 # dry run of the latest profile: prints every byte it would change
-python build.py --write         # emit the latest profile (experimental/LPM-10A-TX_PN2.23-ref-reset.bin, the release)
+python build.py --write         # emit the latest profile (experimental/LPM-10A-TX_PN2.26-qc-display.bin, the release)
 python build.py --profile pn2.14 --write   # an earlier version (PN 2.14 was the release before PN 2.20)
 python build.py --default --write   # the frozen baseline, LPM-10A-TX_PN2.9.bin (unreleased, what verify.py models)
 python verify.py                # prove the baseline is what was intended

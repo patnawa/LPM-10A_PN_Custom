@@ -33,8 +33,8 @@ DEFAULT_NAME = "APP_LPM-10RX_V3.0.0_260416.bin"
 def wrap(raw, name=DEFAULT_NAME):
     """Return the update container for a raw receiver image."""
     name_bytes = name.encode("ascii")
-    if not name_bytes or len(name_bytes) > 31:
-        raise ValueError("container name must be 1-31 ASCII characters")
+    if not name_bytes or len(name_bytes) > 31 or b"\0" in name_bytes:
+        raise ValueError("container name must be 1-31 ASCII characters without NUL")
     if not raw or len(raw) % 4:
         raise ValueError("raw image must be a non-empty multiple of 4 bytes")
     header = name_bytes.ljust(32, b"\0") + struct.pack(
@@ -48,10 +48,18 @@ def unwrap(container):
     """Return (name, raw image) from a container, checking the header."""
     if len(container) < HEADER_SIZE + 4:
         raise ValueError("container too short")
-    name = container[:32].split(b"\0")[0].decode("ascii")
+    name_bytes, terminator, name_padding = container[:32].partition(b"\0")
+    if not name_bytes or not terminator or any(name_padding):
+        raise ValueError("container name must be non-empty and zero padded")
+    name = name_bytes.decode("ascii")
     off, length, end = struct.unpack_from("<III", container, 0x20)
     if off != HEADER_SIZE or end != off + length - 1:
         raise ValueError("bad container header fields")
+    if not length or length % 4:
+        raise ValueError("raw image must be a non-empty multiple of 4 bytes")
+    expected_size = ((off + length + PAD_UNIT - 1) // PAD_UNIT) * PAD_UNIT
+    if len(container) != expected_size:
+        raise ValueError("container size must include exactly the required 4 KB padding")
     if any(container[0x2C:HEADER_SIZE]):
         raise ValueError("header padding is not zero")
     if off + length > len(container) or any(container[off + length:]):
@@ -73,24 +81,28 @@ def _main(argv=None):
     c.add_argument("file")
     a = ap.parse_args(argv)
     if a.cmd == "wrap":
-        raw = open(a.raw, "rb").read()
+        with open(a.raw, "rb") as source:
+            raw = source.read()
         out = a.out or (a.raw[:-4] if a.raw.lower().endswith(".bin") else a.raw) + "-update.bin"
         data = wrap(raw, a.name)
-        open(out, "wb").write(data)
+        with open(out, "wb") as output:
+            output.write(data)
         print(f"wrote {out}: {len(data)} bytes, name {a.name!r}, payload {len(raw)} bytes")
         print(f"sha256 {hashlib.sha256(data).hexdigest()}")
         print("copy this file to the BOOTLOADER drive with Explorer")
     else:
-        data = open(a.file, "rb").read()
+        with open(a.file, "rb") as source:
+            data = source.read()
         try:
             name, raw = unwrap(data)
             print(f"container: name {name!r}, payload {len(raw)} bytes, payload sha256 {hashlib.sha256(raw).hexdigest()}")
-            print("the bootloader will program this file")
+            print("container structure is valid; this does not verify the firmware payload")
         except ValueError:
             sp = int.from_bytes(data[:4], "little")
             kind = "raw image (vector table first)" if 0x20000000 <= sp <= 0x20006000 else "unknown"
             print(f"{kind}: {len(data)} bytes, sha256 {hashlib.sha256(data).hexdigest()}")
             print("NOT a container: the bootloader ignores it (UNKOWN.TXT); wrap it first")
+            return 1
     return 0
 
 

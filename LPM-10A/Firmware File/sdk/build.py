@@ -31,7 +31,7 @@ sys.path.insert(0, HERE)
 from lpm10a.image import Image, PatchError          # noqa: E402
 from lpm10a import symbols as S                     # noqa: E402
 import patches                                       # noqa: E402
-from profiles import PROFILES, LATEST, apply_profile, baseline_ids   # noqa: E402
+from profiles import PROFILES, LATEST, profile_patches, baseline_ids   # noqa: E402
 
 FW_DIR = os.path.dirname(HERE)
 STOCK = os.path.join(FW_DIR, "LPM-10A-TX_V2.0.7_260610.bin")
@@ -135,6 +135,8 @@ def main():
         if unmet:
             print(f"{p.pid} requires: {', '.join(sorted(unmet))}; include them in --only")
             return 2
+    if prof is not None:
+        sel = profile_patches(prof, extra)
 
     if prof is not None:
         print(f"profile {prof.name}: {prof.title}")
@@ -159,7 +161,7 @@ def main():
         return 2
     print(f"{img.summary().splitlines()[2]}\n")
 
-    # ---- apply, in registry order
+    # ---- finish the reproducible profile before applying optional extras
     print(f"applying {len(sel)} patch(es):")
     touched = []
 

@@ -22,7 +22,7 @@ Supported:
     branch      b/b.w/bl label | bx/blx Rm | b<cond> label | cbz/cbnz Rn,label
     alu         cmp Rn,#imm8 | cmp Rn,Rm | adds/subs Rd,Rn,#imm3
                 adds/subs Rd,Rn,Rm | adds/subs Rd,#imm8 | add Rd,Rm
-                lsls/lsrs Rd,Rm,#imm5 | ands/orrs/bics/eors Rd,Rm
+                lsls Rd,Rm,#0..31 | lsrs Rd,Rm,#1..32 | ands/orrs/bics/eors Rd,Rm
                 rsbs Rd,Rn,#0 | uxtb/uxth/sxtb/sxth Rd,Rm
     mul/div     muls Rd,Rn,Rd | mul Rd,Rn,Rm | mls Rd,Rn,Rm,Ra
                 udiv/sdiv Rd,Rn,Rm
@@ -40,6 +40,24 @@ COND = {
     "eq": 0, "ne": 1, "hs": 2, "cs": 2, "lo": 3, "cc": 3, "mi": 4, "pl": 5,
     "vs": 6, "vc": 7, "hi": 8, "ls": 9, "ge": 10, "lt": 11, "gt": 12, "le": 13,
 }
+
+# Validate the complete operand list before an encoder indexes it. Otherwise
+# unsupported forms such as `str r0, [r1], #4` silently lose their writeback.
+OPERAND_COUNTS = {
+    mnemonic: counts
+    for mnemonics, counts in (
+        ("nop", (0,)),
+        ("dsb isb", (0, 1)),
+        ("push pop bx blx b b.w bl cpsid cpsie", (1,)),
+        ("mrs msr movs mov movw movt ldr str ldrb strb ldrh strh "
+         "cbz cbnz cmp add sub uxtb uxth sxtb sxth ands orrs bics eors", (2,)),
+        ("adds subs", (2, 3)),
+        ("rsbs muls mul udiv sdiv lsls lsrs", (3,)),
+        ("mls", (4,)),
+    )
+    for mnemonic in mnemonics.split()
+}
+OPERAND_COUNTS.update({"b" + condition: (1,) for condition in COND})
 
 
 class AsmError(Exception):
@@ -65,9 +83,14 @@ def _reglist(tok):
         part = part.strip().lower()
         if "-" in part:
             a, b = part.split("-")
-            regs += list(range(_reg(a, False), _reg(b, False) + 1))
+            first, last = _reg(a, False), _reg(b, False)
+            if first > last:
+                raise AsmError(f"reversed register range {part!r}")
+            regs += list(range(first, last + 1))
         else:
             regs.append(_reg(part, False))
+    if not regs or len(set(regs)) != len(regs):
+        raise AsmError("register list must be nonempty and contain no duplicates")
     return regs
 
 
@@ -134,12 +157,16 @@ class Asm:
             elif ch in "}]":
                 depth -= 1
             if ch == "," and depth == 0:
+                if not cur.strip():
+                    raise AsmError("empty operand")
                 out.append(cur.strip())
                 cur = ""
             else:
                 cur += ch
         if cur.strip():
             out.append(cur.strip())
+        elif out:
+            raise AsmError("missing operand after comma")
         return out
 
     # ------------------------------------------------------------ pass 1
@@ -150,6 +177,8 @@ class Asm:
         for line in self.lines:
             kind, a, b = self._parse(line)
             if kind == "label":
+                if a in labels:
+                    raise AsmError(f"duplicate label {a!r}")
                 labels[a] = pc
                 continue
             pc, added = self._size(a, b, pc, pool)
@@ -171,9 +200,9 @@ class Asm:
             s = ops.strip().strip('"')
             return pc + len(s.encode()) + 1, 0
         if mn == ".space":
-            return pc + int(ops, 0), 0
+            return pc + self._directive_value(mn, ops), 0
         if mn == ".align":
-            a = int(ops or 4, 0)
+            a = self._directive_value(mn, ops)
             return (pc + a - 1) & ~(a - 1), 0
         if mn == ".pool":
             return pc, 0
@@ -181,6 +210,18 @@ class Asm:
             pool.append(ops.split(",", 1)[1].strip().lstrip("="))
             return pc + 2, 0
         return pc + self._insn_size(mn, ops), 0
+
+    @staticmethod
+    def _directive_value(mn, ops):
+        try:
+            value = int(ops or ("4" if mn == ".align" else ""), 0)
+        except ValueError as exc:
+            raise AsmError(f"{mn} requires an integer") from exc
+        if mn == ".space" and value < 0:
+            raise AsmError(".space requires a nonnegative size")
+        if mn == ".align" and (value <= 0 or value & (value - 1)):
+            raise AsmError(".align requires a positive power of two")
+        return value
 
     def _insn_size(self, mn, ops):
         if mn in ("movw", "movt", "bl", "b.w", "blx.w", "udiv", "sdiv", "mls", "mul", "mrs", "msr", "dsb", "isb"):
@@ -220,10 +261,10 @@ class Asm:
                 put(ops.strip().strip('"').encode() + b"\0")
                 continue
             if mn == ".space":
-                put(b"\0" * int(ops, 0))
+                put(b"\0" * self._directive_value(mn, ops))
                 continue
             if mn == ".align":
-                a = int(ops or 4, 0)
+                a = self._directive_value(mn, ops)
                 while (pc % a) != 0:
                     put(b"\0")
                 continue
@@ -268,6 +309,10 @@ class Asm:
     # ------------------------------------------------------------ encoders
     def _encode(self, mn, ops, pc, labels):
         o = self._split_ops(ops)
+        counts = OPERAND_COUNTS.get(mn)
+        if counts is not None and len(o) not in counts:
+            expected = " or ".join(str(count) for count in counts)
+            raise AsmError(f"{mn} requires {expected} operands, got {len(o)}")
         E = lambda x: self._eval(x, labels)
         h = lambda v: struct.pack("<H", v)
 
@@ -305,7 +350,9 @@ class Asm:
             return h(0x4600 | ((rd & 8) << 4) | (rm << 3) | (rd & 7))
 
         if mn in ("movw", "movt"):
-            rd, imm = _reg(o[0], False), E(o[1].lstrip("#")) & 0xFFFF
+            rd, imm = _reg(o[0], False), E(o[1].lstrip("#"))
+            if not 0 <= imm <= 0xFFFF:
+                raise AsmError(f"{mn} immediate out of range")
             op = 0xF2400000 if mn == "movw" else 0xF2C00000
             i = (imm >> 11) & 1
             imm4 = (imm >> 12) & 0xF
@@ -467,10 +514,11 @@ class Asm:
 
         if mn in ("lsls", "lsrs") and len(o) == 3:
             rd, rm, imm = _reg(o[0]), _reg(o[1]), E(o[2].lstrip("#"))
-            if not 0 <= imm <= 31:
+            minimum, maximum = (0, 31) if mn == "lsls" else (1, 32)
+            if not minimum <= imm <= maximum:
                 raise AsmError(f"{mn} shift out of range")
             base = 0x0000 if mn == "lsls" else 0x0800
-            return h(base | (imm << 6) | (rm << 3) | rd)
+            return h(base | ((imm & 31) << 6) | (rm << 3) | rd)
 
         if mn in ("ands", "orrs", "bics", "eors"):
             rd, rm = _reg(o[0]), _reg(o[1])

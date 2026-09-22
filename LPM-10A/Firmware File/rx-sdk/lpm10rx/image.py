@@ -3,10 +3,10 @@ LPM-10A receiver firmware image: a raw Cortex-M image, no container.
 
     file offset 0  <->  flash 0x08006800   (see symbols.APP_BASE)
 
-The distributed file is a raw application image. No in-file checksum field
-has been identified; the absent bootloader's acceptance requirements remain
-unverified. Patches preserve file size and replace bytes in place. A successful
-host file copy does not establish that the receiver accepted or runs the image.
+The vendor file is a raw application image; releases also wrap the patched
+image in the update format implemented in container.py. Patches can append
+code up to symbols.EXTEND_LIMIT. A successful host file copy alone does not
+establish that the receiver accepted or runs the image.
 
 The Thumb assembler is shared with the transmitter SDK (../../sdk/lpm10a).
 """

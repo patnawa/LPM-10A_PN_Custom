@@ -1,0 +1,67 @@
+# TX PN2.26 — QC stability, classic display and Length fixes
+
+The owner reports PN2.26 tested on the tester: all functions passed on
+2026-09-22. This release publishes the exact firmware file used for that test.
+
+## Changes since v2.23
+
+- QC Test keeps the original T568B graphic and eight pin indicators, runs
+  automatically, and redraws only changed results.
+- Init and live QC normalize pulse counts by the actual measurement time.
+  This corrects a firmware defect that could make stationary or unplugged
+  cables show changing indicators when the task resumed at different times.
+- Three consecutive passing observations qualify a green pin; a detected
+  fault immediately revokes the passing state.
+- QC entry draws the Init prompt cleanly. Delayed connector artwork can no
+  longer paint over it, including the garbled-entry problem reported in PN2.25.
+- Length cancels old work across Back/reentry, rejects stale screen messages,
+  keeps a pending REF target after an unusable measurement, and reduces
+  repeated redraws of the Testing box.
+- SPEED rejects invalid partner-register reads instead of presenting them as
+  advertised link capabilities.
+
+## Download and install
+
+TX tester file: `LPM-10A-TX_PN2.26-qc-display.bin` (401,408 bytes).
+
+SHA256:
+`c77579f018bb820532b3c5974ae63fbf04c4e60359188f7e39a8a8f9a1533df8`
+
+1. Power off the tester. Hold M + Power until its firmware-update screen appears.
+2. Connect USB-C and copy the TX file onto the removable drive.
+3. Wait for copying to finish. Long-press Power, then power on.
+4. About should show `Software:PN2.26`.
+5. If QC Test requests Init, disconnect every cable and hold Right until Init
+   succeeds. Then reconnect the cable to test it.
+
+Calibration from before PN2.25 needs one unplugged Init because its counts
+used the old timing method. A successful PN2.25 Init remains usable in PN2.26.
+
+ภาษาไทย: ผู้ใช้ยืนยัน PN2.26 ทดสอบทุกฟังก์ชันบนเครื่องจริงแล้วผ่าน
+หลังอัปเดต หาก QC ขึ้นให้ Init ให้ถอดสายทั้งหมด แล้วกด Right ค้างจนสำเร็จ
+จากนั้นเสียบสายเพื่อทดสอบตามปกติ
+
+This is a TX release. The published RX remains PN1.23; this release requires
+no RX update. TX and RX firmware files are not interchangeable.
+For rollback, copy a previous TX release using the same procedure; perform
+unplugged QC Init after changing back to firmware with the older count units.
+
+## Validation and reproducibility
+
+- Owner hardware report: all PN2.26 functions passed, 2026-09-22.
+- Final TX SDK suite after default-profile promotion: 481 tests passed.
+- Full-frame tests reproduce PN2.25's obscured Init prompt and confirm the fix
+  in both language settings. Stable results write no pixels.
+- Timing tests execute the ARM sampler, Init and live QC with modeled fixed
+  frequency, wake-time jitter, unplug/replug, individual faults and overflow.
+- Exact-parent, patch-site, flash/RAM bounds and deterministic build checks pass.
+
+Build from `LPM-10A/Firmware File/sdk` with `python build.py --write`, or use
+`python qc_display.py --write`. Both reproduce this exact release.
+
+Details and before/after images:
+https://github.com/patnawa/LPM-10A_PN_Custom/blob/main/docs/TX-QC-DISPLAY-PN2.26-2026-09-22.md
+
+The hardware result is the owner's report. Emulator tests and firmware
+analysis are separate evidence; no instrumented electrical measurements are
+claimed by this release.
