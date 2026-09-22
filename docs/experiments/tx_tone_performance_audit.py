@@ -55,7 +55,7 @@ class AuditMachine(RealCarrierMachine):
 
     def hook(self, uc, addr, size, user):
         if addr in (0x0800F9CC, 0x0801C5B0, 0x080169A8, 0x080183CC, 0x08018592):
-            # Run actual backlight, tick read, watchdog, IRQ clear and status
+            # Run actual key-beep PWM, tick read, watchdog, IRQ clear and status
             # functions; the earlier ScanMachine fixture mocks these.
             self.instructions += 1
             self.calls[addr] += 1

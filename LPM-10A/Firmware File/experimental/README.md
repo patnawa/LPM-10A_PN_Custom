@@ -1,5 +1,17 @@
 # Experimental builds
 
+**TX PN2.27A release (2026-09-22):** the owner reports a test pass with the named
+TX image paired with RX PN1.24. The default build and current download preserve
+the exact tested bytes. It specializes carrier GPIO updates and aligns Analog
+to nominal 816.832 Hz (817 Hz on screen), retaining the shared timer and Digital timing.
+[Firmware](LPM-10A-TX_PN2.27A-analog-alignment.bin),
+[notes](TX-PN2.27A-README.txt), [SHA256](TX-PN2.27A-SHA256SUMS.txt),
+[release v2.27A](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.27A),
+[analysis and tests](../../../docs/TX-TONE-PRECISION-PN2.27-2026-09-22.md).
+The intermediate [PN2.27](LPM-10A-TX_PN2.27-tone-precision.bin) retains the
+original Analog frequency and remains a historical comparison; its standalone
+device status is unconfirmed.
+
 **RX PN1.24 gain/precision release (2026-09-22):** the owner reports a device
 test pass with no signal drop in Digital or Analog. Based on owner-tested
 PN1.23G, it adds faster automatic gain recovery, full-window validation before
@@ -14,13 +26,13 @@ retain the exact tested bytes archived here.
 [analysis and test results](../../../docs/RX-GAIN-PRECISION-PN1.24-2026-09-22.md).
 Use the `-update.bin` file with the RX bootloader.
 
-**TX PN2.26 release (2026-09-22):** the owner reports all functions passed on
+**TX PN2.26 historical release (2026-09-22; superseded by PN2.27A):** the owner reports all functions passed on
 the tester. [Firmware](LPM-10A-TX_PN2.26-qc-display.bin),
 [release notes](TX-PN2.26-README.txt), [SHA256](TX-PN2.26-SHA256SUMS.txt).
 It retains the classic automatic QC screen, normalizes measurement timing,
 fixes the Init prompt overlap, and includes Length lifecycle/REF/progress
 corrections. If QC requests Init, disconnect all cables and hold Right.
-The default build reproduces this exact release; Q, R, PN2.24 and PN2.25
+The explicit `--profile pn2.26` build reproduces this exact release; Q, R, PN2.24 and PN2.25
 remain here as historical steps. See the
 [device report and visual regression](../../../docs/TX-QC-DISPLAY-PN2.26-2026-09-22.md).
 

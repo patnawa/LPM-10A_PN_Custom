@@ -145,6 +145,12 @@ _CHAIN = [
     ("pn2.26", "qc-display", ReleaseStage("qc_display"), "pn2.25", "experimental/LPM-10A-TX_PN2.26-qc-display.bin",
      "PN2.26 QC entry artwork follows calibration state; stale bitmaps cannot cover Init",
      "all functions passed on the owner's device, 2026-09-22 (release v2.26)"),
+    ("pn2.27", "tone-precision", ReleaseStage("tone_precision"), "pn2.26", "experimental/LPM-10A-TX_PN2.27-tone-precision.bin",
+     "PN2.27 specialized carrier GPIO transitions with unchanged timing and pin configuration",
+     "not device-tested as a standalone build; intermediary included in owner-tested PN2.27A"),
+    ("pn2.27a", "tone-alignment", ReleaseStage("tone_alignment"), "pn2.27", "experimental/LPM-10A-TX_PN2.27A-analog-alignment.bin",
+     "PN2.27A Analog phase alignment at nominal 816.832 Hz, plus faster carrier GPIO transitions",
+     "owner reported test pass paired with RX PN1.24, 2026-09-22 (release v2.27A)"),
 ]
 
 PROFILES = OrderedDict((n, Profile(n, *rest)) for n, *rest in _CHAIN)

@@ -2061,3 +2061,7 @@ _register_release_stage('qc_timing', 'QC: normalize counts to actual elapsed tim
                         'length-integrity')
 _register_release_stage('qc_display', 'QC: correct entry artwork ordering and reject stale bitmaps',
                         'qc-timing')
+_register_release_stage('tone_precision', 'Tone: specialize carrier GPIO transitions without changing pin settings',
+                        'qc-display')
+_register_release_stage('tone_alignment', 'Tone: align Analog with a local phase accumulator at unchanged timer cadence',
+                        'tone-precision')

@@ -38,9 +38,57 @@ class PublicationTests(unittest.TestCase):
 
     def test_defaults_select_confirmed_tx_and_rx_update_releases(self):
         self.assertEqual(publisher.DEFAULT_NAMES, (
-            "LPM-10A-TX_PN2.26-qc-display.bin",
+            "LPM-10A-TX_PN2.27A-analog-alignment.bin",
             "APP_LPM-10RX_PN1.24-gain-precision-update.bin",
         ))
+
+    def test_single_uppercase_version_suffix_accepts_tx_and_rx_updates(self):
+        for name in ("LPM-10A-TX_PN2.27A-analog-alignment.bin",
+                     "LPM-10A-TX_PN2.27A.bin",
+                     "APP_LPM-10RX_PN1.24A-gain-precision-update.bin",
+                     "APP_LPM-10RX_PN1.24A-update.bin"):
+            with self.subTest(name=name):
+                self.assertEqual(publisher._release_name(name), name)
+
+    def test_malformed_version_suffixes_and_paths_change_nothing(self):
+        for name in ("LPM-10A-TX_PN2.27AB-analog-alignment.bin",
+                     "LPM-10A-TX_PN2.27a-analog-alignment.bin",
+                     "LPM-10A-TX_PN2.27A1-analog-alignment.bin",
+                     "LPM-10A-TX_PN2.27_A-analog-alignment.bin",
+                     "APP_LPM-10RX_PN1.24AA-gain-precision-update.bin",
+                     "APP_LPM-10RX_PN1.24a-gain-precision-update.bin",
+                     "APP_LPM-10RX_PN1.24A-gain-precision.bin",
+                     "../LPM-10A-TX_PN2.27A-analog-alignment.bin",
+                     "..\\LPM-10A-TX_PN2.27A-analog-alignment.bin",
+                     "C:\\LPM-10A-TX_PN2.27A-analog-alignment.bin",
+                     "LPM-10A-TX_PN2.27A-analog-alignment.bin\n"):
+            with self.subTest(name=name):
+                before = self.snapshot()
+                with self.assertRaises(ValueError):
+                    publisher.publish([name], self.root)
+                self.assertEqual(self.snapshot(), before)
+
+    def test_cleanup_recognizes_manifest_letter_releases_and_preserves_archives(self):
+        old_letters = ("LPM-10A-TX_PN2.23R-qc-classic.bin",
+                       "APP_LPM-10RX_PN1.23G-digital-gain-update.bin")
+        keep = ("LPM-10A-TX_PN2.23RR-qc-classic.bin",
+                "APP_LPM-10RX_PN1.22g-digital-gain-update.bin")
+        manifest = (self.root / publisher.MANIFEST).read_text(encoding="ascii")
+        for name in (*old_letters, *keep):
+            (self.root / name).write_bytes(name.encode())
+            (self.root / "experimental" / name).write_bytes(name.encode())
+            manifest += f"{'0' * 64}  {name}\n"
+        unlisted = "LPM-10A-TX_PN2.23Q-unlisted.bin"
+        (self.root / unlisted).write_bytes(b"local unlisted release")
+        (self.root / publisher.MANIFEST).write_text(manifest, encoding="ascii")
+        publisher.publish(directory=self.root)
+        for name in old_letters:
+            self.assertFalse((self.root / name).exists())
+        for name in (*old_letters, *keep):
+            self.assertEqual((self.root / "experimental" / name).read_bytes(), name.encode())
+        for name in keep:
+            self.assertEqual((self.root / name).read_bytes(), name.encode())
+        self.assertEqual((self.root / unlisted).read_bytes(), b"local unlisted release")
 
     def test_import_has_no_filesystem_side_effects(self):
         with patch("os.remove") as remove, patch("builtins.open") as file_open, \

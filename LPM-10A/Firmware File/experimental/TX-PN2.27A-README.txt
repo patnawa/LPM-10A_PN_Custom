@@ -1,0 +1,51 @@
+TX PN2.27A - Analog alignment release
+
+Status: current TX release/default; owner-reported test pass with RX PN1.24.
+On 2026-09-22 the owner reported:
+"test pass on LPM-10A-TX_PN2.27A-analog-alignment.bin and rx1.24".
+This identifies the tested pair; no measured gain/range or exhaustive
+function checklist was supplied. Promotion preserves the tested bytes.
+
+File: LPM-10A-TX_PN2.27A-analog-alignment.bin
+Checksum: TX-PN2.27A-SHA256SUMS.txt in this folder.
+SHA-256: c12b127a634baa038c2504b8e30262a38f963c4900e0967094d7a7f4b1084420
+Release: https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.27A
+
+Includes PN2.27's carrier GPIO optimization and changes Analog modulation:
+- Mean Analog frequency is nominally 816.832 Hz, close to RX PN1.24's nominal filter bin.
+- The Analog button reads Analog 817 Hz in both language settings.
+- The shared timer stays at 101 us; Digital timing and carrier are retained.
+- A phase accumulator produces 50% envelope duty over its repeating period.
+  Individual half-cycles use six or seven timer ticks
+  (606 / 707 us). Better mean alignment does not mean less edge jitter.
+
+The modeled receiver results support the alignment change. They do not prove
+better physical gain, range, localization or continuous audio performance.
+
+Before promotion, 516 TX SDK tests passed. Both images were exercised across
+60,006 actual-code timer IRQs and 2,096 modeled RX acquisitions. PN2.27A
+passed 17,834 key/navigation interrupt placements. At the weak Analog test
+level, it detected 127/127 modeled phases versus PN2.27's 124/127 on both
+RX PN1.24 and PN1.23G. This is an ideal input model, not a physical range test.
+
+Install on the TX tester using M + Power, USB and a normal copy of the TX .bin.
+Wait for copying to finish, power off, then power on. About should show
+Software:PN2.27A. RX PN1.24 is the receiver used for the owner's test.
+No RX firmware change is included.
+
+For further characterization, compare weak/far pickup, strong/close pickup,
+movement, knob changes, adjacent cables, Pause/resume, Right, mode changes
+and Back/reentry. Also
+confirm Digital reception and ordinary QC/Length operation still work.
+
+Rollback to the owner-tested PN2.26 release using the same TX procedure.
+PN2.27 remains a historical comparison with the original Analog frequency;
+its standalone device testing is unconfirmed.
+
+Build from LPM-10A/Firmware File/sdk:
+  python tone_alignment.py --write
+
+Technical evidence and limits:
+  docs/TX-TONE-PRECISION-PN2.27-2026-09-22.md
+The standalone builder retains its original experimental-folder output path.
+The current root firmware and that original artifact have identical bytes.

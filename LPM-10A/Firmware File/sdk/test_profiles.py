@@ -9,6 +9,8 @@ import contextlib
 import hashlib
 import io
 import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import Mock, patch as mock_patch
@@ -46,6 +48,8 @@ PINNED = {
     "pn2.24":   ("b3716f6538f8980c075fb85e925cb2ba1d86e46440174d450615fa98253131e7", None),
     "pn2.25":   ("b6d407b662331bf4cf2fdb4f007a595cf75c61d31fa4986dea47d23aaf3c25ae", None),
     "pn2.26":   ("c77579f018bb820532b3c5974ae63fbf04c4e60359188f7e39a8a8f9a1533df8", None),
+    "pn2.27":   ("575a410fea87da9bc4ecb273d1fd931712bb8a2d911d771c55332dc2a2c4e8b2", None),
+    "pn2.27a":  ("c12b127a634baa038c2504b8e30262a38f963c4900e0967094d7a7f4b1084420", None),
 }
 VERSION_SLOTS = (0x08011660, 0x08012E6C)        # About screen, boot log (patches.p_version)
 
@@ -107,7 +111,7 @@ class ProfileChain(unittest.TestCase):
         for prof in PROFILES.values():
             self.assertTrue(prof.parent is None or prof.parent in PROFILES, prof.name)
         self.assertEqual(list(PROFILES)[-1], LATEST)
-        self.assertEqual(LATEST, "pn2.26")
+        self.assertEqual(LATEST, "pn2.27a")
         self.assertEqual({p.flag for p in PROFILES.values()}, set(BY_FLAG))
 
     def test_each_profile_adds_exactly_its_own_patches(self):
@@ -126,6 +130,17 @@ class ProfileChain(unittest.TestCase):
                 if prof.name != "pn2.13":           # the retired Sync32 branch keeps its label
                     self.assertNotEqual(by_id[pid].risk, "untested", f"{prof.name}: {pid}")
         self.assertNotIn("scan-sync", PROFILES[LATEST].patch_ids())
+
+    def test_release_builders_and_registry_import_without_cycles(self):
+        for first in ('patches', 'profiles', 'tone_precision', 'tone_alignment'):
+            with self.subTest(first_import=first):
+                result = subprocess.run(
+                    [sys.executable, '-c',
+                     f'import {first}; from profiles import PROFILES, LATEST; '
+                     'assert LATEST == "pn2.27a"; '
+                     'assert PROFILES[LATEST].version == "PN2.27A"'],
+                    cwd=HERE, capture_output=True, text=True, timeout=30)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
 
 class ProfileExtras(unittest.TestCase):
@@ -209,7 +224,7 @@ class BuildCli(unittest.TestCase):
         image.save.assert_not_called()
 
     def test_real_default_and_explicit_latest_emit_the_device_tested_binary(self):
-        for selection in ((), ('--profile', 'pn2.26')):
+        for selection in ((), ('--profile', 'pn2.27a')):
             with self.subTest(selection=selection), tempfile.TemporaryDirectory() as folder:
                 output = os.path.join(folder, 'tx.bin')
                 with mock_patch('sys.argv', ['build.py', *selection, '--out', output, '--write']), \
@@ -217,7 +232,7 @@ class BuildCli(unittest.TestCase):
                     self.assertEqual(build.main(), 0)
                 with open(output, 'rb') as artifact:
                     data = artifact.read()
-                self.assertEqual(hashlib.sha256(data).hexdigest(), PINNED['pn2.26'][0])
+                self.assertEqual(hashlib.sha256(data).hexdigest(), PINNED['pn2.27a'][0])
                 self.assertEqual(len(data), 401408)
 
     def test_default_is_the_frozen_baseline(self):

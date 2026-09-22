@@ -1,0 +1,232 @@
+{
+  "artifact": "LPM-10A\\Firmware File\\experimental\\LPM-10A-TX_PN2.26-qc-display.bin",
+  "sha256": "c77579f018bb820532b3c5974ae63fbf04c4e60359188f7e39a8a8f9a1533df8",
+  "parent_tone_sha256": "a7402de6f18e39df55bbe53f5641efd5135f0de4d81f9407515cf9d8710c5527",
+  "scope": "Exact published PN2.26 actual Thumb code; peripheral register/IRQ-arrival model, no electrical or instruction-cycle simulation.",
+  "clocks": {
+    "rcc_cfg": "0x805250a",
+    "clocks_hz": [
+      144000000,
+      144000000,
+      36000000,
+      72000000
+    ],
+    "tim1": {
+      "0x0": 129,
+      "0x4": 256,
+      "0x18": 97,
+      "0x20": 5,
+      "0x28": 0,
+      "0x2c": 316,
+      "0x34": 158,
+      "0x44": 32768
+    },
+    "tim2": {
+      "0x0": 1,
+      "0xc": 1,
+      "0x28": 71,
+      "0x2c": 100
+    },
+    "nominal_carrier_hz": 454258.6750788643,
+    "nominal_tim2_tick_us": 101.0,
+    "nominal_analog_hz": 825.0825082508251,
+    "nominal_digital_chip_us": 5050.0,
+    "caveat": "Firmware uses 8 MHz HSE constant; ready/status bits are modeled. Crystal frequency/tolerance is not measured.",
+    "nominal_timer_oc1_duty": 0.49842271293375395
+  },
+  "cadence": {
+    "1": {
+      "observed_ticks": 1600,
+      "counter_period_ticks": 800,
+      "carrier_enabled_ticks_per_period": 500,
+      "envelope_duty": 0.625,
+      "timer_configuration_changed_during_modulation": false,
+      "chip_ticks": 50,
+      "chip_us": 5050,
+      "eight_chip_pattern": "10110110",
+      "code_repeat_us": 40400,
+      "counter_wrap_us": 80800
+    },
+    "2": {
+      "observed_ticks": 24,
+      "counter_period_ticks": 12,
+      "carrier_enabled_ticks_per_period": 6,
+      "envelope_duty": 0.5,
+      "timer_configuration_changed_during_modulation": false,
+      "half_cycle_ticks": 6,
+      "half_cycle_us": 606,
+      "period_us": 1212
+    }
+  },
+  "irq": {
+    "1": {
+      "ticks": 10001,
+      "min_instructions": 102,
+      "max_instructions": 393,
+      "mean_instructions": 113.63193680631937,
+      "edge_instruction_counts": {
+        "368": 64,
+        "371": 12,
+        "392": 44,
+        "393": 31
+      },
+      "pin_configuration_write_separation_instructions": [
+        126
+      ],
+      "caveat": "Instruction counts, not cycles/time. RAM defaults, no concurrent tasks or flash stalls; not worst-case interrupt latency."
+    },
+    "2": {
+      "ticks": 10001,
+      "min_instructions": 116,
+      "max_instructions": 451,
+      "mean_instructions": 170.75742425757423,
+      "edge_instruction_counts": {
+        "391": 333,
+        "392": 334,
+        "415": 164,
+        "416": 328,
+        "417": 171,
+        "425": 83,
+        "426": 84,
+        "427": 2,
+        "449": 39,
+        "450": 87,
+        "451": 41
+      },
+      "pin_configuration_write_separation_instructions": [
+        126
+      ],
+      "caveat": "Instruction counts, not cycles/time. RAM defaults, no concurrent tasks or flash stalls; not worst-case interrupt latency."
+    }
+  },
+  "unchanged_since_pn214": {
+    "digital_and_analog_generators": {
+      "address": "0x8014300",
+      "bytes": 364,
+      "sha256": "17cda907dc390a46a0c9a2e0ff4359c3b2a462331f896fcb75b028c55235a8ed"
+    },
+    "scan_gate_dispatch_and_carrier_timer_init": {
+      "address": "0x801464c",
+      "bytes": 352,
+      "sha256": "8b351c642bade888e7bb9d487e3de15a680766977660f4f2c0a10c11845e877a"
+    },
+    "carrier_gpio_routines": {
+      "address": "0x801a60c",
+      "bytes": 280,
+      "sha256": "6804e502d6521efb12917d7e5fd4f501f637c2e37c60ac9ef30ccdd490c5756d"
+    },
+    "generic_gpio_init": {
+      "address": "0x80159cc",
+      "bytes": 312,
+      "sha256": "a6ba174413a48907787b4fc86db02a18d0495519346058e305a498667a5325c3"
+    },
+    "tim2_init": {
+      "address": "0x8016598",
+      "bytes": 108,
+      "sha256": "11702477c3ee6f9d48a788d1a95e98e52fb09d39ac73f4a8730b59006cad0d0d"
+    },
+    "tim2_irq": {
+      "address": "0x8018370",
+      "bytes": 92,
+      "sha256": "ca9ab96cbd5263f7510a32672539dbcb5cb1fc76be80f78aed2f5e820fbb8861"
+    },
+    "right_key_call_site": {
+      "address": "0x801446c",
+      "bytes": 44,
+      "sha256": "2ba340ad8372887cd66b1b81cf7d10fd50679e752aaea0b429509e070df86588"
+    }
+  },
+  "edge_cost": {
+    "1": {
+      "profiled_ticks": 1001,
+      "transition_calls": 16,
+      "gpio_init_calls_per_transition": 2,
+      "gpio_init_instructions_per_transition": 242,
+      "inter_pin_configuration_separation_instructions": 126,
+      "transition_irq_instruction_counts": [
+        368,
+        371,
+        392,
+        393
+      ],
+      "max_contiguous_primask_instructions_in_modeled_irq": 0,
+      "opportunity": "Specialized GPIO updates can avoid generic pin-selection loops; preserve unrelated CRH fields, complementary output setup and vendor OFF polarity. Electrical transitions would need measurement."
+    },
+    "2": {
+      "profiled_ticks": 1001,
+      "transition_calls": 166,
+      "gpio_init_calls_per_transition": 2,
+      "gpio_init_instructions_per_transition": 242,
+      "inter_pin_configuration_separation_instructions": 126,
+      "transition_irq_instruction_counts": [
+        391,
+        415,
+        416,
+        425,
+        449,
+        450
+      ],
+      "max_contiguous_primask_instructions_in_modeled_irq": 0,
+      "opportunity": "Specialized GPIO updates can avoid generic pin-selection loops; preserve unrelated CRH fields, complementary output setup and vendor OFF polarity. Electrical transitions would need measurement."
+    }
+  },
+  "delayed_service_fault_injection": {
+    "1": {
+      "fault_injection_only": true,
+      "hardware_grid_ticks": 100,
+      "serviced_irqs": 92,
+      "withheld_at_tick": 45,
+      "withheld_ticks": 8,
+      "first_edge_expected_tick": 50,
+      "first_edge_observed_tick": 58,
+      "injected_edge_delay_us": 808,
+      "interpretation": "Modulation advances once per serviced IRQ. Coalesced timer events stretch its phase; this probe does not establish that a real IRQ deadline is missed."
+    },
+    "2": {
+      "fault_injection_only": true,
+      "hardware_grid_ticks": 100,
+      "serviced_irqs": 98,
+      "withheld_at_tick": 4,
+      "withheld_ticks": 2,
+      "first_edge_expected_tick": 6,
+      "first_edge_observed_tick": 8,
+      "injected_edge_delay_us": 202,
+      "interpretation": "Modulation advances once per serviced IRQ. Coalesced timer events stretch its phase; this probe does not establish that a real IRQ deadline is missed."
+    }
+  },
+  "shared_tim2_clients": {
+    "tim2_irq28_priority_byte": "0x10",
+    "aircr_after_actual_application_group_setup": "0x5fa0500",
+    "priority_setup_path": "main0x0801BBB4 ->0x080189C4 ->grouping0x500; TIM2 init0x08016598 ->NVIC_Init0x08017DB0, preemption0/subpriority1",
+    "ordinary_rtos_critical_mask": "vPortEnterCritical0x0801C6B4 sets BASEPRI0xBF at0x0801C6B8, which does not mask TIM2 priority0x10; PRIMASK is separate.",
+    "watchdog": "IRQ0x08018398 calls heartbeat wrapper0x08068558 every1000 interrupts using0x200001A4;101ms at current ARR100,102ms if ARR101.",
+    "local_buzzer": "IRQ0x080183BC calls0x0800F9CC every5 interrupts using0x200001A8;505us currently,510us at ARR101. F9CC reads key-feedback timestamp/count0x20000150/154 and volume settings+0xA4, writes TIM3_CCR3=0x4000043C and flips0x2000017A. Older symbols call it backlight_dim_update.",
+    "independent_of_tim2_arr": "SysTick0x08018298/tick hook0x0801BC70 provide0x200001A0 milliseconds; RTOS delays and hardware TIM1 carrier are independent."
+  },
+  "analog_phase_accumulator_experiment": {
+    "in_memory_what_if_only": true,
+    "production_artifact_unchanged": true,
+    "routine_bytes": 64,
+    "existing_phase_halfword": "0x200000de",
+    "tim2_tick_us_unchanged": 101,
+    "frequency_hz": 816.8316831683169,
+    "cycles_per400ticks": 33,
+    "envelope_duty": 0.5,
+    "half_cycle_tick_histogram_per400ticks": {
+      "6": 62,
+      "7": 4
+    },
+    "half_cycle_us": [
+      606,
+      707
+    ],
+    "instructions": {
+      "min": 104,
+      "max": 430,
+      "mean": 157.223125
+    },
+    "observed_trace_first400ticks": "0000001111110000001111110000001111110000001111110000001111110000001111110000001111110000001111110000000111111000000111111000000111111000000111111000000111111000000111111000000111111000000111111000000111111100000011111100000011111100000011111100000011111100000011111100000011111100000011111100000011111110000001111110000001111110000001111110000001111110000001111110000001111110000001111110000001111110",
+    "tradeoff": "Mean frequency approaches the RX DFT bin without changing Digital/watchdog/buzzer timing, but 6/7-tick half-cycles add101us deterministic edge quantization instead of the existing steady6-tick cadence. Not validated on a device or older receivers."
+  },
+  "electrical_gain_claim": "None: no output amplitude/power or cable-coupling measurement is available."
+}

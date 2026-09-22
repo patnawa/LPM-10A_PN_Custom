@@ -112,7 +112,9 @@ FUNCS = {
     0x0801BC70: "tick_hook_1ms",          # called from SysTick_Handler
     0x0800F968: "home_1s_housekeeping",   # auto-off countdown
     0x0800F9C0: "autooff_timer_reset",    # auto_off_ctr = 0
-    0x0800F9CC: "backlight_dim_update",
+    # Reads key-beep state and settings volume; updates TIM3 CCR3 every five
+    # TIM2 interrupts (PN2.26 actual-code audit, 2026-09-22).
+    0x0800F9CC: "key_beep_pwm_update",
     0x080116BC: "key_activity_notify",    # runs on every dispatched action (backlight dim timer)
     # note: Action_key_Process (0x080149FC) ends with autooff_timer_reset for EVERY key event
     0x080130A8: "test_in_progress",       # 1 while a measurement is running

@@ -1,14 +1,32 @@
 # LPM-10A firmware SDK
 
+**PN2.27A release (2026-09-22):** the owner reports a test pass with TX PN2.27A
+paired with RX PN1.24. `python build.py --write` (or
+`python build.py --profile pn2.27a --write`) builds
+`experimental/LPM-10A-TX_PN2.27A-analog-alignment.bin`, byte-identical to the
+tested file: SHA-256 `c12b127a634baa038c2504b8e30262a38f963c4900e0967094d7a7f4b1084420`.
+The release inherits PN2.26's QC and Length fixes, specializes carrier GPIO
+updates, and aligns Analog to nominal 816.832 Hz (`Analog 817 Hz` on screen)
+at the unchanged timer cadence. Digital timing, carrier configuration,
+drive-strength and slew settings remain unchanged. The owner report is a
+qualitative device result; instruction counts and receiver comparisons in
+the [implementation report](../../../docs/TX-TONE-PRECISION-PN2.27-2026-09-22.md)
+are emulator measurements, not measured range or sensitivity gains.
+
+`python build.py --profile pn2.27 --write` reproduces the GPIO-only intermediary,
+SHA-256 `575a410fea87da9bc4ecb273d1fd931712bb8a2d911d771c55332dc2a2c4e8b2`.
+PN2.27 was not device-tested separately. Both stages keep their exact parent
+guards and standalone builders; earlier profiles remain reproducible.
+
 **PN2.26 release (2026-09-22):** the owner reports every function passed on the
-device. `python build.py --write` (or `python qc_display.py --write`)
+device. `python build.py --profile pn2.26 --write` (or `python qc_display.py --write`)
 builds `experimental/LPM-10A-TX_PN2.26-qc-display.bin` on exact PN2.25.
 It fixes the owner's reproduced garbled QC entry: a delayed T568B bitmap
 was painting over the Init prompt. It retains the classic automatic screen,
-PN2.25 timing normalization and PN2.24 Length fixes. Use this candidate
+PN2.25 timing normalization and PN2.24 Length fixes. Use this release
 instead of PN2.25. If QC requests Init, disconnect all cables and hold Right.
 See [display reproduction and validation](../../../docs/TX-QC-DISPLAY-PN2.26-2026-09-22.md).
-The tested artifact is now the default TX build and
+The tested artifact remains available as
 [release v2.26](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.26).
 
 **PN2.25 QC timing correction (2026-09-22):** `python qc_timing.py --write`
@@ -51,7 +69,7 @@ OK stops/starts a new session; Right starts a new session; existing Init and
 Back remain available. Actual Thumb/GUI tests cover timer sharing, cancellation,
 rapid reentry and stale queued messages. Device validation is pending.
 See [operation and validation](../../../docs/TX-QC-FLEX-PN2.23Q-2026-09-22.md).
-The default release profile is now PN2.26; Q remains a historical experiment.
+The default release profile is now PN2.27A; Q remains a historical experiment.
 
 **Build profiles (2026-09-21):** `python build.py --write` emits the latest profile;
 `profiles.py` lists every PN version as its parent plus one module, with its output file
@@ -198,7 +216,7 @@ needs `uharfbuzz`.
 python test_thumb.py            # assembler self-test
 python build.py --list          # what patches and profiles exist
 python build.py                 # dry run of the latest profile: prints every byte it would change
-python build.py --write         # emit the latest profile (experimental/LPM-10A-TX_PN2.26-qc-display.bin, the release)
+python build.py --write         # emit the release: experimental/LPM-10A-TX_PN2.27A-analog-alignment.bin
 python build.py --profile pn2.14 --write   # an earlier version (PN 2.14 was the release before PN 2.20)
 python build.py --default --write   # the frozen baseline, LPM-10A-TX_PN2.9.bin (unreleased, what verify.py models)
 python verify.py                # prove the baseline is what was intended

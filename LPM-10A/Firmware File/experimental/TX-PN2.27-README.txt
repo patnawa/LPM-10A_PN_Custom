@@ -1,0 +1,52 @@
+TX PN2.27 - Historical Tone Probe GPIO comparison
+
+Status: historical comparison; standalone device testing is unconfirmed.
+Current TX release/default: PN2.27A. On 2026-09-22 the owner reported test
+pass on LPM-10A-TX_PN2.27A-analog-alignment.bin paired with RX PN1.24.
+That confirmation does not establish a standalone PN2.27 device result.
+
+File: LPM-10A-TX_PN2.27-tone-precision.bin
+Checksum: TX-PN2.27-SHA256SUMS.txt in this folder.
+
+Changes from the owner-tested PN2.26:
+- Specialized carrier GPIO updates replace repeated generic pin initialization.
+- Digital retains its existing code, 5.05 ms chips and 454.259 kHz carrier.
+- Analog retains its existing 825.083 Hz envelope.
+- Carrier duty, output drive settings, shared timer, QC, Length and screen
+  layout retain PN2.26 behavior. About and boot version identify PN2.27.
+
+This reduces instruction overhead. It is not a measured increase in output
+power, range or physical cable-selection precision.
+
+Before PN2.27A promotion, 516 TX SDK tests passed. Both images were exercised across
+60,006 actual-code timer IRQs and 2,096 modeled RX acquisitions. PN2.27's
+Digital and Analog traces match PN2.26; 17,834 key/navigation interrupt
+placements passed. No standalone PN2.27 sound/pickup result was reported.
+
+Install on the TX tester:
+1. Power off. Hold M + Power until the firmware-update screen appears.
+2. Connect USB-C and copy the named TX .bin onto the removable drive.
+3. Wait until copying completes. Long-press Power, then power on.
+4. About should show Software:PN2.27.
+
+Use RX PN1.24 for the comparison. No RX update is included in this candidate.
+Successful PN2.25/PN2.26 QC calibration is retained. If QC requests Init,
+disconnect every cable and hold Right before reconnecting the test cable.
+
+Test both tone modes with the same cable and RX knob setting:
+- Hold the probe still, then sweep near/far and turn the RX knob.
+- Press TX Right while transmitting, switch modes, Pause/resume, Back/reenter.
+- Check for silence, dropouts, lingering tone and changes in adjacent-cable pickup.
+- Check QC entry/Init and a complete cable, plus normal Length operation.
+
+Rollback: install LPM-10A-TX_PN2.26-qc-display.bin by the same TX procedure.
+PN2.27A includes this GPIO optimization plus the Analog frequency change.
+For additional A/B testing, record each version on the same setup.
+
+Build from LPM-10A/Firmware File/sdk:
+  python tone_precision.py --write
+
+Technical evidence and limits:
+  docs/TX-TONE-PRECISION-PN2.27-2026-09-22.md
+Current TX release: https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.27A
+PN2.27 remains reproducible without becoming the default profile.

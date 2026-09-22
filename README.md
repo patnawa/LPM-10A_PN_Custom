@@ -5,7 +5,7 @@
 Unofficial firmware for the **FNIRSI LPM-10A** network cable tester (TX) and its tone probe (RX).
 Built by patching the shipped binaries — no vendor source — and verified by emulation and on a real unit.
 
-![tester](https://img.shields.io/badge/TX-PN%202.26-blue) ![receiver](https://img.shields.io/badge/RX-PN%201.24-blue) ![licence](https://img.shields.io/badge/licence-MIT-green)
+![tester](https://img.shields.io/badge/TX-PN%202.27A-blue) ![receiver](https://img.shields.io/badge/RX-PN%201.24-blue) ![licence](https://img.shields.io/badge/licence-MIT-green)
 
 <img src="docs/img/hero.png" alt="LPM-10A PN Custom Firmware: TX PN 2.14, RX PN 1.23 — Length, PoE and tone screens rendered from the firmware's own draw code" width="1000">
 
@@ -15,20 +15,23 @@ Built by patching the shipped binaries — no vendor source — and verified by 
 
 | Device | Version | Download | File to copy |
 |---|---|---|---|
-| **TX** tester | **PN 2.26** | [Release v2.26](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.26) | `LPM-10A-TX_PN2.26-qc-display.bin` |
+| **TX** tester | **PN 2.27A** | [Release v2.27A](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.27A) | `LPM-10A-TX_PN2.27A-analog-alignment.bin` |
 | **RX** probe | **PN 1.24** | [Release rx-v1.24](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.24) | `APP_LPM-10RX_PN1.24-gain-precision-update.bin` |
 
-The owner reports **PN2.26 tested on the device: every function passed (2026-09-22)**.
-This release keeps the classic automatic QC screen, corrects measurement timing and the overlapping Init
-prompt, and improves Length lifecycle, REF and progress updates. See the
-[PN2.26 validation report](docs/TX-QC-DISPLAY-PN2.26-2026-09-22.md).
+The owner reports **TX PN2.27A passed device testing paired with RX PN1.24 (2026-09-22)**.
+This release reduces carrier-switching work and aligns Analog modulation to nominal 816.832 Hz,
+displayed as **Analog 817 Hz**. Digital timing and the PN2.26 QC/Length fixes are retained.
+See the [PN2.27A analysis and validation](docs/TX-TONE-PRECISION-PN2.27-2026-09-22.md).
 The owner confirms **RX PN1.24 passes without Digital or Analog signal dropouts (2026-09-22)**.
 It improves gain recovery, rejects expired measurements and reduces Analog processing work.
 See the [PN1.24 analysis and validation](docs/RX-GAIN-PRECISION-PN1.24-2026-09-22.md).
 Each release carries its notes and a SHA-256 file. **TX and RX firmware are not interchangeable.**
 FNIRSI's own files are not redistributed here.
 
-> **สรุปภาษาไทย:** TX ใช้ PN 2.26, RX ใช้ PN 1.24 · TX อัปเดต: ปิดเครื่อง → กด **M + Power** ค้าง → เสียบ USB → ก๊อปปี้ไฟล์ ·
+The default TX build reproduces the exact owner-tested PN2.27A file. PN2.27 remains an
+archived comparison with the original Analog frequency; its standalone device status is unconfirmed.
+
+> **สรุปภาษาไทย:** TX ใช้ PN 2.27A, RX ใช้ PN 1.24 · TX อัปเดต: ปิดเครื่อง → กด **M + Power** ค้าง → เสียบ USB → ก๊อปปี้ไฟล์ ·
 > RX อัปเดต: ปิดเครื่อง → กด **SCAN** ค้าง → เสียบ USB → ไดรฟ์ `BOOTLOADER` → ก๊อปปี้ไฟล์ **`-update.bin`** ด้วย Explorer →
 > ไดรฟ์หายใน 1 วิ = เสร็จ · รายละเอียดและวิธีย้อนกลับ: [คู่มืออัปเดต RX](docs/RX-UPDATE-GUIDE.md)
 
@@ -36,12 +39,12 @@ FNIRSI's own files are not redistributed here.
 
 ### TX (tester)
 
-1. Check the download: `certutil -hashfile LPM-10A-TX_PN2.26-qc-display.bin SHA256` →
-   `c77579f018bb820532b3c5974ae63fbf04c4e60359188f7e39a8a8f9a1533df8`
+1. Check the download: `certutil -hashfile LPM-10A-TX_PN2.27A-analog-alignment.bin SHA256` →
+   `c12b127a634baa038c2504b8e30262a38f963c4900e0967094d7a7f4b1084420`
 2. Tester off. Hold **M + Power** until the firmware-update screen appears.
 3. Plug in USB-C; a removable drive appears.
 4. Copy the `.bin` onto the drive. Do not unplug while it writes.
-5. Long-press Power to shut down, then power on. Settings › About shows `Software:PN2.26`.
+5. Long-press Power to shut down, then power on. Settings › About shows `Software:PN2.27A`.
 6. If QC Test requests Init, **disconnect all cables and hold Right until Init succeeds**.
    This is required once for calibration made before PN2.25; a successful PN2.25 Init is retained.
 
@@ -88,14 +91,14 @@ explained: what stock does, what PN does, how it works and how it was checked.
 | Auto Off | keeps counting during a SCAN tone or FLASH blink | held while a tone or blink session runs |
 | Port FLASH | fixed phase counter | blink timed from the PHY link; 1.5 s on / 1 s off minimum; back-off 4 → 8 → 16 s |
 | PoE screen | voltage drawn once; blank without a supply | **voltage refreshed every 0.5 s**; "Detecting…" then "No PoE"; "Standard : Yes / No" |
-| Tone (SCAN) menu | Noiseless / Normal | **Digital 454 kHz** and **Analog 825 Hz** — the two the probe decodes |
+| Tone (SCAN) menu | Noiseless / Normal | **Digital 454 kHz** and **Analog 817 Hz**; specialized carrier switching and Analog alignment with the RX filter |
 | SPEED | resolved speed and duplex only | + a **Switch** row: the speeds the port advertises (`10/100/1000`, `10/100`, … `No autoneg`) — a 100 Mbps link on a gigabit port points at the cable, on a 10/100 port at the port |
 | Cable Test | one ADC sample per pin, "open" only 77 mV under the rail → random open / crossed wires on a cable plugged into nothing; pass / fail only; Back leaves the screen; error text hidden under a button | **eleven samples per pin, the median decides**; Switch mode needs a real short; **Not connected** when nothing is at the far end; **every wire ends with its reading** (partner pin + reading in Switch mode, the RX unit's ladder value otherwise); modes named Switch / **RX unit**; the message line is wiped before every test; Back returns to the mode choice; error line visible |
 | Language | Chinese / English | **ไทย / English** on every screen; picker on first boot |
 | Font | thin serif | Ubuntu Sans Mono + Sarabun (Thai), rendered from the firmware's own layout tables |
 | Reliability | heap leak on settings save, timer-path logging, FP crash frame | fixed; watchdog on the service task; fault records kept across warm reset |
 | QC Test | raw pulse counts depend on the actual task delay | **Classic screen and continuous automatic testing**; counts normalized to the actual measurement duration; three passing observations before green, immediate fault classification; clean Init prompt |
-| Identity | `Software:V2.0.7`, fnirsi.cn | `Software:PN2.26`, this repository's URL, and `BATT / NVP / ZERO` on the About screen; bootloader-facing image name unchanged |
+| Identity | `Software:V2.0.7`, fnirsi.cn | `Software:PN2.27A`, this repository's URL, and `BATT / NVP / ZERO` on the About screen; bootloader-facing image name unchanged |
 
 ### TX (tester) — in detail
 
@@ -239,13 +242,14 @@ verified by emulation; the no-supply path on hardware (no PoE switch or injector
 </details>
 
 <details>
-<summary><b>Tone menu: Digital 454 kHz and Analog 825 Hz</b></summary>
+<summary><b>Tone menu: Digital 454 kHz and Analog 817 Hz</b></summary>
 
-The SCAN screen drives the cable with a ~454 kHz carrier from TIM2 (10 kHz tick, 5 ms slots). **Digital**
-keys the carrier with the 16-slot code `0xB6B6` (period 8 chips, ~198 chips/s) that the probe's Digital
-mode decodes; **Analog** keys it at ~825 Hz for the probe's Analog mode (any analogue tone probe hears it
-too). Stock labelled them "Noiseless" and "Normal"; PN names them by what they are (454 kHz is the
-carrier, 825 Hz the modulation — neither is the probe's beep frequency), fixes one lost tick at the
+The SCAN screen drives the cable with a ~454 kHz carrier from TIM1. TIM2 services modulation every
+101 microseconds. **Digital** keys the carrier with the 16-slot code `0xB6B6` (period 8 chips,
+5.05 ms per chip) that the probe's Digital mode decodes. **Analog** uses a local phase accumulator
+at nominal 816.832 Hz, close to RX PN1.24's target filter bin, without changing the shared timer.
+Stock labelled them "Noiseless" and "Normal"; PN labels the carrier and modulation frequencies.
+PN2.27A specializes carrier GPIO switching and inherits the fixes for one lost tick at the
 digital wrap, the debug logging in the timer path, the stale carrier state after Pause and a RIGHT-key
 carrier-cache defect, and removes two experimental modes (Sync32, Pulse test) that the probe does not
 use. Pair TX Digital with RX Digital and TX Analog with RX Analog.
@@ -329,20 +333,20 @@ hardware/RTOS boundaries.
 <details>
 <summary><b>Identity and the update file</b></summary>
 
-About reports `Software:PN2.26` and this repository's URL instead of `V2.0.7` / fnirsi.cn, and since PN 2.16 one
+About reports `Software:PN2.27A` and this repository's URL instead of `V2.0.7` / fnirsi.cn, and since PN 2.16 one
 line under Factory Reset — `BATT 3874mV  NVP 68%  ZERO 0.4m` — the pack voltage and the Length calibration as
 stored. The
 container's internal image name stays FNIRSI's, because the bootloader may match on it. Since PN 2.3
 the file is one 4 KB flash page longer than stock (393 216 bytes) because the code cave ran out; the
 container header carries the payload length and the bootloader accepted the longer file (and, in the
 `cable-diag` experiment, a two-page-longer one) on the tested
-unit. The current PN2.26 update is **401,408 bytes**, accepted on the owner's tester.
+unit. The current PN2.27A update is **401,408 bytes**, accepted on the owner's tester.
 Formulas, addresses and verdicts for every calculation, TX and RX: [`FORMULA-AUDIT.md`](LPM-10A/Firmware%20File/FORMULA-AUDIT.md).
 </details>
 
 <p>
-<img src="docs/img/scan-pn214-en.png" alt="Tone menu: Digital 454 kHz and Analog 825 Hz" width="180">
-<img src="docs/img/scan-pn214-th.png" alt="Tone menu in Thai" width="180">
+<img src="docs/img/scan-pn214-en.png" alt="Historical PN2.14 tone menu: Digital 454 kHz and Analog 825 Hz" width="180">
+<img src="docs/img/scan-pn214-th.png" alt="Historical PN2.14 tone menu in Thai" width="180">
 <img src="docs/img/about_screen.png" alt="About screen: stock vs PN Custom" width="620">
 </p>
 
@@ -481,15 +485,14 @@ sweeping the knob and moving the probe (the SWD header is beside the MCU):
 function: [docs/RX-AUDIT.md](docs/RX-AUDIT.md). PN1.24's numerical performance
 figures are emulator results; the owner separately confirmed both modes pass
 without signal drops. Pair TX **Digital** with RX Digital and TX **Analog
-825 Hz** with RX Analog. Only one hardware unit has been tested; range and cable selectivity are not
+817 Hz** with RX Analog. Only one hardware unit has been tested; range and cable selectivity are not
 quantified against another probe.
 
 ## Known limitations
 
 - **Cables of about 2 m and under cannot be measured** (the PHY's TDR blind zone); the Cable Test (wiremap)
   screen still finds the broken pair. Blind pairs read `< 2 m`.
-- The TX update file is one 4 KB page longer than stock (code cave grew); the bootloader accepts it, and
-  took a two-page-longer experimental build as well.
+- The current TX update file is 401,408 bytes; the owner confirmed this exact image works on the tester.
 - A Cable Test takes about a second (eleven samples per pin). G (the shield) reads open on an unshielded cable
   or a switch — normal, not counted as a fault. The wire-map thresholds are stock's, confirmed on one unit; the
   `cable-diag` build in `experimental/` prints the deciding numbers if another unit disagrees.
@@ -506,13 +509,13 @@ quantified against another probe.
 
 ```
 LPM-10A/Firmware File/
-  LPM-10A-TX_PN2.26-qc-display.bin          current TX build — copy to the tester's update drive
+  LPM-10A-TX_PN2.27A-analog-alignment.bin   current TX build — copy to the tester's update drive
   APP_LPM-10RX_PN1.24-gain-precision-update.bin  current RX build — copy to the probe's BOOTLOADER drive
-  TX-PN2.26-README.txt, RX-PN1.24-README.txt notes for each: what it does, how to update, how to roll back
+  TX-PN2.27A-README.txt, RX-PN1.24-README.txt notes for each: what it does, how to update, how to roll back
   SHA256SUMS.txt                             checksums of the two files above
   README.md                                  what is in this folder
   FORMULA-AUDIT.md                           every measurement formula with verdicts: TX §1-6, receiver PN formulas §7
-  sdk/                                       TX toolkit: patch chain PN 2.9 → 2.26 (profiles.py), assembler, verifier, Thai UI, tests
+  sdk/                                       TX toolkit: patch chain PN 2.9 → 2.27A (profiles.py), assembler, verifier, Thai UI, tests
   rx-sdk/                                    RX toolkit: patch chain PN 1.0 → 1.24 (profiles.py), container, emulator, tests
   experimental/                              build outputs of every PN version (the test suites compare against them)
   archive/                                   earlier release copies and their notes (history only)
@@ -578,11 +581,19 @@ over the Init prompt. PN2.25 is superseded by PN2.26 below.
 
 [PN2.26](docs/TX-QC-DISPLAY-PN2.26-2026-09-22.md) fixes that reproduced display
 ordering defect while retaining the timing and Length fixes. The owner
-confirmed every function passed on the device on 2026-09-22; it is now the
-default TX release. `python build.py --write` from `sdk` reproduces
-`experimental/LPM-10A-TX_PN2.26-qc-display.bin`; the same bytes are published
-in the Firmware File root and [release v2.26](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.26).
+confirmed every function passed on the device on 2026-09-22. Reproduce this
+historical release with `python build.py --profile pn2.26 --write` from `sdk`;
+its unchanged file remains in `experimental/` and
+[release v2.26](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.26).
 If QC requests Init, disconnect all cables and hold Right.
+
+[PN2.27A](docs/TX-TONE-PRECISION-PN2.27-2026-09-22.md) adds faster carrier GPIO
+switching and Analog alignment while retaining Digital timing. The owner
+reported a test pass with RX PN1.24. It is now the default TX release;
+`python build.py --write` reproduces the exact tested bytes. The complete
+pre-release TX suite passed 516 tests, with 60,006 timer IRQ executions and
+2,096 modeled receiver acquisitions in the paired experiment. The device
+report is separate from those instruction/model measurements.
 
 ## Licences and credits
 
