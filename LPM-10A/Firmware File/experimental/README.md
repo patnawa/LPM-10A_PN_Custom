@@ -1,5 +1,19 @@
 # Experimental builds
 
+**RX PN1.24 gain/precision release (2026-09-22):** the owner reports a device
+test pass with no signal drop in Digital or Analog. Based on owner-tested
+PN1.23G, it adds faster automatic gain recovery, full-window validation before
+automatic gain decisions, sample-age checks, and less Analog analysis work
+with unchanged spectral thresholds. Performance figures remain emulator
+measurements. The default build and
+[published release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.24)
+retain the exact tested bytes archived here.
+[Default RX update file](../APP_LPM-10RX_PN1.24-gain-precision-update.bin),
+[archived copy](APP_LPM-10RX_PN1.24-gain-precision-update.bin),
+[notes](RX-PN1.24-README.txt), [checksums](RX-PN1.24-SHA256SUMS.txt),
+[analysis and test results](../../../docs/RX-GAIN-PRECISION-PN1.24-2026-09-22.md).
+Use the `-update.bin` file with the RX bootloader.
+
 **TX PN2.26 release (2026-09-22):** the owner reports all functions passed on
 the tester. [Firmware](LPM-10A-TX_PN2.26-qc-display.bin),
 [release notes](TX-PN2.26-README.txt), [SHA256](TX-PN2.26-SHA256SUMS.txt).

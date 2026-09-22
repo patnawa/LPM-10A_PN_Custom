@@ -33,7 +33,7 @@ from lpm10rx.image import Image, PatchError, STOCK_NAME   # noqa: E402
 from lpm10rx.container import wrap                         # noqa: E402
 from lpm10rx import symbols as S                          # noqa: E402
 import rx_patches as patches                               # noqa: E402
-from profiles import PROFILES, LATEST, apply_profile       # noqa: E402
+from profiles import PROFILES, LATEST, apply_profile, profile_patches  # noqa: E402
 
 FW_DIR = os.path.dirname(HERE)
 STOCK = os.path.join(FW_DIR, STOCK_NAME)
@@ -112,11 +112,17 @@ def main():
         if name not in PROFILES:
             ap.error(f"unknown profile {name!r}; known: {', '.join(PROFILES)}")
         prof = PROFILES[name]
-        ids = prof.patch_ids()
-        sel = [p for p in patches.REGISTRY if p.pid in ids]
+        try:
+            sel = profile_patches(prof)
+        except PatchError as error:
+            print(f"REFUSING TO BUILD: {error}")
+            return 2
         out = args.out or os.path.join(FW_DIR, prof.output)
         print(f"profile {prof.name}: {prof.title}")
-        print("EXPERIMENTAL V3.0.0-BASED RX IMAGE: bench validation and matching-device recovery required.")
+        if prof.hardware:
+            print(prof.hardware)
+        else:
+            print("EXPERIMENTAL V3.0.0-BASED RX IMAGE: bench validation and matching-device recovery required.")
 
     try:
         img = Image(STOCK)

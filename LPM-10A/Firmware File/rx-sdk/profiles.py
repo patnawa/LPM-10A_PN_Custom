@@ -9,8 +9,12 @@ pn1.10 (Sync32, off pn1.9) and pn1.13 (audio-clock diagnostic, off pn1.12).
 
 Adding PN 1.x: write the module (PATCHES, OUTPUT, PARENT_SHA256, apply, register),
 register it at the end of rx_patches.py, and append one Profile line here.
+Standalone candidate builders use lazy ReleaseStage metadata instead. Their
+guarded stages follow the registry patches, without importing builders while
+profiles is still initializing or adding them to custom --all selections.
 """
 from collections import OrderedDict
+from importlib import import_module
 from lpm10rx.image import PatchError
 
 import rx_patches
@@ -20,9 +24,25 @@ import mode_tone, gain_norm, release_hold, smooth_gain, rail_strong, strong_cap 
 import fast_update, auto_range, mains_tone                                      # noqa: E401
 
 
+class ReleaseStage:
+    """A guarded candidate stage, imported only when a profile is applied."""
+    def __init__(self, module_name, pid, output, title, tag_after=None):
+        self.module_name, self.pid, self.OUTPUT = module_name, pid, output
+        self.title, self.tag_after = title, tag_after
+        self.PATCHES = frozenset((pid,))
+        self.risk, self.group, self.default = 'validated', 'scan', False
+
+    def __call__(self, img):
+        import_module(self.module_name).apply(img)
+        if self.tag_after is not None:
+            import version_tag
+            version_tag.apply(img, self.tag_after)
+
+
 class Profile:
-    def __init__(self, name, flag, module, parent, title, tag=False):
+    def __init__(self, name, flag, module, parent, title, tag=False, hardware=None):
         self.name, self.flag, self.module, self.parent, self.title, self.tag = name, flag, module, parent, title, tag
+        self.hardware = hardware
 
     @property
     def output(self):
@@ -75,6 +95,20 @@ _CHAIN = [
     ("pn1.21", "fast-update",  fast_update,       "pn1.20", "PN 1.21 Digital evaluates every 40 ms instead of 80", True),
     ("pn1.22", "auto-range",   auto_range,        "pn1.21", "PN 1.22 gain steps down by itself when the front end saturates", True),
     ("pn1.23", "mains-tone",   mains_tone,        "pn1.22", "PN 1.23 mains mode beeps at 5 kHz: three modes, three pitches", True),
+    ("pn1.23f", "gain-freshness", ReleaseStage("auto_range_freshness", "rx-gain-freshness",
+        "experimental/APP_LPM-10RX_PN1.23F-gain-freshness.bin",
+        "Invalidate old-gain acquisitions before publishing new gain", tag_after="pn1.23f"),
+     "pn1.23", "PN1.23F gain/sample ownership correction (historical candidate)", True),
+    ("pn1.23g", "digital-gain", ReleaseStage("digital_gain_continuity", "rx-digital-gain",
+        "experimental/APP_LPM-10RX_PN1.23G-digital-gain.bin",
+        "Keep confirmed Digital rhythm during fresh gain acquisition"),
+     "pn1.23f", "PN1.23G bounded Digital feedback across gain changes", True,
+     "Digital gain-change dropout fix confirmed by the owner, 2026-09-22"),
+    ("pn1.24", "gain-precision", ReleaseStage("rx_precision", "rx-gain-precision",
+        "experimental/APP_LPM-10RX_PN1.24-gain-precision.bin",
+        "Faster fresh-window gain recovery, efficient Analog analysis and sample-age guards"),
+     "pn1.23g", "PN1.24 Digital/Analog gain response, Analog efficiency and sample freshness", True,
+     "Hardware test passed: no Digital or Analog audio dropout reported by the owner, 2026-09-22"),
 ]
 
 PROFILES = OrderedDict((n, Profile(n, *rest)) for n, *rest in _CHAIN)
@@ -82,21 +116,32 @@ BY_FLAG = {p.flag: p for p in PROFILES.values()}
 LATEST = list(PROFILES)[-1]
 
 
-def apply_profile(img, profile, log=None):
-    """Apply every patch of the profile in registry order, then its version tag."""
+def profile_patches(profile):
+    """Validate a complete selection before applying registry and lazy stages."""
     ids = profile.patch_ids()
-    registered = [p.pid for p in rx_patches.REGISTRY]
+    available = list(rx_patches.REGISTRY) + [p.module for p in PROFILES.values()
+                                           if isinstance(p.module, ReleaseStage)]
+    registered = [p.pid for p in available]
     missing = ids - set(registered)
     duplicate = {pid for pid in ids if registered.count(pid) > 1}
     if missing or duplicate:
         raise PatchError(f"profile {profile.name}: missing patches {sorted(missing)}, duplicate patches {sorted(duplicate)}")
-    for p in rx_patches.REGISTRY:
-        if p.pid in ids:
-            before = len(img.log)
-            p(img)
-            if log is not None:
-                log(p, before)
-    if profile.tag:
+    return [p for p in available if p.pid in ids]
+
+
+def apply_profile(img, profile, log=None):
+    """Apply ordered guarded patches, then the historical profile's final tag.
+
+    PN1.23F and later stages carry exact tagged-parent guards and establish
+    their own identities. Earlier profiles still tag only after their complete
+    untagged registry chain, preserving every archived parent hash.
+    """
+    for p in profile_patches(profile):
+        before = len(img.log)
+        p(img)
+        if log is not None:
+            log(p, before)
+    if profile.tag and not isinstance(profile.module, ReleaseStage):
         import version_tag
         before = len(img.log)
         version_tag.apply(img, profile.name)

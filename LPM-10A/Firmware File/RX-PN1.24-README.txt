@@ -1,0 +1,43 @@
+RX PN1.24 - gain recovery, sample freshness and Analog efficiency
+2026-09-22 - owner-tested release
+
+Based on the exact PN1.23G image whose Digital gain-change audio fix was
+confirmed by the owner. TX PN2.26 remains compatible.
+
+Owner confirmation: "1.24 Tested pass no signal drop on digital and analog."
+This is a device result for signal continuity. Numerical performance and
+noise results in the analysis report are CPU-model measurements.
+
+Use APP_LPM-10RX_PN1.24-gain-precision-update.bin with the RX bootloader.
+Do not copy the raw APP_LPM-10RX_PN1.24-gain-precision.bin as an update.
+After updating, verify the RX identity is PN1.24.TXT.
+RX-PN1.24-SHA256SUMS.txt lists both artifact hashes.
+
+Changes:
+- Automatic gain corrections can occur every 1 second instead of 2.5 seconds.
+  The knob ceiling and existing hysteresis thresholds are preserved.
+- Automatic decisions require a complete acquisition at the current gain.
+- Expired sample windows cannot renew audio feedback after a foreground stall.
+  Digital's bounded audio continuity across gain changes remains included.
+- Analog checks its target before evaluating the noise bins. Quiet input
+  needs about 97% fewer analyzer instructions in the CPU model, with unchanged
+  detection decisions and strength mapping in the differential test sweep.
+
+Build and CPU tests do not establish physical pickup distance or calibrated
+precision. The owner confirmed both modes work without signal drops. Hardware
+gain settling, noise margins and receiver-to-receiver variation have not been
+quantitatively characterized by that confirmation.
+
+Build from rx-sdk: python build.py --write (default PN1.24)
+Verify current published RX: python verify_release.py
+Independent exact builder: python rx_precision.py --write
+Details: docs/RX-GAIN-PRECISION-PN1.24-2026-09-22.md
+Update procedure: docs/RX-UPDATE-GUIDE.md
+Release: https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.24
+
+Update SHA-256: d08285d835562ed7154bdd75bb4d2a12b2875e694adfffe3d2970fbe4625609f
+Raw SHA-256: 780951565cca543e50d38537cd179ee1793562c6a4642b688c8143b0e4d8b1ce
+
+Rollback: copy the prior PN1.23G -update.bin from experimental/ with the same
+RX update procedure. The previous published PN1.23 update also remains in
+archive/ and on its rx-v1.23 release page.

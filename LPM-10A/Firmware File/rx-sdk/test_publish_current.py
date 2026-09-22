@@ -21,16 +21,26 @@ class PublicationTests(unittest.TestCase):
         (self.root / "experimental").mkdir()
         self.tx, self.rx = publisher.DEFAULT_NAMES
         self.old = "LPM-10A-TX_PN2.22-length-progress.bin"
+        self.old_rx = "APP_LPM-10RX_PN1.23-mains-tone-update.bin"
         (self.root / self.old).write_bytes(b"old release")
+        (self.root / self.old_rx).write_bytes(b"old rx release")
+        (self.root / "experimental" / self.old_rx).write_bytes(b"archived rx release")
         (self.root / "vendor-stock.bin").write_bytes(b"stock")
         (self.root / "local-backup.bin").write_bytes(b"backup")
-        (self.root / publisher.MANIFEST).write_text(f"{'0' * 64}  {self.old}\n", encoding="ascii")
+        (self.root / publisher.MANIFEST).write_text(
+            f"{'0' * 64}  {self.old}\n{'0' * 64}  {self.old_rx}\n", encoding="ascii")
         for name in (self.tx, self.rx):
             (self.root / "experimental" / name).write_bytes(name.encode())
 
     def snapshot(self):
         return {p.relative_to(self.root).as_posix(): p.read_bytes()
                 for p in self.root.rglob("*") if p.is_file()}
+
+    def test_defaults_select_confirmed_tx_and_rx_update_releases(self):
+        self.assertEqual(publisher.DEFAULT_NAMES, (
+            "LPM-10A-TX_PN2.26-qc-display.bin",
+            "APP_LPM-10RX_PN1.24-gain-precision-update.bin",
+        ))
 
     def test_import_has_no_filesystem_side_effects(self):
         with patch("os.remove") as remove, patch("builtins.open") as file_open, \
@@ -49,6 +59,9 @@ class PublicationTests(unittest.TestCase):
         self.assertEqual((self.root / publisher.MANIFEST).read_bytes(),
                          "".join(f"{digest}  {name}\n" for name, digest in result).encode())
         self.assertFalse((self.root / self.old).exists())
+        self.assertFalse((self.root / self.old_rx).exists())
+        self.assertEqual((self.root / "experimental" / self.old_rx).read_bytes(),
+                         b"archived rx release")
         self.assertEqual((self.root / "vendor-stock.bin").read_bytes(), b"stock")
         self.assertEqual((self.root / "local-backup.bin").read_bytes(), b"backup")
         self.assertFalse(list(self.root.glob(".publish-*")))

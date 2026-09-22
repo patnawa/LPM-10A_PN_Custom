@@ -1,10 +1,26 @@
 # LPM-10A receiver (probe) firmware SDK
 
-**Current release: PN 1.23.** `python build.py --write` builds the latest profile
+**Current release: PN1.24.** `python build.py --write` builds the latest profile
 and its update container. `python verify_release.py` verifies the published
 current update against an exact rebuild; pass an image path and `--profile pn1.xx`
 to check another registered profile. The older `verify.py` models historical
-PN 1.0–1.2 behavior. The version notes below are historical.
+PN 1.0–1.2 behavior. Notes for earlier versions below are historical.
+
+**Gain/precision release PN1.24 (2026-09-22):** the owner reports a device test
+pass with no signal drop in Digital or Analog. The default build reproduces
+the exact tested raw image and RX update container. The dedicated
+`python rx_precision.py --write` command retains copies in `experimental/`.
+PN1.24 builds on the exact owner-tested PN1.23G.
+Automatic gain can recover every 1 second instead of 2.5 seconds, with a full
+current-gain acquisition required before an automatic decision. Sample-age
+guards reject delayed measurements before analysis and publication. Analog
+evaluates its target first, reducing quiet-input analysis work while retaining
+the previous spectral decision and thresholds. Timing and instruction figures
+remain emulator measurements, separate from the owner's qualitative device
+report. See the [release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.24)
+and [implementation, measurements and validation](../../../docs/RX-GAIN-PRECISION-PN1.24-2026-09-22.md).
+Use [APP_LPM-10RX_PN1.24-gain-precision-update.bin](../APP_LPM-10RX_PN1.24-gain-precision-update.bin)
+with the RX bootloader.
 
 **Digital gain continuity candidate (2026-09-22):**
 `python digital_gain_continuity.py --write` builds **PN1.23G**, its RX update
@@ -17,7 +33,7 @@ CPU-tested; the owner confirmed the Digital dropout is fixed on the device
 on 2026-09-22. The timing figures above are emulator measurements. See the
 [diagnosis, measurements and firmware](../../../docs/RX-DIGITAL-GAIN-PN1.23G-2026-09-22.md).
 Run `python -m unittest test_rx_digital_strong_gain test_rx_digital_gain_continuity test_digital_gain_build -q`.
-The default release profile remains PN 1.23.
+PN1.23G is preserved as the tested parent; its fixes are included in PN1.24.
 
 **Earlier audit experiment (2026-09-22):** `python auto_range_freshness.py` dry-builds
 `PN1.23F` in memory. It invalidates stale sample windows before a gain change
@@ -192,8 +208,8 @@ transmitter SDK (`../sdk/lpm10a/thumb.py`).
 ```bash
 python build.py --list          # what patches exist
 python build.py                 # dry run: instruction-level diff
-python build.py --write         # emit ../APP_LPM-10RX_PN1.0.bin
-python verify.py                # 25 checks
+python build.py --write         # emit PN1.24 raw image and -update.bin in ../
+python verify_release.py        # verify the current update against an exact rebuild
 python boot_emu.py              # clock tree and timer rates, from the running code
 python disasm.py funcs          # survey every function
 python disasm.py fn 08007770    # one function (add an image.bin anywhere to pick a file)
@@ -221,8 +237,9 @@ checks reject truncated reads, unterminated strings and resized-image writes.
 
 The earlier two-patch digital command writes
 `../APP_LPM-10RX_PN1.1-digital-experimental.bin`, not PN 1.0 or PN 1.2.
-The default build/verification still use PN 1.0. The internal vendor version
-string is deliberately unchanged (`3.0.0`); use the candidate hash to identify it.
+Those historical checks target PN 1.0/1.1; the default build and release verifier
+now target PN1.24. The historical internal vendor version string was deliberately
+unchanged (`3.0.0`); use each candidate's hash to identify it.
 Stock's five-read trimmed sampler is retained: this is not oversampling or
 sub-slot clock recovery. The added contrast threshold needs bench calibration.
 

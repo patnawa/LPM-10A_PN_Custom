@@ -82,14 +82,17 @@ class RobustProfileTests(unittest.TestCase):
                 self.assertEqual(actual, expected)
                 image.save.assert_not_called()
 
-    def test_implicit_and_explicit_latest_select_identical_tagged_profile(self):
-        expected = [p.pid for p in build.patches.REGISTRY if p.pid in build.PROFILES[build.LATEST].patch_ids()]
-        for args in ((), ("--profile", build.LATEST)):
-            with self.subTest(args=args):
-                selected, image = self.select(*args, "--write")
-                self.assertEqual(selected, expected)
-                self.assertEqual(image.version_tag, build.LATEST.upper())
-                image.save.assert_called_once_with(os.path.join(build.FW_DIR, build.PROFILES[build.LATEST].output))
+    def test_historical_pn123_default_routing_with_inert_registry(self):
+        # This fixture replaces registry patches with no-ops. The current
+        # guarded release stages are checked by real binary CLI tests.
+        with mock_patch.object(build, 'LATEST', 'pn1.23'):
+            expected = [p.pid for p in build.patches.REGISTRY if p.pid in build.PROFILES[build.LATEST].patch_ids()]
+            for args in ((), ("--profile", build.LATEST)):
+                with self.subTest(args=args):
+                    selected, image = self.select(*args, "--write")
+                    self.assertEqual(selected, expected)
+                    self.assertEqual(image.version_tag, build.LATEST.upper())
+                    image.save.assert_called_once_with(os.path.join(build.FW_DIR, build.PROFILES[build.LATEST].output))
 
     def test_robust_allows_explicit_output_path(self):
         _, image = self.select("--robust", "--write", "--out", "bench/receiver.bin")

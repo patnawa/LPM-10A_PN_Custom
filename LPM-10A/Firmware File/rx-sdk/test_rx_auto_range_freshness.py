@@ -254,9 +254,10 @@ class AutoRangeFreshness(unittest.TestCase):
 
     def test_reproducible_candidate_has_distinct_identity_without_changing_latest(self):
         import version_tag
+        latest = profiles.LATEST
         candidate = fix.build_candidate()
         self.assertEqual(candidate.version_tag, 'PN1.23F')
-        self.assertEqual(profiles.LATEST, 'pn1.23')
+        self.assertEqual(profiles.LATEST, latest)
         expected = bytearray(self.data)
         offset = version_tag.VERSION_STRING-0x08006800
         expected[offset:offset+version_tag.SLOT] = b'PN1.23F\0'
