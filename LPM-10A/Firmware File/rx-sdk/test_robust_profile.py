@@ -8,6 +8,7 @@ from unittest.mock import Mock, mock_open, patch as mock_patch
 
 import build
 from lpm10rx.container import wrap
+import profiles
 import version_tag
 
 
@@ -35,6 +36,9 @@ class RobustProfileTests(unittest.TestCase):
             for name in ("pid", "title", "risk", "default", "group"):
                 setattr(record, name, getattr(original, name))
             registry.append(record)
+        def stage(stage_self, img):
+            # Guarded release stages pin exact parent bytes; record them over the inert image.
+            applied.append(stage_self.pid)
         raw = b"test"
         image = Mock(original=raw, data=bytearray(raw), log=[])
         # Byte-exact version-tagging is covered by test_profiles; here retain
@@ -44,6 +48,7 @@ class RobustProfileTests(unittest.TestCase):
         image.save.return_value = "fixture-digest"
         with mock_patch("sys.argv", ["build.py", *args]), \
                 mock_patch.object(build.patches, "REGISTRY", registry), \
+                mock_patch.object(profiles.ReleaseStage, "__call__", stage), \
                 mock_patch.object(build, "Image", return_value=image), \
                 mock_patch.object(build.S, "STOCK_SHA256", hashlib.sha256(raw).hexdigest()), \
                 mock_patch("build.open", mock_open(), create=True) as container_open, \

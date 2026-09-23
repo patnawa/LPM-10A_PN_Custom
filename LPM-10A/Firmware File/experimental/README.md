@@ -1,5 +1,34 @@
 # Experimental builds
 
+**RX PN1.27 knob-reference release (2026-09-23):** the owner reports "1.27 test pass" on the
+probe. The knob sets the rhythm's reference over its whole travel (lower knob, slower rhythm),
+still audible from low on the knob; PN1.26's peak-relative mute, full gain, NCV gain and louder
+beep kept. The default build and [published release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.27) retain the exact tested bytes
+archived here. [Default RX update file](../APP_LPM-10RX_PN1.27-knob-update.bin),
+[archived copy](APP_LPM-10RX_PN1.27-knob-update.bin), [raw image](APP_LPM-10RX_PN1.27-knob.bin),
+[notes and checklist](RX-PN1.27-README.txt), [checksums](RX-PN1.27-SHA256SUMS.txt),
+[diagnosis and tests](../../../docs/RX-KNOB-PN1.27-2026-09-23.md).
+
+**RX PN1.26 candidate (2026-09-23; on the probe: heard from 5-10 %, knob had no effect → superseded by PN1.27):** full sensitivity at every
+knob position; the lower half mutes pairs clearly weaker than the strongest one heard in
+the last seconds (a lone cable always sounds), the strongest fastest. Keeps PN1.25's louder
+beeps and NCV gain. [Update file](APP_LPM-10RX_PN1.26-relative-update.bin) (copy this one),
+[raw image](APP_LPM-10RX_PN1.26-relative.bin), [notes and checklist](RX-PN1.26-README.txt),
+[checksums](RX-PN1.26-SHA256SUMS.txt),
+[analysis and tests](../../../docs/RX-RELATIVE-PN1.26-2026-09-23.md). Roll back with PN1.24.
+
+**RX PN1.25 candidate (2026-09-23; on the probe: louder confirmed, knob still past half → superseded by PN1.26):** answers the field
+report from a telephone PBX cabinet ("loud everywhere, cannot tell which line")
+and "the knob must be turned half way before anything sounds". Upper half of the
+knob = full-gain search with the PN1.24 rhythm; lower half = the knob sets a
+reference level, weaker pairs slow down and go silent, the strongest keeps a
+rhythm. NCV always gets the knob's gain; beeps are about 9.5 dB louder.
+[Update file](APP_LPM-10RX_PN1.25-isolate-update.bin) (copy this one),
+[raw image](APP_LPM-10RX_PN1.25-isolate.bin), [notes and checklist](RX-PN1.25-README.txt),
+[checksums](RX-PN1.25-SHA256SUMS.txt),
+[analysis and tests](../../../docs/RX-ISOLATE-PN1.25-2026-09-23.md).
+Roll back with the PN1.24 update file.
+
 **TX PN2.27A release (2026-09-22):** the owner reports a test pass with the named
 TX image paired with RX PN1.24. The default build and current download preserve
 the exact tested bytes. It specializes carrier GPIO updates and aligns Analog
@@ -12,15 +41,15 @@ The intermediate [PN2.27](LPM-10A-TX_PN2.27-tone-precision.bin) retains the
 original Analog frequency and remains a historical comparison; its standalone
 device status is unconfirmed.
 
-**RX PN1.24 gain/precision release (2026-09-22):** the owner reports a device
+**RX PN1.24 gain/precision release (2026-09-22; superseded by PN1.27):** the owner reports a device
 test pass with no signal drop in Digital or Analog. Based on owner-tested
 PN1.23G, it adds faster automatic gain recovery, full-window validation before
 automatic gain decisions, sample-age checks, and less Analog analysis work
 with unchanged spectral thresholds. Performance figures remain emulator
-measurements. The default build and
+measurements. `python build.py --profile pn1.24` reproduces, and the
 [published release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.24)
-retain the exact tested bytes archived here.
-[Default RX update file](../APP_LPM-10RX_PN1.24-gain-precision-update.bin),
+retains, the exact tested bytes archived here.
+[Release copy](../archive/APP_LPM-10RX_PN1.24-gain-precision-update.bin),
 [archived copy](APP_LPM-10RX_PN1.24-gain-precision-update.bin),
 [notes](RX-PN1.24-README.txt), [checksums](RX-PN1.24-SHA256SUMS.txt),
 [analysis and test results](../../../docs/RX-GAIN-PRECISION-PN1.24-2026-09-22.md).

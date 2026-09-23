@@ -1,14 +1,55 @@
 # LPM-10A receiver (probe) firmware SDK
 
-**Current release: PN1.24.** `python build.py --write` builds the latest profile
+**Current release: PN1.27.** `python build.py --write` builds the latest profile
 and its update container. `python verify_release.py` verifies the published
 current update against an exact rebuild; pass an image path and `--profile pn1.xx`
 to check another registered profile. The older `verify.py` models historical
 PN 1.0–1.2 behavior. Notes for earlier versions below are historical.
 
-**Gain/precision release PN1.24 (2026-09-22):** the owner reports a device test
-pass with no signal drop in Digital or Analog. The default build reproduces
-the exact tested raw image and RX update container. The dedicated
+**Knob-reference release PN1.27 (2026-09-23):** the owner reports "1.27 test pass" on the
+probe. The default build reproduces the exact tested raw image and RX update container
+([release rx-v1.27](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.27)); `python knob_reference.py --write` retains copies in
+`experimental/`. On PN1.26 the owner heard the tone from 5-10 % but "always strong, turning the
+knob makes no difference" (`test_rx_knob_response` reproduces it: a lone cable is its own peak,
+ranked fastest). PN1.27 is built from PN1.24: strength × K(knob) before PN1.24's
+curve at every knob position (0 dB on the top sixteenth = PN1.24, about -2 dB per sixteenth to
+-30 dB), no muting by K; PN1.26's full gain, peak-relative mute below the middle, Compare gain
+ceiling, NCV gain and louder beep kept. `python -m unittest test_rx_knob_response test_rx_knob_reference -v`
+(22 tests). See the [diagnosis and validation](../../../docs/RX-KNOB-PN1.27-2026-09-23.md) and
+[notes/checklist](../experimental/RX-PN1.27-README.txt).
+
+**Candidate PN1.26 (2026-09-23, device: heard from 5-10 %, knob had no effect; superseded by PN1.27):** after the owner's
+PN1.25 test (louder, but the knob still had to pass the middle), `python relative_isolate.py --write`
+builds `experimental/APP_LPM-10RX_PN1.26-relative*.bin` from PN1.24. Digital and Analog may use the
+full gain at every knob position; a peak of recent strength (instant rise, -2 dB/s, forgotten
+after 10 s) drives isolation. Upper half: PN1.24 search. Lower half: readings weaker than
+peak × window (-36 dB near the middle to -6 dB at the bottom) are muted through the release
+hold, the rest ranked against the peak; the gain ceiling there never lets a pair that should
+sound read as a saturated lower bound. PN1.25's louder beeps and NCV gain are kept; 8 bytes of
+zero-initialised RAM at 0x20000210. `python -m unittest test_rx_relative_isolate -v` (22 tests).
+See the [analysis](../../../docs/RX-RELATIVE-PN1.26-2026-09-23.md) and
+[notes/checklist](../experimental/RX-PN1.26-README.txt).
+
+**Candidate PN1.25 (2026-09-23, device-tested, superseded by PN1.26):** answers two owner
+reports on PN1.24 — every pair sounded equally fast in a telephone PBX cabinet,
+and the knob had to be turned about half way before Digital, Analog or NCV
+sounded. `python isolate.py --write` builds `experimental/APP_LPM-10RX_PN1.25-isolate*.bin`.
+Upper half of the knob: Search, full gain ceiling (AGC still steps down), PN1.24
+rhythm. Lower half: Isolate — normalised strength × K (1 → 1/64, 6 dB per
+sixteenth), a floor that mutes weaker readings through the existing release
+hold, the floor..40 000 range stretched over the whole curve, clipped windows
+counted as the driven gain's saturation, and knob-down never raising an
+AGC-lowered gain. Mains always drives the knob's gain (PN1.24 kept the tracing
+AGC's lowered gain). Beeps swing ±300 duty instead of ±100 (~+9.5 dB).
+Detection, sampling and the mains analysis are unchanged; no RAM is added.
+`python -m unittest test_rx_isolate -v` (24 tests) compares the upper half with
+PN1.24, the lower half with an independent model, and replays the
+target/neighbour field case. See the [analysis](../../../docs/RX-ISOLATE-PN1.25-2026-09-23.md)
+and [notes/checklist](../experimental/RX-PN1.25-README.txt).
+
+**Gain/precision release PN1.24 (2026-09-22; superseded by PN1.27):** the owner reports a
+device test pass with no signal drop in Digital or Analog. `python build.py --profile pn1.24 --write`
+reproduces the exact tested raw image and RX update container. The dedicated
 `python rx_precision.py --write` command retains copies in `experimental/`.
 PN1.24 builds on the exact owner-tested PN1.23G.
 Automatic gain can recover every 1 second instead of 2.5 seconds, with a full
@@ -19,8 +60,7 @@ the previous spectral decision and thresholds. Timing and instruction figures
 remain emulator measurements, separate from the owner's qualitative device
 report. See the [release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.24)
 and [implementation, measurements and validation](../../../docs/RX-GAIN-PRECISION-PN1.24-2026-09-22.md).
-Use [APP_LPM-10RX_PN1.24-gain-precision-update.bin](../APP_LPM-10RX_PN1.24-gain-precision-update.bin)
-with the RX bootloader.
+Its release copy is [archive/APP_LPM-10RX_PN1.24-gain-precision-update.bin](../archive/APP_LPM-10RX_PN1.24-gain-precision-update.bin).
 
 **Digital gain continuity candidate (2026-09-22):**
 `python digital_gain_continuity.py --write` builds **PN1.23G**, its RX update
@@ -208,7 +248,7 @@ transmitter SDK (`../sdk/lpm10a/thumb.py`).
 ```bash
 python build.py --list          # what patches exist
 python build.py                 # dry run: instruction-level diff
-python build.py --write         # emit PN1.24 raw image and -update.bin in ../
+python build.py --write         # emit PN1.27 raw image and -update.bin in ../experimental/
 python verify_release.py        # verify the current update against an exact rebuild
 python boot_emu.py              # clock tree and timer rates, from the running code
 python disasm.py funcs          # survey every function
@@ -238,7 +278,7 @@ checks reject truncated reads, unterminated strings and resized-image writes.
 The earlier two-patch digital command writes
 `../APP_LPM-10RX_PN1.1-digital-experimental.bin`, not PN 1.0 or PN 1.2.
 Those historical checks target PN 1.0/1.1; the default build and release verifier
-now target PN1.24. The historical internal vendor version string was deliberately
+now target PN1.27. The historical internal vendor version string was deliberately
 unchanged (`3.0.0`); use each candidate's hash to identify it.
 Stock's five-read trimmed sampler is retained: this is not oversampling or
 sub-slot clock recovery. The added contrast threshold needs bench calibration.

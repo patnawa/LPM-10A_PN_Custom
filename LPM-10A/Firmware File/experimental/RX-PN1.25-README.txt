@@ -1,0 +1,117 @@
+RX PN1.25 - ปุ่มแยกสายได้จริง, ครึ่งบนไวสุด, เสียงดังขึ้น, NCV ได้เกนตามปุ่ม
+2026-09-23 - ทดสอบบนเครื่องแล้ว: เสียงดังขึ้นใช้ได้ แต่ยังต้องหมุนผ่านครึ่งถึงได้ยิน
+            -> ถูกแทนด้วย PN1.26 (RX-PN1.26-README.txt) / tested on the probe, superseded by PN1.26
+
+ไฟล์ที่ใช้ติดตั้ง: APP_LPM-10RX_PN1.25-isolate-update.bin  (อย่าก๊อปไฟล์ raw .bin)
+ใช้คู่กับ TX PN2.27A (TX ไม่ต้องเปลี่ยน)
+
+---------------------------------------------------------------------------
+ภาษาไทย
+---------------------------------------------------------------------------
+ที่มา (รายงานจากเจ้าของ 2026-09-23, TX PN2.27A + RX PN1.24)
+  1. หาสายโทรศัพท์ในตู้สาขาที่มีสายเยอะ: "สัญญาณดังไปหมด ระบุไม่ได้เลยว่าสายไหน"
+  2. "ต้องหมุนปุ่มเกือบครึ่งทางถึงได้ยินเสียง" ทั้ง Digital, Analog และ NCV
+
+สาเหตุในเฟิร์มแวร์ RX (PN1.15 -> PN1.24)
+  - จังหวะบี๊บบอกความแรง "หลังชดเชยเกน" (PN1.15) และเร็วสุดที่ระดับที่เกนสูงสุดอิ่ม (PN1.19)
+    ส่วน AGC (PN1.22) ลดเกนลงไปวัดได้แรงกว่านั้นอีก ~20 เท่า
+    => สัญญาณทุกระดับตั้งแต่ "เกนสูงสุดอิ่ม" ขึ้นไป 26 dB ได้เร็วสุดเท่ากันหมด
+       ในตู้ สายข้างเคียงที่รับโทนจากการเหนี่ยวนำอยู่ในช่วงนี้หมด จึงดังเร็วสุดเท่าสายจริง
+  - ปุ่มแค่เลือกเกนฮาร์ดแวร์ 1 ใน 3 ขั้น: ต่ำกว่า 57% ของปุ่มเกนเหลือ 1/2.6, 1/9, 1/20
+    => ครึ่งล่างของปุ่ม "หูหนวก" สำหรับสัญญาณทั่วไป แต่ก็ไม่ได้ช่วยแยกสายแรงด้วย
+  - NCV (Mains) ไม่มี AGC แต่ค้างเกนที่ AGC ของโหมดหาสายลดไว้ จนกว่าจะหมุนปุ่ม
+    => หลังหาสายแรง ๆ แล้วสลับไป NCV จะไม่ไวจนกว่าจะหมุนปุ่ม
+  (จำลองด้วยโค้ดจริงใน emulator: สายเป้าหมาย + สายข้าง -12 dB ใน PN1.24 ดังเร็วสุดเท่ากันทุกตำแหน่งปุ่ม)
+
+PN1.25 เปลี่ยนอะไร
+  ครึ่งบนของปุ่ม (50-100%) = โหมดค้นหา
+    - เกนสูงสุดเสมอ (AGC ยังลดเกนเองเมื่ออิ่ม) -> ไวสุดตั้งแต่ครึ่งปุ่มขึ้นไป ไม่ต้องหมุนสุด
+    - จังหวะเหมือน PN1.24 ทุกอย่าง
+  ครึ่งล่าง (ต่ำกว่า 50%) = โหมดแยกสาย: ยิ่งหมุนลง สัญญาณต้องแรงขึ้นถึงจะดัง
+    - ~45%: ยังได้ยินสัญญาณอ่อน; ~40%: ตัดสัญญาณไกลทิ้ง; ~34%: เหลือเฉพาะใกล้/แตะสาย
+    - ~25%: เหลือเฉพาะที่แรงกว่าระดับที่ทำให้เกนสูงสุดอิ่ม ~9 dB (ระดับโทนรั่วในตู้); ~12% ลงไป: เหลือเฉพาะที่แรงสุด
+    - คู่ที่อ่อนกว่าเกณฑ์ = เงียบ (Analog หยุดใน ~0.1 s, Digital ~0.2 s)
+    - คู่ที่ผ่านเกณฑ์ = จังหวะเต็มสเกล ช้า (อ่อนสุดที่ยังได้ยิน) -> เร็วสุด (แรงสุด)
+    - หมุนลงไม่ดันเกนกลับขึ้น (PN1.24 รีเซ็ตเกนตามปุ่มทุกครั้ง สายแรงเลยอิ่มใหม่ ฟังเบาลง 1-2 s)
+    - ค่าที่ชน rail นับเป็นระดับอิ่มของเกนขณะนั้น
+  NCV (Mains): เกนเท่ากับของปุ่มเสมอ (ครึ่งบน = เกนสูงสุด) รวมถึงทันทีหลังสลับมาจากโหมดหาสาย
+  เสียง: ดังขึ้น ~3 เท่า (+9.5 dB) ทุกโหมดและเสียงกดปุ่ม (duty 800 +- 300 แทน +- 100)
+  ไม่เปลี่ยน: การตรวจจับและ threshold, การสุ่มตัวอย่าง, release hold, smoothing,
+  sample-age guard, การวิเคราะห์ NCV, pitch ของแต่ละโหมด; ไม่ใช้ RAM เพิ่ม (+452 bytes ต่อท้าย image)
+
+วิธีใช้ในตู้ (ลำดับที่แนะนำ)
+  1. ต่อ TX เข้าสายเป้าหมายที่ปลายทาง ถอดเครื่องโทรศัพท์ออก
+     เช็กก่อนว่าโทนออกคู่ที่ใช้จริง: แนบ probe ที่สายเส้นนั้นใกล้ TX ต้องดัง (ถ้าไม่ดัง บอกผมด้วย)
+  2. ที่ตู้ ปุ่มครึ่งบน หาแผง/บล็อกที่ดัง (จะดังทั้งบล็อกเหมือนเดิม)
+  3. ตั้งทั้ง TX และ RX เป็น Analog (ตอบสนองเร็วกว่า Digital) แล้วแตะปลาย probe ที่ขั้วทีละคู่
+  4. หมุนปุ่มลงต่ำกว่าครึ่งช้า ๆ จนเหลือคู่เดียวที่ยังดัง คู่อื่นเงียบหรือช้ากว่าชัดเจน
+  5. ถ้าหมุนลงเกือบสุดแล้วยังดังเร็วทุกคู่ = ปลาย probe อิ่มจากการแตะ -> ถอยปลาย probe ห่างขั้ว 2-5 mm
+  6. ถ้าหมุนลงแล้วเงียบพร้อมกันทุกคู่ = คู่เหล่านั้นแรงพอ ๆ กันจริง (การเหนี่ยวนำทางกายภาพ)
+     ลองแตะให้ตรงขั้ว หรือปลดสายเป้าหมายออกจากตู้สาขา (ถ้าทำได้) แล้วลองใหม่
+
+ข้อควรระวัง
+  สายภายในจากตู้สาขามีไฟ DC และแรงดันเรียกเข้า (ring) ซึ่ง TX ไม่ได้ออกแบบมาสำหรับไฟโทรศัพท์
+  ถ้าทำได้ ให้ปลดสายเป้าหมายออกจากตู้สาขาก่อนต่อ TX หรืออย่างน้อยอย่าต่อค้างไว้ขณะมีสายเรียกเข้า
+
+เช็กลิสต์ทดสอบบนเครื่อง (ส่งผลกลับมา)
+  A. ติดตั้งแล้ว เข้าไดรฟ์ BOOTLOADER อีกครั้ง ต้องเห็น PN1.25.TXT
+  B. ครึ่งบน (50-100%): ได้ยินตั้งแต่ครึ่งปุ่ม ระยะจับเท่าหรือดีกว่า PN1.24 ที่ปุ่มสุด ทั้ง Digital/Analog
+  C. เสียงดังขึ้นชัดเจน ไม่แตก/ไม่แสบหู (ถ้าดังไปหรือเบาไป บอกได้ ปรับได้)
+  D. โต๊ะ: สาย 4 เส้นมัดรวม ต่อ TX 1 เส้น; ครึ่งบน = ดังทุกเส้น;
+     หมุนลงจนเหลือเส้นเดียว -> บันทึก % ปุ่ม และถูก/ผิดกี่ครั้งจาก 10 ครั้ง (Analog และ Digital)
+  E. ตู้จริง: โหมดที่ใช้, % ปุ่มที่แยกได้ (หรือแยกไม่ได้), แตะขั้วหรือไม่, สายต่อกับตู้สาขาหรือปลดออก
+  F. NCV: ใกล้สายไฟ ปุ่มครึ่งบนจับได้ไวขึ้น; หาสายด้วย Digital แล้วสลับไป NCV ทันที ต้องไวเท่าเดิม
+  G. หมุนปุ่มขึ้นลงขณะแนบสาย: ไม่มีเสียงขาดนานผิดปกติ; หมุนปุ่มลงสุด = เงียบ
+
+ย้อนกลับ (rollback): ก๊อป APP_LPM-10RX_PN1.24-gain-precision-update.bin (โฟลเดอร์ Firmware File)
+  ด้วยวิธีเดิม แล้วเช็ก PN1.24.TXT
+
+---------------------------------------------------------------------------
+English
+---------------------------------------------------------------------------
+Reports: (1) in a telephone PBX cabinet every pair gave the same fastest rhythm;
+(2) the knob had to be turned about half way before anything sounded, in
+Digital, Analog and NCV.
+Causes: PN1.15/1.19/1.22 made every reading from the full gain's saturation up
+to ~26 dB above it the same fastest rhythm, and the knob (only a gain ceiling,
+cancelled by the normaliser) could not rank them; below 57 % the knob selects
+1/2.6, 1/9 or 1/20 of the full gain, so the lower half is deaf for ordinary
+signals; mains mode keeps an AGC-lowered gain after a tracing mode.
+
+PN1.25:
+- Upper half (reading >= 2048): Search. Full gain ceiling (AGC still steps down
+  on saturation); PN1.24 rhythm.
+- Lower half: Isolate. Normalised strength x K (1 -> 1/64, 6 dB per sixteenth,
+  interpolated); a floor (0 -> 7 200, below 3/8 of travel) mutes weaker readings
+  through the existing release hold; floor..40 000 stretched over the whole
+  PN1.24 curve (110 -> 20 ms). Clipped windows count as 40 000 at the driven
+  gain. Turning the knob down never raises an AGC-lowered gain.
+- Mains: driven gain = the knob's gain at every tick (full in the upper half).
+- Speaker tone duty 800 +- 300 (was +- 100): ~3x amplitude, about +9.5 dB.
+- Unchanged: detection, sampling, thresholds, release hold, smoothing, age
+  guards, mains analysis, pitches. No RAM added; 452 bytes appended.
+
+Validation (emulator, actual ARM code; modeled ADC/link/interrupts), 24 tests:
+- Upper half: 3 000 Digital and 1 548 Analog windows identical to PN1.24.
+- Lower half: 8 736 Digital / 2 112 Analog windows equal an independent model
+  (4 788 / 846 muted); clipped windows 504 cases; mains analysis unchanged.
+- Speaker: tone writes 1100/500 (PN1.24 900/700); silence 800 unchanged.
+- AGC: upper half drives the full gain at knob 2048/2400/3300 (PN1.24: 2/4/5);
+  knob-down keeps a lowered gain; knob-up follows; full-knob sequences equal
+  PN1.24; knob to 0 silences; NCV returns to the knob's gain after Digital
+  (PN1.24 stayed at the lowered gain).
+- Timed stream, toned pair vs neighbour at -12 dB, front end limited at
+  2 400 p-p: PN1.24 (knob 20 % or 100 %) and PN1.25 upper half sound ~60 % of
+  the time on BOTH; PN1.25 at knob 16-20 %: target ~26-34 %, neighbour silent
+  (at 22 % the neighbour sounds, clearly slower). Analog first tone ~29 ms,
+  silent <= ~96 ms after moving; Digital ~42 / ~190 ms.
+These are software-model results, not measured pickup, loudness or
+selectivity in a cabinet.
+
+Build:  python isolate.py --write        (rx-sdk; writes this folder's files)
+Tests:  python -m unittest test_rx_isolate -v
+Details: docs/RX-ISOLATE-PN1.25-2026-09-23.md
+
+SHA-256 (RX-PN1.25-SHA256SUMS.txt):
+  raw     c8617ea67228d86bad30a80af1f5e0d4f8fd3ae55983c81761e541efd362be95  APP_LPM-10RX_PN1.25-isolate.bin
+  update  95697bf98e215a0f9db043514caf29a4bce8bc6f041b44bcc34b2c3f174f88aa  APP_LPM-10RX_PN1.25-isolate-update.bin

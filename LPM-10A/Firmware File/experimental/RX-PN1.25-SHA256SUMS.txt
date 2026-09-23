@@ -1,0 +1,2 @@
+c8617ea67228d86bad30a80af1f5e0d4f8fd3ae55983c81761e541efd362be95  APP_LPM-10RX_PN1.25-isolate.bin
+95697bf98e215a0f9db043514caf29a4bce8bc6f041b44bcc34b2c3f174f88aa  APP_LPM-10RX_PN1.25-isolate-update.bin

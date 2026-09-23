@@ -1,0 +1,2 @@
+febd648daa98b51cf06c35e855afa4a088bb789c8ae643acf42b0f828c081c83  APP_LPM-10RX_PN1.27-knob.bin
+b3aa9618e4eeaabc14120bcae6a381771d8b8b0c65a85f38b0d1808cdbf36de1  APP_LPM-10RX_PN1.27-knob-update.bin

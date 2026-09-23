@@ -1,6 +1,6 @@
 # LPM-10A firmware — measurement formula audit (TX §1–6, receiver PN formulas §7)
 
-*Updated 2026-09-21 for TX PN 2.14 and RX PN 1.23.*
+*Updated 2026-09-21 for TX PN 2.14 and RX PN 1.23; section 7 updated 2026-09-23 for RX PN 1.27.*
 
 Every value the tester computes and shows was traced in the stock binary
 (`LPM-10A-TX_V2.0.7_260610.bin`, sha256 `29081ccb…`) by disassembly, and the
@@ -558,33 +558,43 @@ score       (margin - 10) x 40                                  (feeds the same 
 DFT         exact integer inner loop, bit-identical results, -74 % instructions
 ```
 
-### 7.3 Strength score → quiet interval (PN 1.8, 1.15, 1.17, 1.19)
+### 7.3 Strength score → quiet interval (PN 1.8, 1.15, 1.17, 1.19, 1.27)
 
 ```
 score'      = score x MULT[level] / 10,  MULT = {200, 92, 26, 26, 11, 11, 11, 10} for driven gain level 0..7
               (measured p-p per knob code at one position: 95, 230, 780, 90->780, 1920, 1940, 2040, 2400;
-               level = the gain actually driven, see 7.4)
-interval    piecewise linear through (score', ms):
+               level = the gain actually driven, see 7.4); clamped to 0x00FFFFFF (PN 1.27)
+mute        PN 1.26/1.27, below the middle of the knob: score' < peak x window -> rejected, see 7.9
+score''     = score' x K(knob) / 256  (PN 1.27, see 7.9; K = 256 on the top sixteenth: PN 1.24 exactly)
+interval    piecewise linear through (score'', ms):
               (0, 110) (800, 95) (2400, 85) (7200, 70) (24000, 45) (40000, 20); >= 40000 -> 20
-              (40 000 = the front end's measured saturation: touching the cable is 20 ms at every knob position)
+              (40 000 = the front end's measured saturation: touching the cable is 20 ms on the top
+               sixteenth of the knob; lower down K slows it)
 publish     if audio is fresh (RECENT > 500) and an interval is already published (not 0 / 'uncertain'):
               new = old + (target - old) / 2, applied only when |half step| >= 3 ms  (PN 1.17)
             otherwise the target directly
 pulse       30 ms on (Digital), 12 ms (Analog); 'uncertain' (1) is published as 20 ms since PN 1.18
+            (PN 1.27: on the top sixteenth only; below it a clipped window is score 40 000 at the driven gain)
 ```
 
-### 7.4 Knob, gain steps and automatic range (PN 1.17, 1.22)
+### 7.4 Knob, gain steps and automatic range (PN 1.17, 1.22, 1.24, 1.26)
 
 ```
 knob        PA2 trimmed mean every 500 ms; code = raw / 580 (0..7); gates: Digital raw >= 2, Analog code >= 1
 pins        PB12..14 = bits of the level; stock forces level 0 to 011 == level 3 -> PN maps level 3 to level 2
-AGC tick    (500 ms, main context)
-              knob level changed or first tick -> driven = knob, hold = 0
+AGC tick    (500 ms, main context; Digital and Analog)
+              ceiling changed or first tick -> driven = ceiling, hold = 0
+                (PN 1.26: a lowered ceiling still above the driven gain is only recorded)
               else p-p of the 48-sample buffer:
-                >= 1900 -> driven steps down one effective step (7..4 -> 2 -> 1 -> 0), hold = 4 ticks
-                <  450  -> driven steps up (0 -> 1 -> 2 -> knob), never above the knob, hold = 4 ticks
+                >= 1900 -> driven steps down one effective step (7..4 -> 2 -> 1 -> 0), hold
+                <  450  -> driven steps up (0 -> 1 -> 2 -> ceiling), never above the ceiling, hold
                 else keep;  a hold tick decrements and forbids changes
-state       0x20000200: [0] driven level, [1] 0, [2] hold, [3] last knob   (normaliser reads [0..1] as u16)
+              hold = 4 ticks (PN 1.22), 1 tick (PN 1.24: a step at most every 1 s); PN 1.24 decides only on a
+              complete recent acquisition from the current gain
+ceiling     PN 1.22-1.25: the knob level; PN 1.26: 7 at every knob position, below the middle of the
+            knob the peak-derived ceiling of 7.9
+mains       PN 1.25/1.26: driven = knob level (7 from raw >= 1024), set again at every tick, see 7.7
+state       0x20000200: [0] driven level, [1] 0, [2] hold, [3] last ceiling   (normaliser reads [0..1] as u16)
 ratios      1900 / 450 = 4.2 > 2.6 x 1.3: no oscillation between adjacent steps
 ```
 
@@ -598,19 +608,25 @@ release           Digital <= 40 ms (first rejected update) + 160 ms; Analog <= 2
 keep-alive        800 ms power keep-alive is stock and separate
 ```
 
-### 7.6 Speaker cadence (PN 1.14, 1.23)
+### 7.6 Speaker cadence (PN 1.14, 1.23, 1.25)
 
 ```
-TIM5 40 kHz; duty 900/700 flipped every N interrupts: Digital N = 8 (2.5 kHz), Analog 16 (1.25 kHz), mains 4 (5 kHz)
+TIM5 40 kHz; duty 1100/500 (PN 1.25; stock 900/700, silence 800: 3x the swing, +9.5 dB) flipped every N interrupts: Digital N = 8 (2.5 kHz), Analog 16 (1.25 kHz), mains 4 (5 kHz)
 key beep 100 ms: first 50 ms at the other mode's N -> Digital chirps low->high, Analog high->low
 ```
 
-### 7.7 Mains (NCV) — stock, unchanged
+### 7.7 Mains (NCV) — stock analysis, PN gain (PN 1.25, 1.26)
 
 ```
-64 samples every 1.55 ms from PD15 (not behind the gain stage); DFT bins 5 and 6 = 50.4 / 60.5 Hz
+64 samples every 1.55 ms from ADC channel 7 (PA6; the PD15 key selects the mode); DFT bins 5 and 6 = 50.4 / 60.5 Hz
 level = max(bin5, bin6): > 350 -> 50 ms beep, 251..350 -> 100 ms, 151..250 -> 200 ms, else none (per 99 ms window)
+gain  driven = knob level, 7 from knob raw >= 1024 (PN 1.26), set again at every 500 ms tick (PN 1.25);
+      PN 1.22-1.24 kept the gain a tracing mode had lowered until the knob moved
 ```
+
+The owner reported that NCV sensitivity follows the knob (2026-09-23), so the
+mains input is treated as affected by the selected gain; the thresholds are
+stock's until the DFT level is captured against distance.
 
 ### 7.8 Battery and identity (PN 1.0, 1.20)
 
@@ -618,3 +634,31 @@ level = max(bin5, bin6): > 350 -> 50 ms beep, 251..350 -> 100 ms, 151..250 -> 20
 critical state recoverable when the pack reads >= 3400 mV again (stock: uncancellable below 3280 mV)
 version string "PN1.xx" at 0x0800CDE4 -> written to page 0x0801F000 at boot -> BOOTLOADER drive shows PN1.xx.TXT
 ```
+
+### 7.9 Knob reference, peak and mute window (PN 1.26, 1.27)
+
+```
+knob        raw 0..4095 (7.4); i = raw >> 8 (sixteenth), f = raw & 0xFF;
+            tables are interpolated as T[i] + (T[i+1] - T[i]) x f / 256 (integer steps)
+peak        u32 at 0x20000210, u32 TIM5 tick (40 kHz) of its last decay step at 0x20000214 (zero-initialised)
+              decayed to now: x 250/256 per 4 000 ticks (100 ms, about -2 dB/s);
+              more than 400 000 ticks (10 s) since the last step -> 0
+              every analysed score' (7.3): peak = max(peak decayed to now, score')
+mute        lower half (i < 8): window W = (128, 121, 102, 72, 45, 23, 10, 4, 0) at i = 0..8 (x/256)
+              (-6 dB at the bottom ... -36 dB just below the middle); score' < peak x W / 256 -> published as
+              rejected, so the release hold of 7.5 ends the rhythm; upper half: nothing is muted
+reference   K = (8, 10, 13, 16, 20, 25, 32, 40, 51, 64, 81, 102, 128, 161, 203, 256, 256) at i = 0..16 (x/256)
+              = 8 x 32^(i/15): about 2 dB per sixteenth, -30 dB at the bottom, 256 (x1) from raw 3840 up
+              score'' = score' x K / 256 -> the 7.3 curve; K never mutes
+clipped     i = 15: fastest (interval 1, published as 20 ms); i < 15: score 40 000 at the driven gain
+              -> score' -> mute -> K -> curve
+ceiling     tracing modes: 7 in the upper half; lower half: threshold = peak (decayed to now) x W / 256,
+              ceiling = the first of (7, 40 000) (2, 104 000) (1, 368 000) whose saturation score' >= threshold,
+              else 0 (saturation score' = 40 000 x MULT[level] / 10: a pair above the threshold never reads clipped)
+```
+
+Checked on the actual code: `test_rx_knob_reference` compares every knob position
+with an independent model of these formulas (24 336 Digital and 9 504 Analog
+windows) and the top sixteenth with PN 1.24; `test_rx_relative_isolate` covers the
+peak, the ceiling and the mains gain; `test_rx_knob_response` is the owner's
+report as a test ([docs/RX-KNOB-PN1.27-2026-09-23.md](../../docs/RX-KNOB-PN1.27-2026-09-23.md)).

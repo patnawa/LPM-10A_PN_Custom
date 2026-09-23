@@ -4,8 +4,9 @@
     PROFILES["pn1.19"].output       -> 'experimental/APP_LPM-10RX_PN1.19-strong-cap.bin'
 
 A profile's module pins the exact SHA-256 of its parent image inside apply(), so the
-chain is also verified byte for byte while building.  Two side branches exist:
-pn1.10 (Sync32, off pn1.9) and pn1.13 (audio-clock diagnostic, off pn1.12).
+chain is also verified byte for byte while building.  Side branches: pn1.10 (Sync32,
+off pn1.9), pn1.13 (audio-clock diagnostic, off pn1.12), and pn1.25 / pn1.26 (knob
+candidates off pn1.24); the release pn1.27 also branches from pn1.24.
 
 Adding PN 1.x: write the module (PATCHES, OUTPUT, PARENT_SHA256, apply, register),
 register it at the end of rx_patches.py, and append one Profile line here.
@@ -109,6 +110,22 @@ _CHAIN = [
         "Faster fresh-window gain recovery, efficient Analog analysis and sample-age guards"),
      "pn1.23g", "PN1.24 Digital/Analog gain response, Analog efficiency and sample freshness", True,
      "Hardware test passed: no Digital or Analog audio dropout reported by the owner, 2026-09-22"),
+    # PN1.25-1.27 each branch from PN1.24 (each module pins the exact PN1.24 image).
+    ("pn1.25", "isolate", ReleaseStage("isolate", "rx-isolate",
+        "experimental/APP_LPM-10RX_PN1.25-isolate.bin",
+        "Knob-reference isolate below the middle, louder beeps, NCV gain"),
+     "pn1.24", "PN1.25 absolute-floor isolate (historical candidate)", True,
+     "Owner 2026-09-23: louder beeps confirmed; the knob still had to pass the middle (superseded)"),
+    ("pn1.26", "relative", ReleaseStage("relative_isolate", "rx-relative-isolate",
+        "experimental/APP_LPM-10RX_PN1.26-relative.bin",
+        "Full gain at every knob position, isolation relative to the strongest pair"),
+     "pn1.24", "PN1.26 peak-relative isolate (historical candidate)", True,
+     "Owner 2026-09-23: heard from 5-10 %, but the knob had no effect (superseded)"),
+    ("pn1.27", "knob", ReleaseStage("knob_reference", "rx-knob-reference",
+        "experimental/APP_LPM-10RX_PN1.27-knob.bin",
+        "Knob sets the rhythm reference over its whole travel; peak-relative mute below the middle"),
+     "pn1.24", "PN1.27 knob reference, full sensitivity, peak-relative mute, louder beeps, NCV gain", True,
+     "Hardware test passed: owner reports '1.27 test pass', 2026-09-23"),
 ]
 
 PROFILES = OrderedDict((n, Profile(n, *rest)) for n, *rest in _CHAIN)

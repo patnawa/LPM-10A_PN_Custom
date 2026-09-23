@@ -5,7 +5,7 @@
 Unofficial firmware for the **FNIRSI LPM-10A** network cable tester (TX) and its tone probe (RX).
 Built by patching the shipped binaries — no vendor source — and verified by emulation and on a real unit.
 
-![tester](https://img.shields.io/badge/TX-PN%202.27A-blue) ![receiver](https://img.shields.io/badge/RX-PN%201.24-blue) ![licence](https://img.shields.io/badge/licence-MIT-green)
+![tester](https://img.shields.io/badge/TX-PN%202.27A-blue) ![receiver](https://img.shields.io/badge/RX-PN%201.27-blue) ![licence](https://img.shields.io/badge/licence-MIT-green)
 
 <img src="docs/img/hero.png" alt="LPM-10A PN Custom Firmware: TX PN 2.14, RX PN 1.23 — Length, PoE and tone screens rendered from the firmware's own draw code" width="1000">
 
@@ -16,22 +16,24 @@ Built by patching the shipped binaries — no vendor source — and verified by 
 | Device | Version | Download | File to copy |
 |---|---|---|---|
 | **TX** tester | **PN 2.27A** | [Release v2.27A](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.27A) | `LPM-10A-TX_PN2.27A-analog-alignment.bin` |
-| **RX** probe | **PN 1.24** | [Release rx-v1.24](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.24) | `APP_LPM-10RX_PN1.24-gain-precision-update.bin` |
+| **RX** probe | **PN 1.27** | [Release rx-v1.27](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.27) | `APP_LPM-10RX_PN1.27-knob-update.bin` |
 
 The owner reports **TX PN2.27A passed device testing paired with RX PN1.24 (2026-09-22)**.
 This release reduces carrier-switching work and aligns Analog modulation to nominal 816.832 Hz,
 displayed as **Analog 817 Hz**. Digital timing and the PN2.26 QC/Length fixes are retained.
 See the [PN2.27A analysis and validation](docs/TX-TONE-PRECISION-PN2.27-2026-09-22.md).
-The owner confirms **RX PN1.24 passes without Digital or Analog signal dropouts (2026-09-22)**.
-It improves gain recovery, rejects expired measurements and reduces Analog processing work.
-See the [PN1.24 analysis and validation](docs/RX-GAIN-PRECISION-PN1.24-2026-09-22.md).
+The owner reports **RX PN1.27 passed device testing (2026-09-23)**. It answers a field test in a
+telephone PBX cabinet where every pair sounded the same: the probe has full sensitivity at every knob
+position, the knob sets the rhythm's reference over its whole travel, pairs much weaker than the
+strongest one are muted below the middle of the knob, NCV keeps the knob's gain and beeps are about
+9.5 dB louder. See the [PN1.27 diagnosis and validation](docs/RX-KNOB-PN1.27-2026-09-23.md).
 Each release carries its notes and a SHA-256 file. **TX and RX firmware are not interchangeable.**
 FNIRSI's own files are not redistributed here.
 
 The default TX build reproduces the exact owner-tested PN2.27A file. PN2.27 remains an
 archived comparison with the original Analog frequency; its standalone device status is unconfirmed.
 
-> **สรุปภาษาไทย:** TX ใช้ PN 2.27A, RX ใช้ PN 1.24 · TX อัปเดต: ปิดเครื่อง → กด **M + Power** ค้าง → เสียบ USB → ก๊อปปี้ไฟล์ ·
+> **สรุปภาษาไทย:** TX ใช้ PN 2.27A, RX ใช้ PN 1.27 · TX อัปเดต: ปิดเครื่อง → กด **M + Power** ค้าง → เสียบ USB → ก๊อปปี้ไฟล์ ·
 > RX อัปเดต: ปิดเครื่อง → กด **SCAN** ค้าง → เสียบ USB → ไดรฟ์ `BOOTLOADER` → ก๊อปปี้ไฟล์ **`-update.bin`** ด้วย Explorer →
 > ไดรฟ์หายใน 1 วิ = เสร็จ · รายละเอียดและวิธีย้อนกลับ: [คู่มืออัปเดต RX](docs/RX-UPDATE-GUIDE.md)
 
@@ -56,10 +58,10 @@ If the drive refuses the file, rename it exactly `LPM-10A-TX_V2.0.7_260610.bin` 
 ### RX (probe) — read this, the FNIRSI file will not work as shipped
 
 1. Probe off. **Hold SCAN**, plug USB into the PC. A drive named **`BOOTLOADER`** appears.
-2. Copy **`APP_LPM-10RX_PN1.24-gain-precision-update.bin`** onto it with Explorer (an ordinary copy).
+2. Copy **`APP_LPM-10RX_PN1.27-knob-update.bin`** onto it with Explorer (an ordinary copy).
 3. Within about **one second the drive disappears**: the probe has programmed the file and restarted.
    Unplug USB; press the power key if it is silent. PN 1.14+ chirps high→low at power-on; entering the
-   drive again (no copy) shows `PN1.24.TXT`, the installed build.
+   drive again (no copy) shows `PN1.27.TXT`, the installed build.
 
 Only the **`-update.bin` container** is accepted. The raw image FNIRSI ships for the RX — and every
 `.bin` without `-update` — is silently ignored (the drive's status file shows `UNKOWN.TXT`). Slow or
@@ -247,7 +249,7 @@ verified by emulation; the no-supply path on hardware (no PoE switch or injector
 The SCAN screen drives the cable with a ~454 kHz carrier from TIM1. TIM2 services modulation every
 101 microseconds. **Digital** keys the carrier with the 16-slot code `0xB6B6` (period 8 chips,
 5.05 ms per chip) that the probe's Digital mode decodes. **Analog** uses a local phase accumulator
-at nominal 816.832 Hz, close to RX PN1.24's target filter bin, without changing the shared timer.
+at nominal 816.832 Hz, close to the RX Analog filter's target bin, without changing the shared timer.
 Stock labelled them "Noiseless" and "Normal"; PN labels the carrier and modulation frequencies.
 PN2.27A specializes carrier GPIO switching and inherits the fixes for one lost tick at the
 digital wrap, the debug logging in the timer path, the stale carrier state after Pause and a RIGHT-key
@@ -356,25 +358,28 @@ Formulas, addresses and verdicts for every calculation, TX and RX: [`FORMULA-AUD
 
 ### RX (probe) — summary
 
-| | Stock (V3.0.0 / 3.0.1) | PN 1.24 |
+| | Stock (V3.0.0 / 3.0.1) | PN 1.27 |
 |---|---|---|
-| Sound per mode | one 2.5 kHz beep in every mode | **Digital 2.5 kHz, Analog 1.25 kHz, mains 5 kHz**; key beeps chirp toward the mode (Digital low→high, Analog high→low) |
-| Strength feedback | 50 ms beep / 50 ms gap whenever a signal is detected | 30 ms pulses whose **rate reports distance to the cable**: quiet interval 110 ms (weakest) → 20 ms (touching) |
-| Sensitivity knob | sets gain; the middle of its travel fell to the lowest gain (firmware bug) | monotonic gain steps; automatic range changes use a fresh completed acquisition and can occur **every 1 s**; the knob remains the gain ceiling |
-| Moving/adjusting gain | — | confirmed Digital feedback bridges fresh acquisition without renewing its deadline; the owner reports **no signal drops in Digital or Analog** on PN1.24 |
+| Sound per mode | one 2.5 kHz beep in every mode | **Digital 2.5 kHz, Analog 1.25 kHz, mains 5 kHz**, about **9.5 dB louder**; key beeps chirp toward the mode (Digital low→high, Analog high→low) |
+| Strength feedback | 50 ms beep / 50 ms gap whenever a signal is detected | 30 ms pulses whose **rate reports the strength against the knob's reference**: quiet interval 110 ms (weakest) → 20 ms (strongest) |
+| Sensitivity knob | sets the gain; the middle of its travel fell to the lowest gain (firmware bug); below the middle only strong signals were heard | **full gain at every position**; the knob sets the rhythm's reference: the top sixteenth as PN 1.24, about 2 dB per sixteenth lower down to −30 dB at the bottom — lower knob, slower rhythm, never muted |
+| Crowded bundle or cabinet | every coupled pair sounds | below the middle of the knob, pairs much weaker than the strongest one heard in the last seconds are **muted** (−36 dB just below the middle … −6 dB at the bottom); a lone cable always sounds |
+| Moving/adjusting gain | — | automatic range changes use a fresh completed acquisition and can occur **every 1 s**; confirmed Digital feedback bridges fresh acquisition (the owner confirmed no signal drops in Digital or Analog on PN 1.24) |
 | Delayed measurements | no completion-age guard | expired Digital/Analog results cannot renew feedback; quiet-input Analog analysis uses about **97% fewer modeled instructions** than PN1.23G |
 | Signal loss | audio kept going ~1 s after the TX stopped | stops within ~¼ s; a single missed reading no longer cuts the rhythm |
-| Very strong signal | — | touching the cable is the fastest rhythm at every knob position (front-end saturation measured at ~2400 counts p-p), then the automatic gain step-down restores distance resolution |
+| Very strong signal | — | the automatic gain steps down when the front end saturates (~2400 counts p-p) to restore distance resolution; touching the cable is the fastest rhythm from about three quarters of the knob up |
+| Mains (NCV) | the knob's gain step | the knob's gain step, **full from a quarter of the knob up**, set again every 500 ms (also right after a tracing mode) |
 | Update rate | Digital every 80 ms | **Digital every 40 ms** (Analog every 21 ms as before) |
 | Detection | exact 16-bit code match | PN 1.12 detector: full-window code search with bounded bit errors, upper-rail handling, guarded sample ownership |
-| Installed build | — | the `BOOTLOADER` drive's status file names it: `PN1.24.TXT` |
+| Installed build | — | the `BOOTLOADER` drive's status file names it: `PN1.27.TXT` |
 | Low battery | uncancellable shutdown at one sample | recoverable |
 
 ### RX (probe) — in detail
 
 The probe is a Nations N32L406 (Cortex-M4F, 64 MHz, no RTOS). TIM1 ticks every 1 ms (keys, battery,
 countdowns, 5-minute auto-off); TIM5 runs at 40 kHz (ADC sampling and the speaker PWM). The front end's
-gain is selected by three GPIO lines from the sensitivity knob, read every 500 ms.
+gain is selected by three GPIO lines, set every 500 ms: stock takes it from the sensitivity knob; PN's
+automatic gain and knob law are described below.
 
 <details>
 <summary><b>How each mode listens</b></summary>
@@ -393,9 +398,11 @@ gain is selected by three GPIO lines from the sensitivity knob, read every 500 m
   Digital mode uses. PN1.24 checks bin 17 first and rejects immediately when it
   cannot pass; it also omits the canceled bin 1. Fresh-input decisions and
   strength scores match PN1.23G in the comparison sweep.
-- **Mains (NCV)**: 64 samples every 1.55 ms (99 ms) from a separate input (PD15), DFT bins 5 and 6 = 50.4
-  and 60.5 Hz; stock's three-tier beep length (50 / 100 / 200 ms) is kept because this input is not behind
-  the gain stage.
+- **Mains (NCV)**: 64 samples every 1.55 ms (99 ms) from ADC channel 7 (the PD15 key selects the mode),
+  DFT bins 5 and 6 = 50.4 and 60.5 Hz; stock's analysis and three-tier beep length (50 / 100 / 200 ms)
+  are kept. The owner found NCV sensitivity follows the knob, so mains mode drives the knob's gain step,
+  full from a quarter of the knob up, and sets it again every 500 ms, also right after a tracing mode
+  had lowered it (PN 1.25, 1.26).
 
 Sample ownership between the main loop and the timer interrupt is guarded (PN 1.6): a pending mode
 change or a gate transition invalidates the window instead of racing the ADC.
@@ -404,10 +411,11 @@ and publication, with full reacquisition after expiry.
 </details>
 
 <details>
-<summary><b>One pitch per mode, and the chirp (PN 1.14, 1.23)</b></summary>
+<summary><b>One pitch per mode, the chirp, louder beeps (PN 1.14, 1.23, 1.25)</b></summary>
 
-The speaker is TIM5 channel 4 PWM at 40 kHz; a beep is made by flipping the duty between 900 and 700
-every N interrupts. Stock flipped every 8th (2.5 kHz) in every mode. PN's TIM5 dispatch picks N by mode:
+The speaker is TIM5 channel 4 PWM at 40 kHz; a beep is made by flipping the duty between 1 100 and 500
+every N interrupts (stock 900 and 700: a third of the swing, about 9.5 dB quieter; silence is 800).
+Stock flipped every 8th (2.5 kHz) in every mode. PN's TIM5 dispatch picks N by mode:
 Digital 8 (2.5 kHz), **Analog 16 (1.25 kHz, one octave lower)**, **mains 4 (5 kHz)**. A key press starts a
 100 ms confirmation beep; during its first 50 ms the helper uses the *other* mode's pitch, so entering
 Digital sounds low→high and entering Analog high→low (the power-on beep is high→low). Tracing pulses are
@@ -415,7 +423,7 @@ Digital sounds low→high and entering Analog high→low (the power-on beep is h
 </details>
 
 <details>
-<summary><b>The rhythm reports distance (PN 1.7–1.9, 1.15, 1.19)</b></summary>
+<summary><b>The rhythm and the knob's reference (PN 1.7–1.9, 1.15, 1.19, 1.27)</b></summary>
 
 Instead of stock's fixed 50 ms on / 50 ms off, PN plays **30 ms pulses** separated by a quiet interval
 taken from a strength curve: score 0 → 110 ms, 800 → 95, 2 400 → 85, 7 200 → 70, 24 000 → 45,
@@ -423,14 +431,20 @@ taken from a strength curve: score 0 → 110 ms, 800 → 95, 2 400 → 85, 7 200
 scales with the front-end gain, so on the first hardware run turning the knob up simply sped the rhythm.
 Live captures gave the gain step per knob code (peak-to-peak at one position: 95 / 230 / 780 / 90 /
 1920 / 1940 / 2040 / 2400 for codes 0–7), and PN 1.15 multiplies the score by the measured step
-(×20 / 9.2 / 2.6 / 2.6 / 1.1 / 1.1 / 1.1 / 1.0) before the curve, so **the rhythm reports the signal at
-the probe tip and the knob is only a threshold**, as on stock. The curve's fastest point sits at the
-front end's measured saturation (~40 000): touching the cable is the fastest rhythm at every knob
-position, and a clipped ("uncertain") reading counts as strongest rather than sparse (PN 1.18).
+(×20 / 9.2 / 2.6 / 2.6 / 1.1 / 1.1 / 1.1 / 1.0) before the curve, so the score is the signal at the
+probe tip whatever gain is driven. The curve's fastest point sits at the front end's measured saturation
+(~40 000), and a clipped ("uncertain") reading counts as strongest rather than sparse (PN 1.18).
+
+**PN 1.27** multiplies that score by the knob's reference K before the curve: 1 on the top sixteenth of
+the knob (exactly PN 1.24; touching the cable is the fastest rhythm), about −2 dB per sixteenth below it
+and −30 dB at the bottom (`8 × 32^(i/15) / 256`, interpolated). Turning the knob down slows the rhythm
+for the same signal and never mutes it; below the top sixteenth a clipped reading counts as the
+saturation score at the driven gain. Emulator, one steady signal near the cable, quiet interval at knob
+10 / 25 / 40 / 50 / 75 / 100 %: 90 / 83 / 76 / 69 / 51 / 20 ms.
 </details>
 
 <details>
-<summary><b>Knob gain dead zone, automatic gain range (PN 1.17, 1.22, 1.24)</b></summary>
+<summary><b>Knob gain dead zone, automatic gain range (PN 1.17, 1.22, 1.24, 1.26)</b></summary>
 
 `gain_select_3bit` writes the knob level's bits to PB12..PB14 and special-cases level 0 to the pattern
 `011` — which is also what level 3 produces, so the middle of the knob (43–56 %) dropped to the lowest
@@ -440,14 +454,33 @@ gain in stock. PN 1.17 maps level 3 to level 2's pattern, making the knob monoto
 On the high steps the front end saturates at ~2000–2600 counts p-p well before the ADC rail, so on the
 cable every nearby conductor sounded the same and Analog could lose its DFT margin. PN 1.22 measures the
 sample buffer's peak-to-peak at every 500 ms AGC tick: **≥ 1900 steps the driven gain down** one
-effective step (high → 780 → 230 → 90), **< 450 steps back up** toward the knob, and
-moving the knob resets to the knob. PN1.24 checks that a complete recent window
+effective step (high → 780 → 230 → 90), **< 450 steps back up** toward its ceiling, and a raised
+ceiling is taken at once. Since PN 1.26 the ceiling in Digital and Analog is the full gain at every knob
+position; only below the middle of the knob, once a stronger pair has been heard, is it the highest gain
+whose saturation still reaches the mute threshold (next section), so a pair that should sound is never
+read as a saturated lower bound. PN1.24 checks that a complete recent window
 belongs to the current gain and skips one callback after an automatic change:
 steps can occur every 1 s instead of the previous 2.5 s. A held callback skips
 the sample scan. The strength normaliser reads the gain actually driven, so the rhythm
 stays meaningful after a step; the mode gates (Digital raw ≥ 2, Analog code ≥ 1) still follow the knob.
 Gain state: four bytes at `0x20000200`; completion/analysis timestamps and
-validity: twelve bytes at `0x20000204`.
+validity: twelve bytes at `0x20000204`; the peak and the time of its last decay step (next section):
+eight bytes at `0x20000210`.
+</details>
+
+<details>
+<summary><b>Crowded bundles and cabinets: the peak and the mute window (PN 1.26, 1.27)</b></summary>
+
+In a telephone PBX cabinet the 454 kHz tone couples into every neighbouring pair. The probe remembers a
+**peak**, the strongest normalised strength heard recently: it rises at once, decays about 2 dB per
+second (250/256 every 100 ms) and is forgotten after 10 s without a detection. Below the middle of the
+knob a reading weaker than peak × window is muted through the normal release hold. The window runs from
+−36 dB just below the middle to −6 dB at the bottom (`128, 121, 102, 72, 45, 23, 10, 4, 0` / 256 per
+sixteenth, interpolated). A lone cable is its own peak and always sounds. Together with the knob's
+reference, the strongest pair keeps the fastest rhythm while weaker pairs slow down, then go silent as
+the knob turns down. In the emulator's cabinet case (the toned pair and a neighbour 14 dB weaker) the
+neighbour is muted at a low knob and clearly slower than the toned pair at the middle. The field report,
+the audit and the reproduction on the actual code: [docs/RX-KNOB-PN1.27-2026-09-23.md](docs/RX-KNOB-PN1.27-2026-09-23.md).
 </details>
 
 <details>
@@ -482,9 +515,9 @@ is outside the image and untouched.
 The earlier gain and rhythm measurements were captured live over SWD while
 sweeping the knob and moving the probe (the SWD header is beside the MCU):
 [docs/RX-SENSITIVITY-2026-09-21.md](docs/RX-SENSITIVITY-2026-09-21.md). The probe firmware, function by
-function: [docs/RX-AUDIT.md](docs/RX-AUDIT.md). PN1.24's numerical performance
-figures are emulator results; the owner separately confirmed both modes pass
-without signal drops. Pair TX **Digital** with RX Digital and TX **Analog
+function: [docs/RX-AUDIT.md](docs/RX-AUDIT.md). PN1.27's numerical figures (knob
+response, cabinet separation) are emulator results; the owner separately reported
+the device test passed. Pair TX **Digital** with RX Digital and TX **Analog
 817 Hz** with RX Analog. Only one hardware unit has been tested; range and cable selectivity are not
 quantified against another probe.
 
@@ -504,19 +537,25 @@ quantified against another probe.
   ([assessment](docs/RX-NEXT-STEPS-2026-09-21.md)).
 - The RX front-end gain multipliers were measured on one unit; other units may need
   `MULT_X10` in `rx-sdk/gain_norm.py` re-measured.
+- With the knob all the way up the RX keeps PN1.24's rhythm: every pair strong enough to saturate the full
+  gain plays the fastest rhythm, so near a bundle several pairs can sound the same (owner report,
+  2026-09-23). Turn the knob down to rank them; below the middle the weaker ones are muted.
+- RX cabinet isolation compares pairs with the strongest one heard in the last seconds, and that peak
+  decays 2 dB per second: compare pairs within a second or two, or touch the strongest pair again. If the
+  tone couples into a neighbour as strongly as into the toned pair, no knob setting separates them.
 
 ## Repository layout
 
 ```
 LPM-10A/Firmware File/
   LPM-10A-TX_PN2.27A-analog-alignment.bin   current TX build — copy to the tester's update drive
-  APP_LPM-10RX_PN1.24-gain-precision-update.bin  current RX build — copy to the probe's BOOTLOADER drive
-  TX-PN2.27A-README.txt, RX-PN1.24-README.txt notes for each: what it does, how to update, how to roll back
+  APP_LPM-10RX_PN1.27-knob-update.bin        current RX build — copy to the probe's BOOTLOADER drive
+  TX-PN2.27A-README.txt, RX-PN1.27-README.txt notes for each: what it does, how to update, how to roll back
   SHA256SUMS.txt                             checksums of the two files above
   README.md                                  what is in this folder
   FORMULA-AUDIT.md                           every measurement formula with verdicts: TX §1-6, receiver PN formulas §7
   sdk/                                       TX toolkit: patch chain PN 2.9 → 2.27A (profiles.py), assembler, verifier, Thai UI, tests
-  rx-sdk/                                    RX toolkit: patch chain PN 1.0 → 1.24 (profiles.py), container, emulator, tests
+  rx-sdk/                                    RX toolkit: patch chain PN 1.0 → 1.27 (profiles.py), container, emulator, tests
   experimental/                              build outputs of every PN version (the test suites compare against them)
   archive/                                   earlier release copies and their notes (history only)
 docs/
@@ -526,6 +565,7 @@ docs/
   RX-NEXT-STEPS-2026-09-21.md           assessment of the next RX improvements and what was done about each
   TX-NEXT-STEPS-2026-09-21.md           the same for the TX: what is left, what was done, where there is no room
   RX-FIELD-CHECKLIST-PN1.23.md          30-minute field measurements to compare builds
+  RX-KNOB-PN1.27-2026-09-23.md          the PBX-cabinet report and the current RX knob law (PN1.25 and PN1.26 steps linked)
   RX-AUDIT.md                           the probe firmware, function by function
   ROADMAP.md                            what to test and build next
   README-DETAILED-2026-09-21.md         the full write-up: history, TDR science, maths, audits
@@ -542,8 +582,8 @@ release pair to the folder root with FNIRSI's images placed outside the reposito
 The [2026-09-22 deep audit](docs/DEEP-AUDIT-2026-09-22.md) documents new RX gain/sample
 and TX capability-display findings, opt-in corrections, and build/publication fixes.
 From `rx-sdk`, `python verify_release.py` checks the complete current RX update against
-an exact profile rebuild. PN1.24 includes the gain ownership and Digital continuity
-corrections plus faster gain recovery, sample-age guards and Analog optimization.
+an exact profile rebuild. PN1.27 builds on PN1.24's gain ownership and Digital continuity
+corrections, faster gain recovery, sample-age guards and Analog optimization.
 
 The [PN1.23G follow-up](docs/RX-DIGITAL-GAIN-PN1.23G-2026-09-22.md) addresses
 Digital audio dropouts reported on PN1.23F during probe motion or knob changes.
@@ -551,6 +591,9 @@ The owner confirmed the Digital dropout is fixed on PN1.23G (2026-09-22).
 Its update file, device feedback and measured emulator results are in the report.
 The [PN1.24 release](docs/RX-GAIN-PRECISION-PN1.24-2026-09-22.md) retains that fix;
 the owner confirms both Digital and Analog pass without signal dropouts.
+The [PN1.27 release](docs/RX-KNOB-PN1.27-2026-09-23.md) keeps both and answers the
+PBX-cabinet field report of 2026-09-23 (two device-tested candidates, PN1.25 and
+PN1.26, led to it); the owner reported the device test passed the same day.
 
 The [PN2.23Q QC experiment](docs/TX-QC-FLEX-PN2.23Q-2026-09-22.md) adds a
 20-second TX crimp-test session, retained per-pin fault history and stable

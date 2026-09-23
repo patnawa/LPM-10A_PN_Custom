@@ -1,0 +1,92 @@
+RX PN1.27 - ปุ่มกลับมาคุมจังหวะเสียงได้ตลอดช่วง, ยังได้ยินตั้งแต่ปุ่มต่ำ, เสียงดัง
+2026-09-23 - RELEASE rx-v1.27 - ทดสอบบนเครื่องผ่าน: "1.27 test pass" (เจ้าของ 2026-09-23)
+            owner-tested release; the confirmation covers the owner's device test, not measured
+            pickup distance or selectivity
+
+ไฟล์ที่ใช้ติดตั้ง: APP_LPM-10RX_PN1.27-knob-update.bin  (อย่าก๊อปไฟล์ raw .bin)
+ใช้คู่กับ TX PN2.27A (TX ไม่ต้องเปลี่ยน)
+
+---------------------------------------------------------------------------
+ภาษาไทย
+---------------------------------------------------------------------------
+ผลทดสอบ PN1.26 บนเครื่อง (เจ้าของ 2026-09-23)
+  - "เริ่มได้ยิน 5-10% digital 10-20% analog" -> เรื่องต้องหมุนผ่านครึ่งแก้แล้ว (คงไว้)
+  - "เสียง Rx แรงตลอด ตั้งแต่ 10% หมุนเพิ่ม ลด ไม่ต่าง" -> ปุ่มไม่มีผลกับเสียง
+
+สาเหตุ (ยืนยันด้วยเทสต์ test_rx_knob_response ที่รันโค้ดจริง)
+  สายเส้นเดียว = สัญญาณเดียวและแรงสุดที่เครื่องจำไว้ (peak) ครึ่งล่างของ PN1.26 เทียบกับ peak
+  จึงให้จังหวะเร็วสุดเสมอ ส่วนครึ่งบนไม่ขึ้นกับปุ่มโดยออกแบบ -> ไม่มีอะไรตามปุ่มเลย
+  (PN1.26 ใกล้สาย: 20/20/20/20/20/20 ms ที่ปุ่ม 10/25/40/50/75/100%)
+
+PN1.27 เปลี่ยนอะไร
+  - ปุ่มคือ "ระดับอ้างอิง" ของจังหวะตลอดทั้งช่วง: ความแรงคูณด้วย K ก่อนเข้าโค้งจังหวะเดิม
+    K = 1 ที่ปุ่มบนสุด 1/16 (เหมือน PN1.24 ทุกอย่าง) ลดลงทีละ ~2 dB ต่อ 1/16 รอบ ถึง -30 dB ที่ล่างสุด
+    => หมุนลง = จังหวะช้าลง, หมุนขึ้น = เร็วขึ้น; ไม่ตัดเสียง จึงยังได้ยินตั้งแต่ปุ่มต่ำเหมือน PN1.26
+    ตัวอย่างใกล้สาย (ช่วงเงียบระหว่างบี๊บ): 90 / 83 / 76 / 69 / 51 / 20 ms ที่ปุ่ม 10/25/40/50/75/100%
+  - ครึ่งล่างยังตัดคู่ที่อ่อนกว่าคู่แรงสุดที่เพิ่งได้ยินเกินช่วงที่ปุ่มกำหนด (สำหรับตู้/มัดสาย เหมือน PN1.26)
+    สายเส้นเดียวไม่ถูกตัด (เป็นคู่แรงสุดเอง)
+  - คงไว้จาก PN1.26: เกนสูงสุดทุกตำแหน่งปุ่ม, เพดานเกนตาม peak ในครึ่งล่าง, NCV เกนเต็มตั้งแต่ 1/4,
+    เสียงบี๊บดัง (~3 เท่าของโรงงาน)
+
+วิธีใช้
+  หาสาย: ปุ่มค่อนข้างสูง เข้าใกล้สายแล้วจังหวะเร็วขึ้น; ถ้าเร็วสุดตลอดจนแยกทิศไม่ได้ หมุนลงให้จังหวะช้าลง
+  ในมัด/ตู้: หมุนลงจนคู่ที่ต้องการเร็วสุดคนเดียว คู่อื่นช้ากว่า; ต่ำกว่าครึ่งคู่ที่อ่อนกว่ามากจะเงียบ
+    (แตะทีละคู่เร็ว ๆ ภายใน 1-2 วินาที ถ้าค้างนานคู่อื่นจะเริ่มดังเพราะความจำ peak ลดลง)
+
+เช็กลิสต์ทดสอบบนเครื่อง
+  A. เข้าไดรฟ์ BOOTLOADER อีกครั้ง ต้องเห็น PN1.27.TXT
+  B. ถือ probe นิ่งใกล้สาย หมุนปุ่มจากต่ำไปสูง: จังหวะต้องเร็วขึ้นเรื่อย ๆ (ปุ่มต่ำช้า, บนสุดเร็วสุด)
+     และยังได้ยินที่ปุ่มต่ำ (Digital ~5-10%, Analog ~14% ขึ้นไป)
+  C. ปุ่มบนสุด: เหมือน PN1.24 (ระยะจับ, จังหวะ)
+  D. มัดสาย 4 เส้น ต่อ TX 1 เส้น: ปุ่มราวครึ่ง -> เส้นที่ต่อเร็วกว่าเส้นอื่นชัดเจน; ต่ำกว่านั้น -> เส้นอื่นเงียบ
+     บันทึก % ปุ่ม และถูก/ผิดกี่ครั้งจาก 10 ครั้ง
+  E. NCV ยังใช้ได้; หมุนปุ่มลงสุด = เงียบ; เสียงยังดังพอ
+
+ข้อจำกัดที่เจ้าของพบหลังทดสอบ (2026-09-23): หมุนปุ่มสุด = จังหวะแบบ PN1.24 ทุกคู่ที่สัญญาณแรงจนเกนเต็มอิ่มตัว
+  ดังเร็วสุดเท่ากัน ใกล้มัดสายจึงแยกคู่ไม่ได้ -> หมุนปุ่มลงเพื่อให้คู่อื่นช้าลง/เงียบ
+  (English: at full knob every pair that saturates the full gain plays the fastest rhythm; turn the knob down)
+
+ย้อนกลับ: PN1.24 (archive/APP_LPM-10RX_PN1.24-gain-precision-update.bin หรือ release rx-v1.24)
+        หรือ PN1.26 (experimental/APP_LPM-10RX_PN1.26-relative-update.bin)
+
+---------------------------------------------------------------------------
+English
+---------------------------------------------------------------------------
+PN1.26 on the device: heard from 5-10 % (Digital) / 10-20 % (Analog), but "the
+RX is always strong from 10 %; turning the knob up or down makes no
+difference". Reproduced by test_rx_knob_response on the real code: a lone cable
+is also the remembered peak, PN1.26's lower half ranked readings against the
+peak (always fastest) and its upper half is knob-independent by design.
+
+PN1.27 (from PN1.24; keeps PN1.26's full gain, peak-relative mute below the
+middle, Compare gain ceiling, NCV gain and louder beep):
+- Normalised strength x K(knob) before PN1.24's curve, at every knob position.
+  K = 1 on the top sixteenth (reading >= 3840, PN1.24 exactly), about -2 dB per
+  sixteenth to -30 dB at the bottom (8 x 32^(i/15) /256, interpolated).
+  Nothing is muted by K; a lone cable stays audible down to the stock gates.
+- Clipped windows: fastest on the top sixteenth (PN1.24), else score 40 000 at
+  the driven gain through the same path.
+
+Validation (emulator, actual ARM code; modeled ADC/link/interrupts):
+- test_rx_knob_response (the owner's report): lone steady signal, quiet
+  interval at knob 10/25/40/50/75/100 %:
+    PN1.26 near [20, 20, 20, 20, 20, 20]   (red, as reported)
+    PN1.27 weak [109, 109, 107, 106, 98, 92]   moderate [102, 96, 92, 88, 77, 66]
+           near [90, 83, 76, 69, 51, 20]       touching [76, 67, 55, 44, 20, 20]
+- test_rx_knob_reference (20 tests): top sixteenth identical to PN1.24 on 5 805
+  Digital and 2 064 Analog windows; every knob position equals an independent
+  model on 24 336 Digital (6 060 muted) and 9 504 Analog (2 216 muted) windows;
+  clipped windows; gain hook = PN1.26's source, 42 ceiling cases; full-knob AGC
+  identical to PN1.24; NCV gain law; knob off silences; speaker 1100/500.
+- Streams: lone cable tone fraction rises with the knob (Digital 0.22 -> 0.33,
+  Analog 0.24 -> 0.32 at a moderate level); cabinet case (target and a -14 dB
+  neighbour): low knob mutes the neighbour, knob 51 % plays the target fastest
+  (0.56-0.63) and the neighbour clearly slower (0.38-0.43), full knob both fast.
+Software-model results only: not measured pickup, loudness or selectivity.
+
+Build:  python knob_reference.py --write      (rx-sdk)
+Tests:  python -m unittest test_rx_knob_response test_rx_knob_reference -v
+
+SHA-256 (RX-PN1.27-SHA256SUMS.txt):
+  raw     febd648daa98b51cf06c35e855afa4a088bb789c8ae643acf42b0f828c081c83  APP_LPM-10RX_PN1.27-knob.bin
+  update  b3aa9618e4eeaabc14120bcae6a381771d8b8b0c65a85f38b0d1808cdbf36de1  APP_LPM-10RX_PN1.27-knob-update.bin
