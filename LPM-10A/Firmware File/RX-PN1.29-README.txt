@@ -1,0 +1,87 @@
+RX PN1.29 - แสดงความแรงเป็นขั้นคงที่แบบ IntelliTone (Locate / Isolate), ไม่จำค่าเก่า
+2026-09-23 - RELEASE rx-v1.29 - ทดสอบบนเครื่องผ่าน: "1.29 test pass work perfect" (เจ้าของ 2026-09-23)
+            owner-tested release; the confirmation is the owner's device test, not measured
+            pickup distance or selectivity
+
+ไฟล์ที่ใช้ติดตั้ง: APP_LPM-10RX_PN1.29-levels-update.bin  (อย่าก๊อปไฟล์ raw .bin)
+ใช้คู่กับ TX PN2.27A (TX ไม่ต้องเปลี่ยน)
+รายงานวิเคราะห์เต็ม: docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md
+
+---------------------------------------------------------------------------
+ภาษาไทย
+---------------------------------------------------------------------------
+ทำไมรอบก่อน ๆ ยิ่งแก้ยิ่งแย่ (พิสูจน์ด้วยเทสต์ cabinet_scorecard.py ที่รันเฟิร์มแวร์จริง)
+  1. จังหวะเสียงแยกความต่างได้แค่ ~15 dB ช่วงบน แต่แรงแตะโพรบเปลี่ยนได้ ~20 dB
+     ตำแหน่งปุ่มที่ใช้แยกคู่ได้จึงเลื่อนไปทุกครั้งที่แตะ
+  2. ภาคขยายอิ่มตัวก่อน ADC ค่าที่อ่านตอนแตะแรก ๆ ต่ำกว่าจริงจนกว่า AGC ลดเกนทัน (เดิมขั้นละ 1 วินาที)
+     คู่เดียวกันจึงดังไม่เท่ากันแต่ละครั้ง
+  3. PN1.26-1.28 จำค่า peak เสียงของคู่หนึ่งจึงขึ้นกับว่าแตะคู่ไหนมาก่อน (PN1.28 "Detect ไม่ตรง")
+  ผลแยกคู่ถูก (จาก 24 กรณี, Digital/Analog): PN1.24 0/6, PN1.27 4/9, PN1.28 4/8, PN1.29 14/19
+
+IntelliTone ทำอย่างไร (คู่มือ Fluke)
+  ไม่มีปุ่มปรับความไว มีสวิตช์ Locate / Isolate และไฟ 8 ขีดแสดงความแรงแบบค่าตายตัว
+  Isolate = ไวน้อยลง แยกละเอียดช่วงแรง คู่ที่ต่อกับคู่ข้างเคียงต่างกัน "สองสามขีด"
+  Fluke ยอมรับว่าสัญญาณดิจิทัลรั่วข้ามคู่มากในสายโทรศัพท์ และ PBX รบกวนได้ -> แนะนำโหมดอนาล็อก
+
+PN1.29 เปลี่ยนอะไร (จาก PN1.24)
+  - ความแรงแสดงเป็น 10 ขั้นคงที่ ห่างกันขั้นละ 3 dB จังหวะช้าลงขั้นละ 15%
+    (ช่วงเงียบ Digital: 20, 27, 36, 46, 57, 71, 86, 103, 123, 146 ms) ความแรงเท่าเดิม = ขั้นเดิมเสมอ
+  - ไม่จำ peak ไม่ตัดเสียง (ไม่มีการเทียบกับคู่ที่แตะก่อนหน้า)
+  - กรองค่าให้ขั้นนิ่ง: แรงขึ้นแสดงทันที อ่อนลงค่อย ๆ ลง (~0.3 วินาทีต่อ 3 dB)
+  - AGC ลดเกนเร็วขึ้น (ทุก 0.5 วินาที) เกนเต็มทุกตำแหน่งปุ่ม -> ได้ยินตั้งแต่ปุ่มต่ำ
+  - คงไว้: NCV, เสียงดัง, เสียงแยกโหมด (Digital สูง / Analog ต่ำ), chirp
+
+วิธีใช้แบบ IntelliTone
+  LOCATE (ปุ่มสุด): หามัด/ตู้/ทิศทาง ใกล้แล้วจังหวะเร็วขึ้นทีละขั้น
+    แตะสายในตู้ที่ปุ่มสุด ทุกคู่เร็วสุดเท่ากัน = ปกติ (เหมือน IntelliTone ขึ้น 7-8 ขีดบนสาย)
+  ISOLATE (หมุนลงเหลือราว 1/5 ของรอบ): แตะคู่ละ ~2 วินาที
+    คู่ที่ต่อ TX = จังหวะเร็วที่สุด คู่อื่นช้ากว่าอย่างน้อยหนึ่งขั้น
+    ถ้าทุกคู่ช้าสุดเท่ากัน -> หมุนขึ้นนิดหนึ่ง / ถ้าคู่ที่สงสัยกับคู่ข้าง ๆ เร็วสุดเท่ากัน -> หมุนลงนิดหนึ่ง
+  แนะนำ TX และ RX โหมด Analog สำหรับแยกคู่ (ในอีมูเลเตอร์นิ่งกว่า Digital)
+  ครั้งแรกที่แตะมัดสาย รอ 1-2 วินาทีให้เกนลงตัวก่อน แล้วค่อยเริ่มเทียบ
+
+เช็กลิสต์ทดสอบบนเครื่อง
+  A. เข้าไดรฟ์ BOOTLOADER อีกครั้ง ต้องเห็น PN1.29.TXT
+  B. สายเส้นเดียว หมุนปุ่มต่ำ -> สูง: ได้ยินตั้งแต่ปุ่มต่ำ จังหวะเร็วขึ้นเป็นขั้น ๆ
+  C. แตะคู่เดิมซ้ำ 3 ครั้งสลับกับคู่อื่น: จังหวะต้องเท่าเดิมทุกครั้ง (ไม่ขึ้นกับคู่ที่แตะก่อน)
+  D. ที่มัด/ตู้ ตำแหน่ง Isolate: นับว่าแยกคู่ถูกกี่ครั้งจาก 10 ครั้ง ทั้ง Digital และ Analog
+     และบอกตำแหน่งปุ่มที่ใช้ (ประมาณ %) ถ้าได้ ลองเทียบกับ PN1.27 ด้วย
+  E. ปุ่มสุดที่ตู้: ทุกคู่เร็วสุด = ถูกต้องตามแบบ (Locate)
+  F. NCV ใช้ได้; หมุนปุ่มลงสุด = เงียบ; ขยับโพรบเร็ว ๆ เสียงไม่ขาด
+
+ย้อนกลับ: PN1.27 (release rx-v1.27 / archive/APP_LPM-10RX_PN1.27-knob-update.bin)
+
+---------------------------------------------------------------------------
+English
+---------------------------------------------------------------------------
+Why the earlier fixes got worse (cabinet_scorecard.py, real firmware, toned pair and neighbours
+3/6/10 dB weaker visited in a fixed order, three contact strengths, eight knob positions):
+the rhythm resolves ~15 dB at its fast end while contact strength varies ~20 dB; a first touch
+reads a saturated lower bound until the gain steps down (once per second in PN1.24); PN1.26-1.28
+remember a peak, so the same pair sounds different depending on history. Identified (of 24,
+Digital/Analog): PN1.24 0/6, PN1.27 4/9, PN1.28 4/8, PN1.29 14/19.
+
+PN1.29 (from PN1.24): strength x K(knob) (PN1.27's knob law) shown as ten absolute levels 3 dB
+apart, each pulse period 15 % longer than the next; no peak, nothing muted; a stronger window
+shows at once, a weaker one moves the shown strength an eighth of the way, 0.5 dB hysteresis;
+full gain at every knob; no hold after a gain step down; NCV gain, louder beep and mode pitches
+kept. Knob fully up = Locate, about a fifth of the travel = Isolate.
+
+Validation (emulator, actual ARM code; modeled ADC/link/coupling/interrupts):
+- test_rx_level_display (19 tests): the display equals an independent model on 6 864 Digital
+  and 3 456 Analog windows over 11 knob positions, 4 gains and 6 display states; clipped windows;
+  gain: full at every knob, NCV law, knob off silences; saturation steps 7->2->1->0 at
+  0.5/1.0/1.5 s with no audio gap over 150 ms, step up keeps the 1 s hold, no hunting, a partial
+  window cannot trigger a second step; speaker 1100/500; cabinet: at 19 % of the knob the toned
+  pair is identified at all three contact strengths in both modes and sounds the same on each
+  visit; PN1.27 fails there (negative control).
+- test_rx_knob_response: lone cable audible at every knob, never slower as the knob rises.
+Software-model results only: not measured pickup, coupling or loudness.
+
+Build:  python level_display.py --write      (rx-sdk)
+Tests:  python -m unittest test_rx_level_display test_rx_knob_response -v
+        python cabinet_scorecard.py pn1.27 pn1.29
+
+SHA-256 (experimental/RX-PN1.29-SHA256SUMS.txt; the update is also in the folder root's SHA256SUMS.txt):
+  raw     092d7ad1e4a7d16130b746172b504bd5ee8998590512376962ec044395dfa378  APP_LPM-10RX_PN1.29-levels.bin
+  update  5ab28e753a54e2425cf4e3214b196b291b2f49be4555bdeee516633dbe476ed2  APP_LPM-10RX_PN1.29-levels-update.bin

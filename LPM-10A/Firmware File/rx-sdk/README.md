@@ -1,22 +1,57 @@
 # LPM-10A receiver (probe) firmware SDK
 
-**Current release: PN1.27.** `python build.py --write` builds the latest profile
+**Current release: PN1.29.** `python build.py --write` builds the latest profile
 and its update container. `python verify_release.py` verifies the published
 current update against an exact rebuild; pass an image path and `--profile pn1.xx`
 to check another registered profile. The older `verify.py` models historical
 PN 1.0–1.2 behavior. Notes for earlier versions below are historical.
 
-**Knob-reference release PN1.27 (2026-09-23):** the owner reports "1.27 test pass" on the
-probe. The default build reproduces the exact tested raw image and RX update container
-([release rx-v1.27](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.27)); `python knob_reference.py --write` retains copies in
-`experimental/`. On PN1.26 the owner heard the tone from 5-10 % but "always strong, turning the
-knob makes no difference" (`test_rx_knob_response` reproduces it: a lone cable is its own peak,
-ranked fastest). PN1.27 is built from PN1.24: strength × K(knob) before PN1.24's
-curve at every knob position (0 dB on the top sixteenth = PN1.24, about -2 dB per sixteenth to
--30 dB), no muting by K; PN1.26's full gain, peak-relative mute below the middle, Compare gain
-ceiling, NCV gain and louder beep kept. `python -m unittest test_rx_knob_response test_rx_knob_reference -v`
-(22 tests). See the [diagnosis and validation](../../../docs/RX-KNOB-PN1.27-2026-09-23.md) and
-[notes/checklist](../experimental/RX-PN1.27-README.txt).
+**Levels release PN1.29 (2026-09-23):** the owner reports "1.29 test pass work perfect" on the
+probe. The owner's report is qualitative; it did not measure pickup distance, loudness or
+selectivity. The default build reproduces the exact tested raw image and RX update container
+([release rx-v1.29](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.29));
+`python level_display.py --write` retains copies in `experimental/`. After PN1.28 tested worse
+("detects, but not accurately") and the owner asked for IntelliTone-like precision,
+`cabinet_scorecard.py` runs the real firmware code in the emulator (modeled ADC, link and coupling;
+not measured pickup) on the owner's task (a toned pair and neighbours 3/6/10 dB weaker visited in a
+fixed order; three contact strengths; eight knob positions). It scores PN1.24, PN1.27, PN1.28 and
+PN1.29 and is the regression loop for later builds (add each new builder to `builds()`). With
+contact strengths spanning 20 dB in the model (link 3 000-30 000), it shows three mechanisms: a
+~15 dB rhythm window, saturated first readings while the gain steps down once per second, and
+PN1.26-1.28's peak memory. PN1.29 is built from PN1.24: ten absolute levels 3 dB apart (each
+Digital pulse period 15 % longer than the next level's) against PN1.27's knob reference, no peak
+memory, a rise-fast fall-slow filter with 0.5 dB hysteresis, the automatic gain may use the full
+gain at every knob position in Digital/Analog (it still steps down on saturation) and no hold after
+a gain step down. Identified in the emulator: PN1.24 0/6, PN1.27 4/9, PN1.28 4/8, PN1.29 14/19
+(Digital/Analog, of 24). `python -m unittest test_rx_level_display -v` (19 tests). See the
+[analysis](../../../docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md) and
+[notes/procedure](../RX-PN1.29-README.txt).
+
+**Candidate PN1.28 (2026-09-23; device: "detects, but not accurately", worse than PN1.27; superseded by PN1.29):** after the release test the owner found
+PN1.27 imprecise with the knob all the way up ("ดังทั่วไปหมด"). `test_rx_pair_identify` reproduces it:
+the curve's fastest point is the full gain's saturation and K = 1 on the top sixteenth, so every
+pair within about 10 dB of the toned pair plays 20 ms. `python pair_rank.py --write` builds
+`experimental/APP_LPM-10RX_PN1.28-pair-rank*.bin` from PN1.27: the reference becomes
+min(K, 40 000 / peak), so the strongest recent pair lands on the fastest point and nothing changes
+where the peak fits the curve; and the gain steps down every 0.5 s (no hold after a step down; the
+freshness guard still requires a complete window at the new gain). `python -m unittest
+test_rx_pair_identify test_rx_pair_rank -v`. See the [diagnosis and validation](../../../docs/RX-PAIR-RANK-PN1.28-2026-09-23.md)
+and [notes/checklist](../experimental/RX-PN1.28-README.txt).
+
+**Knob-reference release PN1.27 (2026-09-23; superseded by PN1.29):** the owner reports "1.27 test
+pass" on the probe. `python build.py --profile pn1.27 --write` reproduces the exact tested raw image
+and RX update container
+([release rx-v1.27](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.27));
+`python knob_reference.py --write` retains copies in `experimental/`. On PN1.26 the owner heard the
+tone from 5-10 % but "always strong, turning the knob makes no difference" (`test_rx_knob_response`
+reproduces it: a lone cable is its own peak, ranked fastest). PN1.27 is built from PN1.24:
+strength × K(knob) before PN1.24's curve at every knob position (0 dB on the top sixteenth = PN1.24,
+about -2 dB per sixteenth to -30 dB), no muting by K; PN1.26's full gain, peak-relative mute below
+the middle, Compare gain ceiling, NCV gain and louder beep kept.
+`python -m unittest test_rx_knob_response test_rx_knob_reference -v` (22 tests). See the
+[diagnosis and validation](../../../docs/RX-KNOB-PN1.27-2026-09-23.md) and
+[notes/checklist](../experimental/RX-PN1.27-README.txt). Its release copy is
+[archive/APP_LPM-10RX_PN1.27-knob-update.bin](../archive/APP_LPM-10RX_PN1.27-knob-update.bin).
 
 **Candidate PN1.26 (2026-09-23, device: heard from 5-10 %, knob had no effect; superseded by PN1.27):** after the owner's
 PN1.25 test (louder, but the knob still had to pass the middle), `python relative_isolate.py --write`
@@ -232,7 +267,7 @@ rx-sdk/
     symbols.py    recovered symbol database: 156 functions, RAM map, constants
     image.py      raw-image loader, patch primitives, stock-image lookup
   rx_patches.py   the patch set
-  build.py        build APP_LPM-10RX_PN1.0.bin
+  build.py        build a PN profile (default: latest, PN1.29) + its -update.bin; --default = PN 1.0
   verify.py       post-build verification (bytes + disassembly + emulation)
   verify_digital.py  opt-in detector: independent model, faults, noise and phase sweeps
   boot_emu.py     boots the image under emulation and prints the clock tree
@@ -248,7 +283,7 @@ transmitter SDK (`../sdk/lpm10a/thumb.py`).
 ```bash
 python build.py --list          # what patches exist
 python build.py                 # dry run: instruction-level diff
-python build.py --write         # emit PN1.27 raw image and -update.bin in ../experimental/
+python build.py --write         # emit PN1.29 raw image and -update.bin in ../experimental/
 python verify_release.py        # verify the current update against an exact rebuild
 python boot_emu.py              # clock tree and timer rates, from the running code
 python disasm.py funcs          # survey every function
@@ -278,7 +313,7 @@ checks reject truncated reads, unterminated strings and resized-image writes.
 The earlier two-patch digital command writes
 `../APP_LPM-10RX_PN1.1-digital-experimental.bin`, not PN 1.0 or PN 1.2.
 Those historical checks target PN 1.0/1.1; the default build and release verifier
-now target PN1.27. The historical internal vendor version string was deliberately
+now target PN1.29. The historical internal vendor version string was deliberately
 unchanged (`3.0.0`); use each candidate's hash to identify it.
 Stock's five-read trimmed sampler is retained: this is not oversampling or
 sub-slot clock recovery. The added contrast threshold needs bench calibration.

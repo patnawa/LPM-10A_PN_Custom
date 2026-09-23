@@ -1,10 +1,37 @@
 # Experimental builds
 
-**RX PN1.27 knob-reference release (2026-09-23):** the owner reports "1.27 test pass" on the
-probe. The knob sets the rhythm's reference over its whole travel (lower knob, slower rhythm),
-still audible from low on the knob; PN1.26's peak-relative mute, full gain, NCV gain and louder
-beep kept. The default build and [published release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.27) retain the exact tested bytes
-archived here. [Default RX update file](../APP_LPM-10RX_PN1.27-knob-update.bin),
+**RX PN1.29 levels release (2026-09-23):** the owner reports "1.29 test pass work perfect" on the
+probe. IntelliTone-style display: strength against the knob's reference is shown as ten absolute
+rhythm levels 3 dB apart (in Digital each level's pulse period is 15 % longer than the next), with
+no peak memory (while audio continues a weaker window eases the shown strength down; a 3 dB drop
+shows in about 0.3 s in Digital), no mute and no Compare ceiling; the gain may step down again at
+the next 0.5 s callback; Digital/Analog tracing may use the full gain at every knob position. Knob
+fully up = Locate, about a fifth of the travel = Isolate. In the emulator's cabinet scorecard it
+identifies the toned pair in 14/24 Digital and 19/24 Analog cases (PN1.27: 4/24 and 9/24). The
+default build (`python build.py --write`, profile pn1.29) and
+[published release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.29)
+retain the exact tested bytes archived here.
+[Default RX update file](../APP_LPM-10RX_PN1.29-levels-update.bin),
+[archived copy](APP_LPM-10RX_PN1.29-levels-update.bin), [raw image](APP_LPM-10RX_PN1.29-levels.bin),
+[notes and procedure](RX-PN1.29-README.txt), [checksums](RX-PN1.29-SHA256SUMS.txt),
+[analysis](../../../docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md).
+Roll back with the [PN1.27 update file](../archive/APP_LPM-10RX_PN1.27-knob-update.bin).
+
+**RX PN1.28 candidate (2026-09-23; on the probe: "detects, but not accurately", worse than PN1.27 → superseded by PN1.29):** with the knob all the way up the toned
+pair plays the fastest rhythm and its neighbours slower by their dB deficit (PN1.27 played every
+pair that saturates the full gain at 20 ms); the gain steps down every 0.5 s instead of 1 s.
+Everything else is PN1.27's. [Update file](APP_LPM-10RX_PN1.28-pair-rank-update.bin) (copy this one),
+[raw image](APP_LPM-10RX_PN1.28-pair-rank.bin), [notes and checklist](RX-PN1.28-README.txt),
+[checksums](RX-PN1.28-SHA256SUMS.txt), [diagnosis and tests](../../../docs/RX-PAIR-RANK-PN1.28-2026-09-23.md).
+Roll back with PN1.27.
+
+**RX PN1.27 knob-reference release (2026-09-23; superseded by PN1.29):** the owner reports
+"1.27 test pass" on the probe. The knob sets the rhythm's reference over its whole travel (lower
+knob, slower rhythm), still audible from low on the knob; PN1.26's peak-relative mute, full gain,
+NCV gain and louder beep kept. `python build.py --profile pn1.27` reproduces, and the
+[published release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.27)
+retains, the exact tested bytes archived here.
+[Release copy](../archive/APP_LPM-10RX_PN1.27-knob-update.bin),
 [archived copy](APP_LPM-10RX_PN1.27-knob-update.bin), [raw image](APP_LPM-10RX_PN1.27-knob.bin),
 [notes and checklist](RX-PN1.27-README.txt), [checksums](RX-PN1.27-SHA256SUMS.txt),
 [diagnosis and tests](../../../docs/RX-KNOB-PN1.27-2026-09-23.md).

@@ -6,14 +6,17 @@ outdated measurements, while reducing Analog processing work without changing
 its spectral decision. These changes address reproducible firmware limits;
 they do not establish a new physical pickup distance or calibrated accuracy.
 
-PN1.24 is the current RX release. On 2026-09-22 the owner reported:
+Status: **superseded by RX PN1.29 ([rx-v1.29](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.29)), which is built from this exact PN1.24
+image; PN1.27 (rx-v1.27) superseded PN1.24 first.** PN1.24 was the owner-tested RX release
+rx-v1.24. On 2026-09-22 the owner reported:
 
 > 1.24 Tested pass no signal drop on digital and analog. Git push release doc update
 
 This is a qualitative pass on the owner's receiver, separate from the emulator
 measurements below. The [RX PN1.24 release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.24)
-and default build retain the exact tested bytes. Previous RX PN1.23 remains
-available; TX PN2.26 remains current and needs no update for these RX improvements.
+keeps the exact tested bytes; `python build.py --profile pn1.24 --write` reproduces them (release
+copy in `LPM-10A/Firmware File/archive/`). TX PN2.26 was current then (now PN2.27A) and needed no
+update for these RX improvements.
 
 ## Findings and scope
 

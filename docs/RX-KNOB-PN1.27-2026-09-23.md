@@ -1,9 +1,15 @@
 # RX PN1.27: the knob sets the rhythm's reference over its whole travel
 
 Date: 2026-09-23. Parent: owner-tested RX PN1.24. Transmitter: TX PN2.27A, unchanged.
-Status: **owner-tested release [rx-v1.27](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.27).** The owner reports "1.27 test pass"
-on the probe (2026-09-23). The confirmation covers the owner's device test, not measured pickup
-distance or selectivity.
+Status: **superseded by RX PN1.29
+([rx-v1.29](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.29)).** PN1.27 was the
+owner-tested release [rx-v1.27](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.27):
+the owner reported "1.27 test pass" on the probe (2026-09-23). The confirmation covered the owner's
+device test, not measured pickup distance or selectivity. The owner's next report on PN1.27, at full
+knob, was that it sounds on every pair and does not identify the line precisely. That report led to
+[PN1.28](RX-PAIR-RANK-PN1.28-2026-09-23.md) (the report is quoted there), which the owner tested on
+the probe and found worse ("detects, but not accurately"); PN1.29 followed that result and the
+analysis in [RX-INTELLITONE-ANALYSIS-2026-09-23.md](RX-INTELLITONE-ANALYSIS-2026-09-23.md).
 Earlier steps: [PN1.25](RX-ISOLATE-PN1.25-2026-09-23.md) (audit, louder beep),
 [PN1.26](RX-RELATIVE-PN1.26-2026-09-23.md) (full sensitivity, peak-relative isolation).
 
@@ -104,7 +110,8 @@ selectivity.
 | `APP_LPM-10RX_PN1.27-knob-update.bin` (container, 32 768 bytes) | `b3aa9618e4eeaabc14120bcae6a381771d8b8b0c65a85f38b0d1808cdbf36de1` |
 
 Both are in `LPM-10A/Firmware File/experimental/` with `RX-PN1.27-README.txt`.
-The update file and `RX-PN1.27-README.txt` are also at the root of
-`LPM-10A/Firmware File/`; `python build.py --write` from `rx-sdk` rebuilds both
-images exactly in `experimental/`. Install the `-update.bin` with the usual RX procedure. Roll back with PN1.24
-(`archive/` or release rx-v1.24) or PN1.26.
+The update file and `RX-PN1.27-README.txt` were at the root of `LPM-10A/Firmware File/` while
+PN1.27 was current; they are now in `LPM-10A/Firmware File/archive/` with
+`RX-PN1.27-SHA256SUMS.txt`. `python build.py --knob --write` from `rx-sdk` rebuilds both
+images exactly in `experimental/` (plain `--write` now builds PN1.29). Install the `-update.bin`
+with the usual RX procedure. Roll back with PN1.24 (`archive/` or release rx-v1.24) or PN1.26.

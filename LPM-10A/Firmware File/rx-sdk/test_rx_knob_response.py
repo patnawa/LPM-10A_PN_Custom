@@ -10,6 +10,8 @@ import io
 import unittest
 
 import knob_reference as pn127
+import level_display as pn129
+import pair_rank as pn128
 import relative_isolate as pn126
 import rx_precision
 import test_rx_relative_isolate as harness
@@ -27,6 +29,9 @@ def setUpModule():
         CANDIDATES['PN1.24'] = bytes(rx_precision.build_candidate().data)
     CANDIDATES['PN1.26'] = bytes(pn126.build_candidate().data)
     CANDIDATES['PN1.27'] = bytes(pn127.build_candidate().data)
+    with contextlib.redirect_stdout(io.StringIO()):
+        CANDIDATES['PN1.28'] = bytes(pn128.build_candidate().data)
+        CANDIDATES['PN1.29'] = bytes(pn129.build_candidate().data)
 
 
 class KnobResponse(harness.Analysers, unittest.TestCase):
@@ -73,8 +78,9 @@ class KnobResponse(harness.Analysers, unittest.TestCase):
         self.assertTrue(any('as fast as 100 %' in p for p in problems))
 
     def test_candidate_follows_the_knob_and_stays_audible(self):
-        label = next(reversed(CANDIDATES))
-        self.assertEqual(self.report(label), [], label)
+        for label in ('PN1.27', 'PN1.28', 'PN1.29'):
+            with self.subTest(label=label):
+                self.assertEqual(self.report(label), [], label)
 
 
 if __name__ == '__main__':

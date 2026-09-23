@@ -1,6 +1,6 @@
 # LPM-10A firmware — measurement formula audit (TX §1–6, receiver PN formulas §7)
 
-*Updated 2026-09-21 for TX PN 2.14 and RX PN 1.23; section 7 updated 2026-09-23 for RX PN 1.27.*
+*Updated 2026-09-21 for TX PN 2.14 and RX PN 1.23; section 7 updated 2026-09-23 for RX PN 1.29.*
 
 Every value the tester computes and shows was traced in the stock binary
 (`LPM-10A-TX_V2.0.7_260610.bin`, sha256 `29081ccb…`) by disassembly, and the
@@ -512,8 +512,10 @@ PC10 low = charging, PA15 low = standby (charge complete). GPIO reads. **OK**
 The TX formulas were verified by disassembly and CPU emulation, then on one
 real unit: PN 1.0–1.3 on 2026-09-18 (the length data in §1.6, Zero + NVP,
 four-run averaging), PN 2.2 / 2.4 the same day (Thai UI, FLASH blink), PN 2.8
-and 2.12 on 2026-09-19 (Port FLASH on a D-Link gigabit switch), and PN 2.14 is
-the build in daily use. The PoE supply paths, the divider ratio and the class
+and 2.12 on 2026-09-19 (Port FLASH on a D-Link gigabit switch), and PN 2.14 was
+then the build in daily use; PN 2.26 (QC, Length) and PN 2.27A (with RX PN 1.24)
+were confirmed on the device on 2026-09-22, and TX PN 2.27A is the current
+release. The PoE supply paths, the divider ratio and the class
 comparators still await a reference PSE (no PoE switch or injector has been
 available); the no-supply path was checked on the unit.
 
@@ -523,10 +525,14 @@ available); the no-supply path was checked on the unit.
 
 The stock receiver firmware is audited function by function in
 [`../../docs/RX-AUDIT.md`](../../docs/RX-AUDIT.md) (modes, decoder, DFT, speaker,
-battery, keys, device binding). What PN adds is arithmetic of its own, all of
-it measured on the owner's unit on 2026-09-21
-([`RX-SENSITIVITY-2026-09-21.md`](../../docs/RX-SENSITIVITY-2026-09-21.md)) and
-executed on a CPU model in `rx-sdk/test_rx_*.py`.
+battery, keys, device binding). What PN adds is arithmetic of its own. Its
+measured inputs (the gain steps of MULT and the full gain's saturation score 40 000)
+come from the owner's unit on 2026-09-21
+([`RX-SENSITIVITY-2026-09-21.md`](../../docs/RX-SENSITIVITY-2026-09-21.md)), and all
+of it is executed on a CPU model in `rx-sdk/test_rx_*.py`. The current receiver release is PN 1.29, built
+from PN 1.24 (`rx-sdk/level_display.py`; its display is 7.3 and 7.9); the owner confirmed it on
+the device on 2026-09-23 ("1.29 test pass work perfect"). Its level thresholds are the measured
+saturation point in 3 dB steps; the figures for their effect in 7.4 and 7.9 are emulator results.
 
 ### 7.1 Digital detection — PN 1.12 (`digital-correlation` … `rx-overload`)
 
@@ -538,7 +544,10 @@ code test   all 8 rotations of the repeated 0xB6B6 pattern over the 48 bits:
             or stock's two exact sliding 16-bit matches (kept as a fallback)
 floor       sum |sample - threshold| >= 192 counts (4 per sample) and stock's high-sample sum
 strength    trimmed estimate over the 16 newest code-verified samples (one code period);
-            a window whose 16 newest raw samples are all 4095 -> 'uncertain' (interval 1)
+            a window the estimator cannot rank (code-1 samples' median at the 4095 rail, or no
+            separable high/low level), or on the exact fallback one whose 16 newest raw samples
+            are all 4095 -> 'uncertain' (interval 1);
+            PN 1.29: the saturation score 40 000 through the level display instead (7.9)
 overlap     since PN 1.21 keep the newest 40 samples, collect 8 -> re-evaluate every 40 ms
             (32 / 16 = 80 ms in PN 1.11-1.20); the first lock after a mode or gate change needs a full frame
 ```
@@ -553,47 +562,70 @@ and 50 Hz hum (period 4 samples) give noise correlations up to 0.77.
 window      64 samples every 0.325 ms (20.8 ms), 32-bin DFT, target bin 17 = 817 Hz
 noise       (sum of bins 1..31 - bin 1 - bin 17) / 12          (uxth, as stock)
 margin      bin17 - noise;  accept when margin > 10
-upper rail  >= 8 of 64 samples at 4095 in an accepted window -> 'uncertain' (interval 1)
-score       (margin - 10) x 40                                  (feeds the same curve as Digital)
+upper rail  >= 8 of 64 samples at 4095 in an accepted window -> 'uncertain' (interval 1);
+            PN 1.29: the saturation score 40 000 through the level display instead (7.9)
+score       (margin - 10) x 40                                  (feeds the same display as Digital)
 DFT         exact integer inner loop, bit-identical results, -74 % instructions
 ```
 
-### 7.3 Strength score → quiet interval (PN 1.8, 1.15, 1.17, 1.19, 1.27)
+### 7.3 Strength score → level → quiet interval (PN 1.8, 1.15, 1.17, 1.19, 1.29)
 
 ```
-score'      = score x MULT[level] / 10,  MULT = {200, 92, 26, 26, 11, 11, 11, 10} for driven gain level 0..7
+score'      = score x MULT[driven] / 10,  MULT = {200, 92, 26, 26, 11, 11, 11, 10} for driven gain level 0..7
               (measured p-p per knob code at one position: 95, 230, 780, 90->780, 1920, 1940, 2040, 2400;
-               level = the gain actually driven, see 7.4); clamped to 0x00FFFFFF (PN 1.27)
-mute        PN 1.26/1.27, below the middle of the knob: score' < peak x window -> rejected, see 7.9
-score''     = score' x K(knob) / 256  (PN 1.27, see 7.9; K = 256 on the top sixteenth: PN 1.24 exactly)
-interval    piecewise linear through (score'', ms):
+               driven = the gain actually driven, see 7.4); clamped to 0x00FFFFFF (PN 1.27, kept in PN 1.29)
+strength    = score' x K(knob) / 256  (PN 1.29; K = PN 1.27's knob reference, 256 on the top sixteenth: 7.9)
+level       ten absolute levels 3 dB apart: level k (1..9) when strength >= 2524, 3565, 5036, 7113,
+              10048, 14193, 20047, 28318, 40000; level 0 below 2524
+              (40 000 = the front end's measured saturation); filter and hysteresis while audio continues: 7.9
+interval    quiet interval per level 0..9: 146, 123, 103, 86, 71, 57, 46, 36, 27, 20 ms
+              (each Digital pulse period is 15 % longer than the next level's; a window at the full
+               gain's saturation is level 9 = 20 ms only on the top sixteenth of the knob; a touched
+               cable read after the gain has stepped down (about +10 dB) stays at 20 ms lower down,
+               in the emulator at 75 % of the knob, and K slows it below that: 36 ms at 50 %, 86 ms
+               at 10 %)
+pulse       30 ms on (Digital), 12 ms (Analog)
+clipped     PN 1.29: score 40 000 at the driven gain, at every knob position (7.9); since PN 1.18 it had
+            been 'uncertain' (1), published as 20 ms (PN 1.27: on the top sixteenth only)
+```
+
+The PN 1.24 curve below is no longer used by the current build (PN 1.29 replaces it with the
+levels above); it is kept for the history of PN 1.19–1.28, where PN 1.25–1.28 put knob- and
+peak-dependent rules in front of it. PN 1.8–1.14 used the same score knots with the last at
+88 000 and intervals 160, 130, 105, 75, 45, 20 ms; PN 1.15 normalised the score and set the
+intervals below; PN 1.17 added the half-step publisher; PN 1.19 moved the last knot from
+88 000 to the measured saturation 40 000:
+
+```
+interval    piecewise linear through (score', ms):
               (0, 110) (800, 95) (2400, 85) (7200, 70) (24000, 45) (40000, 20); >= 40000 -> 20
-              (40 000 = the front end's measured saturation: touching the cable is 20 ms on the top
-               sixteenth of the knob; lower down K slows it)
-publish     if audio is fresh (RECENT > 500) and an interval is already published (not 0 / 'uncertain'):
+publish     if the rhythm is playing (RECENT > 500) and an interval is already published (not 0 / 'uncertain'):
               new = old + (target - old) / 2, applied only when |half step| >= 3 ms  (PN 1.17)
             otherwise the target directly
-pulse       30 ms on (Digital), 12 ms (Analog); 'uncertain' (1) is published as 20 ms since PN 1.18
-            (PN 1.27: on the top sixteenth only; below it a clipped window is score 40 000 at the driven gain)
 ```
 
-### 7.4 Knob, gain steps and automatic range (PN 1.17, 1.22, 1.24, 1.26)
+### 7.4 Knob, gain steps and automatic range (PN 1.17, 1.22, 1.24, 1.26, 1.28, 1.29)
 
 ```
 knob        PA2 trimmed mean every 500 ms; code = raw / 580 (0..7); gates: Digital raw >= 2, Analog code >= 1
 pins        PB12..14 = bits of the level; stock forces level 0 to 011 == level 3 -> PN maps level 3 to level 2
 AGC tick    (500 ms, main context; Digital and Analog)
               ceiling changed or first tick -> driven = ceiling, hold = 0
-                (PN 1.26: a lowered ceiling still above the driven gain is only recorded)
+                (PN 1.26-1.28: a lowered ceiling still above the driven gain is only recorded)
               else p-p of the 48-sample buffer:
                 >= 1900 -> driven steps down one effective step (7..4 -> 2 -> 1 -> 0), hold
                 <  450  -> driven steps up (0 -> 1 -> 2 -> ceiling), never above the ceiling, hold
                 else keep;  a hold tick decrements and forbids changes
               hold = 4 ticks (PN 1.22), 1 tick (PN 1.24: a step at most every 1 s); PN 1.24 decides only on a
               complete recent acquisition from the current gain
-ceiling     PN 1.22-1.25: the knob level; PN 1.26: 7 at every knob position, below the middle of the
-            knob the peak-derived ceiling of 7.9
-mains       PN 1.25/1.26: driven = knob level (7 from raw >= 1024), set again at every tick, see 7.7
+              PN 1.28 and 1.29 (pair_rank.py's helper, reused by level_display.py): hold = 1 tick after
+              a step up, 0 after a step down (the next tick may decide again, still only on a complete
+              acquisition at the new gain); in PN 1.29 saturation steps 7 -> 2 -> 1 -> 0 at
+              0.5 / 1.0 / 1.5 s (PN 1.24: 0.5 / 1.5 / 2.5 s), no audio gap over 150 ms (emulator stream test)
+ceiling     PN 1.22-1.25: the knob level; PN 1.26-1.28: 7 in the upper half of the knob, below the middle
+            a peak-derived ceiling; PN 1.29: 7 at every knob position (the peak-derived ceiling is gone)
+mains       PN 1.25/1.26, unchanged in PN 1.29: driven = knob level (7 from raw >= 1024), set again at
+            every tick, see 7.7
 state       0x20000200: [0] driven level, [1] 0, [2] hold, [3] last ceiling   (normaliser reads [0..1] as u16)
 ratios      1900 / 450 = 4.2 > 2.6 x 1.3: no oscillation between adjacent steps
 ```
@@ -611,7 +643,7 @@ keep-alive        800 ms power keep-alive is stock and separate
 ### 7.6 Speaker cadence (PN 1.14, 1.23, 1.25)
 
 ```
-TIM5 40 kHz; duty 1100/500 (PN 1.25; stock 900/700, silence 800: 3x the swing, +9.5 dB) flipped every N interrupts: Digital N = 8 (2.5 kHz), Analog 16 (1.25 kHz), mains 4 (5 kHz)
+TIM5 40 kHz; duty 1100/500 (PN 1.25, kept in PN 1.29; stock 900/700, silence 800: 3x the swing, +9.5 dB) flipped every N interrupts: Digital N = 8 (2.5 kHz), Analog 16 (1.25 kHz), mains 4 (5 kHz)
 key beep 100 ms: first 50 ms at the other mode's N -> Digital chirps low->high, Analog high->low
 ```
 
@@ -635,30 +667,53 @@ critical state recoverable when the pack reads >= 3400 mV again (stock: uncancel
 version string "PN1.xx" at 0x0800CDE4 -> written to page 0x0801F000 at boot -> BOOTLOADER drive shows PN1.xx.TXT
 ```
 
-### 7.9 Knob reference, peak and mute window (PN 1.26, 1.27)
+### 7.9 Knob reference and level display (PN 1.29)
 
 ```
 knob        raw 0..4095 (7.4); i = raw >> 8 (sixteenth), f = raw & 0xFF;
-            tables are interpolated as T[i] + (T[i+1] - T[i]) x f / 256 (integer steps)
-peak        u32 at 0x20000210, u32 TIM5 tick (40 kHz) of its last decay step at 0x20000214 (zero-initialised)
-              decayed to now: x 250/256 per 4 000 ticks (100 ms, about -2 dB/s);
-              more than 400 000 ticks (10 s) since the last step -> 0
-              every analysed score' (7.3): peak = max(peak decayed to now, score')
-mute        lower half (i < 8): window W = (128, 121, 102, 72, 45, 23, 10, 4, 0) at i = 0..8 (x/256)
-              (-6 dB at the bottom ... -36 dB just below the middle); score' < peak x W / 256 -> published as
-              rejected, so the release hold of 7.5 ends the rhythm; upper half: nothing is muted
+            K is interpolated as T[i] + (T[i+1] - T[i]) x f / 256 (integer steps)
 reference   K = (8, 10, 13, 16, 20, 25, 32, 40, 51, 64, 81, 102, 128, 161, 203, 256, 256) at i = 0..16 (x/256)
               = 8 x 32^(i/15): about 2 dB per sixteenth, -30 dB at the bottom, 256 (x1) from raw 3840 up
-              score'' = score' x K / 256 -> the 7.3 curve; K never mutes
-clipped     i = 15: fastest (interval 1, published as 20 ms); i < 15: score 40 000 at the driven gain
-              -> score' -> mute -> K -> curve
-ceiling     tracing modes: 7 in the upper half; lower half: threshold = peak (decayed to now) x W / 256,
-              ceiling = the first of (7, 40 000) (2, 104 000) (1, 368 000) whose saturation score' >= threshold,
-              else 0 (saturation score' = 40 000 x MULT[level] / 10: a pair above the threshold never reads clipped)
+              (PN 1.27's law, unchanged); strength = score' x K / 256 (7.3)
+levels      level = number of thresholds <= strength (0..9), thresholds (k = 1..9):
+              2524, 3565, 5036, 7113, 10048, 14193, 20047, 28318, 40000
+              (40 000 x 10^(-3 (9 - k) / 20), 3 dB apart); level 0 below 2524
+intervals   level 0..9 -> quiet 146, 123, 103, 86, 71, 57, 46, 36, 27, 20 ms
+              (round(50 x 1.15^(9 - k)) - 30: with the 30 ms Digital pulse each period is 15 % longer
+               than the next level's); the interval goes to the guarded publisher, release as in 7.5
+fresh       RECENT <= 500 when the window arrives (no rhythm playing), or a stored level >= 10:
+              stored strength = this window's, level = its level directly
+continuing  RECENT > 500: a stronger window is stored at once;
+              a weaker one: stored = stored - (stored - strength) / 8 (integer), an eighth of the way
+              per window (a real 3 dB drop shows in about 0.3 s in Digital)
+hysteresis  continuing only: up = level of (stored - stored/16), down = level of (stored + stored/16);
+              up > shown -> up, else down < shown -> down, else unchanged
+              (a level changes only about 0.5 dB past its boundary)
+RAM         0x20000210 u32 stored (shown) strength, 0x20000214 u8 shown level
+              (zero-initialised, unused by PN 1.24)
+clipped     Digital: every window PN 1.24 published as 'uncertain' (7.1), i.e. the code-1 samples'
+              median at the 4095 rail (or no separable high/low level), or the 16 newest raw samples
+              all 4095 on the exact fallback; Analog >= 8 of 64 samples at 4095: score 40 000 at the
+              driven gain -> score' -> K -> level, at every knob position
+peak, mute  none: no peak memory, no mute, no peak-derived gain ceiling (PN 1.26-1.28's lower-half
+              "Compare" ceiling, 7.4); once the display has settled (at once on a fresh window; a
+              weaker window follows the 1/8 filter above) the same strength at the same knob
+              position gives the same level, within the 0.5 dB hysteresis
 ```
 
-Checked on the actual code: `test_rx_knob_reference` compares every knob position
-with an independent model of these formulas (24 336 Digital and 9 504 Analog
-windows) and the top sixteenth with PN 1.24; `test_rx_relative_isolate` covers the
-peak, the ceiling and the mains gain; `test_rx_knob_response` is the owner's
-report as a test ([docs/RX-KNOB-PN1.27-2026-09-23.md](../../docs/RX-KNOB-PN1.27-2026-09-23.md)).
+PN 1.26–1.28 compared each window with a decaying peak of recent strengths to mute or slow the
+weaker pairs, and PN 1.29 removed it because the answer depended on which pair had been probed
+before ([docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md](../../docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md)).
+
+Checked on the actual code: `test_rx_level_display` (19 tests) compares the display with an
+independent model of these formulas on 6 864 Digital and 3 456 Analog windows and covers the
+clipped windows, the gain and NCV laws, the attack and its freshness guard, the speaker, and a
+cabinet at 19 % of the knob with PN 1.27 as the negative control; `test_rx_knob_response` is the
+owner's lone-cable report as a test (Digital, one steady signal at 10, 25, 40, 50, 75 and 100 %
+of the knob: audible at each, never slower as the knob rises; the knob gates of 7.4 still apply;
+K's derivation is in [docs/RX-KNOB-PN1.27-2026-09-23.md](../../docs/RX-KNOB-PN1.27-2026-09-23.md)).
+`cabinet_scorecard.py` runs the real firmware in the emulator on a toned pair with neighbours
+3, 6 and 10 dB weaker (three contact strengths, eight knob positions); identified of 24
+(Digital / Analog): PN 1.24 0/6, PN 1.27 4/9, PN 1.28 4/8, PN 1.29 14/19. These are emulator
+results; the device confirmation is the owner's report and did not measure pickup distance,
+loudness or selectivity.

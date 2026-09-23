@@ -5,8 +5,8 @@
 
 A profile's module pins the exact SHA-256 of its parent image inside apply(), so the
 chain is also verified byte for byte while building.  Side branches: pn1.10 (Sync32,
-off pn1.9), pn1.13 (audio-clock diagnostic, off pn1.12), and pn1.25 / pn1.26 (knob
-candidates off pn1.24); the release pn1.27 also branches from pn1.24.
+off pn1.9), pn1.13 (audio-clock diagnostic, off pn1.12), pn1.25 / pn1.26 / pn1.27 (knob
+builds off pn1.24) and pn1.28 (off pn1.27); the release pn1.29 also branches from pn1.24.
 
 Adding PN 1.x: write the module (PATCHES, OUTPUT, PARENT_SHA256, apply, register),
 register it at the end of rx_patches.py, and append one Profile line here.
@@ -110,7 +110,8 @@ _CHAIN = [
         "Faster fresh-window gain recovery, efficient Analog analysis and sample-age guards"),
      "pn1.23g", "PN1.24 Digital/Analog gain response, Analog efficiency and sample freshness", True,
      "Hardware test passed: no Digital or Analog audio dropout reported by the owner, 2026-09-22"),
-    # PN1.25-1.27 each branch from PN1.24 (each module pins the exact PN1.24 image).
+    # PN1.25-1.27 and PN1.29 branch from PN1.24 (each module pins the exact PN1.24 image);
+    # PN1.28 pins the exact PN1.27 image.
     ("pn1.25", "isolate", ReleaseStage("isolate", "rx-isolate",
         "experimental/APP_LPM-10RX_PN1.25-isolate.bin",
         "Knob-reference isolate below the middle, louder beeps, NCV gain"),
@@ -125,7 +126,17 @@ _CHAIN = [
         "experimental/APP_LPM-10RX_PN1.27-knob.bin",
         "Knob sets the rhythm reference over its whole travel; peak-relative mute below the middle"),
      "pn1.24", "PN1.27 knob reference, full sensitivity, peak-relative mute, louder beeps, NCV gain", True,
-     "Hardware test passed: owner reports '1.27 test pass', 2026-09-23"),
+     "Hardware test passed: owner reports '1.27 test pass', 2026-09-23 (superseded by PN1.29)"),
+    ("pn1.28", "pair-rank", ReleaseStage("pair_rank", "rx-pair-rank",
+        "experimental/APP_LPM-10RX_PN1.28-pair-rank.bin",
+        "Strongest recent pair on the fastest rhythm point, fast gain attack"),
+     "pn1.27", "PN1.28 pair ranking against a remembered peak (historical candidate)", True,
+     "Owner 2026-09-23: detects, but not accurately, worse than PN1.27 (superseded)"),
+    ("pn1.29", "levels", ReleaseStage("level_display", "rx-level-display",
+        "experimental/APP_LPM-10RX_PN1.29-levels.bin",
+        "Ten absolute strength levels against the knob reference; no memory; fast gain attack"),
+     "pn1.24", "PN1.29 IntelliTone-style absolute levels, Locate/Isolate knob, full sensitivity, fast attack", True,
+     "Hardware test passed: owner reports '1.29 test pass work perfect', 2026-09-23"),
 ]
 
 PROFILES = OrderedDict((n, Profile(n, *rest)) for n, *rest in _CHAIN)

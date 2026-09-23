@@ -1,0 +1,88 @@
+RX PN1.28 - หมุนปุ่มสุดแล้วคู่ที่ต่อ TX ดังเร็วสุด คู่ข้างเคียงช้ากว่า
+2026-09-23 - SUPERSEDED by PN1.29: owner test "Detect ไม่ตรง" (worse than PN1.27); see docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md
+
+ไฟล์ที่ใช้ติดตั้ง: APP_LPM-10RX_PN1.28-pair-rank-update.bin  (อย่าก๊อปไฟล์ raw .bin)
+ใช้คู่กับ TX PN2.27A (TX ไม่ต้องเปลี่ยน)
+
+---------------------------------------------------------------------------
+ภาษาไทย
+---------------------------------------------------------------------------
+ผลทดสอบ PN1.27 บนเครื่อง (เจ้าของ 2026-09-23)
+  "พอเร่งสุดเหมือนหาสายไม่แม่น ดังทั่วไปหมด ไม่แม่นยำในการ identify สาย"
+
+สาเหตุ (ยืนยันด้วยเทสต์ test_rx_pair_identify ที่รันโค้ดจริง)
+  1. โค้งจังหวะเร็วสุดที่คะแนน 40 000 (ระดับที่เกนเต็มอิ่มตัว) ปุ่มบนสุด K = 1 จึงทุกคู่ที่แรงกว่านั้น
+     ได้ 20 ms เท่ากันหมด คู่ที่ต่อ TX กับคู่ข้างเคียงที่อ่อนกว่า 3-10 dB ดังเร็วสุดเหมือนกัน
+     (PN1.27 ปุ่ม 100%: คู่ที่ต่อ 20 ms, ข้างเคียง -3/-6/-10 dB = 20/20/20 ms)
+  2. แตะคู่แรก: ภาคขยายอิ่มตัวก่อน ADC เต็ม (~2400 p-p) ค่าที่อ่านจึงเป็นแค่ขั้นต่ำ
+     AGC ลดเกนได้ครั้งละ 1 ขั้นต่อวินาที -> แตะคู่ที่ต่อแค่ 1 วินาทียังวัดค่าจริงไม่ได้
+     คู่ข้างเคียงที่แตะถัดไปจึงถูกนับเป็นคู่แรงสุดและดังเร็วสุด
+
+PN1.28 เปลี่ยนอะไร (จาก PN1.27)
+  - โค้งจังหวะเลื่อนตามคู่ที่แรงสุดที่เพิ่งได้ยิน: คู่นั้นอยู่ที่ 20 ms พอดี คู่อื่นช้าลงตามส่วนที่อ่อนกว่า
+    ปุ่ม 75-100% (คู่ที่ต่อแรงกว่าระดับอิ่มตัว +10 dB): คู่ที่ต่อ 20 ms
+      ข้างเคียง -3 / -6 / -10 / -14 dB = 33 / 47 / 60 / 68 ms
+    ถ้าคู่แรงสุดไม่เกินโค้ง (ส่วนใหญ่ปุ่มต่ำกว่ากลาง หรือสัญญาณไม่แรง) = เหมือน PN1.27 ทุกอย่าง
+    สายเส้นเดียว = คู่แรงสุดเอง จังหวะทุกตำแหน่งปุ่มเหมือน PN1.27
+  - AGC ลดเกนเร็วขึ้น: ลดได้ทุก 0.5 วินาที (เดิม 1 วินาที) แต่ต้องมีหน้าต่างใหม่ครบที่เกนใหม่ก่อน
+    เพิ่มเกนยังรอ 1 วินาทีเหมือนเดิม
+  - คงไว้ทั้งหมดจาก PN1.27: ปุ่มคุมจังหวะ, ตัดคู่อ่อนครึ่งล่าง, เกนเต็มทุกตำแหน่ง, NCV, เสียงดัง
+
+วิธีใช้
+  ปุ่มสูง (75-100%): แตะคู่ที่คิดว่าใช่ 1-2 วินาที แล้วแตะคู่อื่นทีละคู่ คู่ที่ต่อ TX ดังเร็วสุด
+    คู่อื่นช้ากว่า (ความจำคู่แรงสุดลด 2 dB/วินาที ถ้าค้างคู่อ่อนนานเกินไปให้แตะคู่แรงสุดใหม่)
+  ปุ่มต่ำกว่าครึ่ง: เหมือน PN1.27 (คู่ที่อ่อนกว่ามากจะเงียบ)
+
+เช็กลิสต์ทดสอบบนเครื่อง
+  A. เข้าไดรฟ์ BOOTLOADER อีกครั้ง ต้องเห็น PN1.28.TXT
+  B. ปุ่ม 100% ที่มัด/ตู้: แตะคู่ที่ต่อ TX ~2 วินาที แล้วแตะคู่ข้างเคียง: ข้างเคียงต้องช้ากว่าชัดเจน
+     บันทึกถูก/ผิดกี่ครั้งจาก 10 ครั้ง (เทียบกับ PN1.27 ถ้าทำได้)
+  C. สายเส้นเดียว หมุนปุ่มต่ำ -> สูง: ยังเหมือน PN1.27 (ต่ำช้า สูงเร็ว, ได้ยินตั้งแต่ปุ่มต่ำ)
+  D. ปุ่มต่ำกว่าครึ่ง: คู่ที่อ่อนกว่ามากยังเงียบเหมือน PN1.27
+  E. ขยับ probe เร็ว ๆ ใกล้สายแรง: เสียงไม่ขาดหาย (AGC ลดเกนเร็วขึ้น)
+  F. NCV ยังใช้ได้; หมุนปุ่มลงสุด = เงียบ
+
+ย้อนกลับ: PN1.27 (release rx-v1.27 / archive/APP_LPM-10RX_PN1.27-knob-update.bin)
+
+---------------------------------------------------------------------------
+English
+---------------------------------------------------------------------------
+PN1.27 on the device: "with the knob all the way up it does not find the line
+precisely; it sounds everywhere". Reproduced by test_rx_pair_identify on the
+real code: the curve's fastest point is score 40 000 (the full gain's
+saturation) and on the top of the knob K = 1, so the toned pair and every
+neighbour within about 10 dB are clamped to 20 ms. The cabinet stream showed a
+second mechanism: the front end saturates before the ADC rail, a saturated
+window reads a lower bound, and one AGC step per second left the toned pair
+unmeasured during a ~1 s touch, so the first neighbour touched became the peak.
+
+PN1.28 (from PN1.27):
+- Curve reference = min(K, ceil(40 000 x 256 / peak)) once the peak is above
+  40 000: the strongest recent pair lands on the fastest point, weaker pairs
+  slower by their dB deficit. Unchanged wherever the peak fits the curve; a
+  lone cable is its own peak, so its rhythm is PN1.27's at every knob.
+- Fast attack: no hold after a gain step down (the freshness guard still needs
+  a complete window at the new gain); a step up keeps the one-second hold.
+
+Validation (emulator, actual ARM code; modeled ADC/link/coupling/interrupts):
+- test_rx_pair_identify (the owner's report): toned pair +10 dB over the full
+  gain's saturation, neighbours -3/-6/-10/-14 dB, quiet interval ms:
+    PN1.27 knob 100 %: 20 | 20 20 20 44   (red, as reported)
+    PN1.28 knob 100 %: 20 | 33 47 60 68   (knob 75 %: the same; 25/50 %: PN1.27)
+- test_rx_pair_rank (19 tests): every knob position equals an independent model
+  on 29 952 Digital and 12 096 Analog windows; identical to PN1.27 wherever the
+  peak fits the curve; lone cable = PN1.27; gain steps down every 0.5 s with no
+  audio gap over 150 ms, step up keeps the 1 s hold, no hunting, a partial
+  window cannot trigger a second step.
+- Cabinet streams, knob 100 %, pairs alternating every 1.2 s: first and second
+  touch of each neighbour slower than the toned pair (tone fraction 0.30-0.43
+  against 0.53-0.60, Digital and Analog); PN1.27 plays every pair the same.
+  Low knob still mutes the neighbour.
+Software-model results only: not measured pickup, coupling or loudness.
+
+Build:  python pair_rank.py --write      (rx-sdk)
+Tests:  python -m unittest test_rx_pair_identify test_rx_pair_rank test_rx_knob_response -v
+
+SHA-256 (RX-PN1.28-SHA256SUMS.txt):
+  raw     0e4b34b2347b1054035194500e1885fffeb1a90ed57753739ed4a2fbb8f5a619  APP_LPM-10RX_PN1.28-pair-rank.bin
+  update  ef0dcf7c1a1ae1313f550263d8766d5771f8c4f3b6d321b6fc831063b563798f  APP_LPM-10RX_PN1.28-pair-rank-update.bin
