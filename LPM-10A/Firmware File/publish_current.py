@@ -1,6 +1,6 @@
 """Publish selected PN releases from experimental/ and rewrite SHA256SUMS.txt.
 
-    python publish_current.py LPM-10A-TX_PN2.27A-analog-alignment.bin APP_LPM-10RX_PN1.29-levels-update.bin
+    python publish_current.py LPM-10A-TX_PN2.33-cable-safe.bin APP_LPM-10RX_PN1.29-levels-update.bin
 
 Only obsolete PN releases listed in the previous manifest are removed. Stock
 firmware and other local files are preserved. Sources and destinations are
@@ -16,7 +16,7 @@ import tempfile
 
 HERE = Path(__file__).resolve().parent
 DEFAULT_NAMES = (
-    "LPM-10A-TX_PN2.27A-analog-alignment.bin",
+    "LPM-10A-TX_PN2.33-cable-safe.bin",
     "APP_LPM-10RX_PN1.29-levels-update.bin",
 )
 MANIFEST = "SHA256SUMS.txt"

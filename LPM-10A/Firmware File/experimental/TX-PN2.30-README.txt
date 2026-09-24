@@ -1,0 +1,27 @@
+TX PN2.30 - แก้สายดีขึ้นสีเหลืองในโหมด Switch (PN2.28/2.29) + สีสาย LAN ของ PN2.29
+2026-09-24 - SUPERSEDED - เจ้าของ: "every line cable test 1-8 show yellow" (โหมด Switch สายเสียบสวิตช์) -> PN2.33 (release v2.33) ปิดการตรวจขาคู่ คงค่ามัธยฐานโหมดเครื่องรับ / บี๊บครั้งเดียว / พื้นหลังของรุ่นนี้ไว้
+
+ไฟล์: LPM-10A-TX_PN2.30-cable-fix.bin  (401 408 ไบต์)
+ย้อนกลับ: LPM-10A-TX_PN2.27A-analog-alignment.bin (release v2.27A)
+
+ปัญหาที่เจ้าของแจ้ง: "2.29 still yellow color no color show" - สายดีเสียบสวิตช์ทุกเส้นเป็นสีเหลือง
+สาเหตุ: พอร์ตสวิตช์มีทางไฟตรงผ่าน centre tap (Bob-Smith) ระหว่างคู่ อ่านค่าได้ใกล้กับค่าคู่สายจริง
+        (เช่น 62-67 เทียบกับ 60) PN2.28 จึงเห็นว่าแต่ละเส้นต่อถึงหลายขา = "ช็อต" ทุกเส้น
+แก้: เส้นผ่านเมื่อขาคู่ของมัน (1-2, 3-6, 4-5, 7-8) อยู่ในกลุ่มค่าต่ำสุด -> สายดีไม่มีทางเป็นเหลืองอีก
+     หลังสวิตช์: ขาคู่ไม่ต่อแต่ต่อขาอื่น = เข้าหัวผิดคู่ (แดง)
+     ไม่มีสวิตช์ (ไม่ได้เสียบ) แต่มีช็อต = เหลือง
+     ข้อจำกัด: หลังสวิตช์ที่มี centre tap สายช็อตข้ามคู่แยกไม่ออกจาก centre tap (เครื่องเดิมก็ไม่เห็น)
+อื่น ๆ: โหมดเครื่องรับใช้ค่ามัธยฐาน (สายหลวม 2 เส้นไม่ทำให้เส้นดีผิด), ไม่มีกล่องสีน้ำตาลหลัง
+        "Not connected", บี๊บเสียครั้งเดียว, เส้นคู่ของสายขาดไม่ขึ้นเหลือง
+
+เช็กลิสต์: A. About = PN2.30  B. Switch สายดี: สีตามสาย LAN, G เทา, ไฟเขียว (Test Retry 5 ครั้ง)
+           C. ไม่เสียบปลาย: Not connected  D. RX unit สายตรง/ไขว้: สีตามสาย
+           E. (ถ้ามี) สายเข้าหัวผิดคู่ในสวิตช์: เส้นผิดเป็นแดง
+
+ไฟล์วินิจฉัย (ไม่บังคับ): LPM-10A-TX_PN2.29D-diag.bin = PN2.29 ที่โหมด Switch แสดงค่าต่ำสุด 2 ค่าต่อเส้น
+  เช่น "2  60 5  63" ถ้าถ่ายรูปสายดีในสวิตช์ส่งมา จะใช้ปรับให้จับช็อตข้ามคู่หลังสวิตช์ได้ด้วย
+
+English: PN2.29 + a Switch-mode rule that passes a row whenever its pair partner is joined, so a
+good cable cannot fail on ports whose centre-tap paths read close to the pairs (owner report);
+miswire = partner not joined behind a switch; shorts flagged when no switch is detected. RX rows
+use the median of kept readings (review P1-B). Tests: python -m unittest test_cable_fix -v

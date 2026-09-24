@@ -82,7 +82,8 @@ class Harness:
         sc_cable_result(s, mode=mode, wires=wires)
         self.status = list(s.uc.mem_read(0x2000023E, 9))
         self.map = struct.unpack("<9H", s.uc.mem_read(0x20000248, 18))
-        self.texts = [(t, x, y, fg) for k, t, x, y, fg, ex in s.log if k == "ascii" and y > 260 and t != "Test Retry"]
+        self.texts = [(t, x, y, fg) for k, t, x, y, fg, ex in s.log
+                      if k == "ascii" and y > 260 and t not in ("Test Retry", "Testing...")]   # button labels
         self.thai = [(t, x, y) for k, t, x, y, fg, ex in s.log if k == "glyph" and 265 <= y <= 290]
 
 

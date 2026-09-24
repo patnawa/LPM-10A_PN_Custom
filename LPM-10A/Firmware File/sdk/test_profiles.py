@@ -50,6 +50,10 @@ PINNED = {
     "pn2.26":   ("c77579f018bb820532b3c5974ae63fbf04c4e60359188f7e39a8a8f9a1533df8", None),
     "pn2.27":   ("575a410fea87da9bc4ecb273d1fd931712bb8a2d911d771c55332dc2a2c4e8b2", None),
     "pn2.27a":  ("c12b127a634baa038c2504b8e30262a38f963c4900e0967094d7a7f4b1084420", None),
+    "pn2.28":   ("03b34b991664731c582b1247b25b29830a8be242f8ddad6be394d901ea9fcc9a", None),
+    "pn2.29":   ("47cebcb4f884d99a3adf938fa7cd4b6c69e020c672bcda57c64523a8ef96ab44", None),
+    "pn2.30":   ("bfabdc34cf9c8976ece4bdbbac449b5eb4c96a47738bf60684e91221dbeddeb6", None),
+    "pn2.33":   ("84f9fb991a5bf43f0e29d978277ebe76baa58ff21714b430c1b6cef040751e91", "LPM-10A-TX_PN2.33-cable-safe.bin"),
 }
 VERSION_SLOTS = (0x08011660, 0x08012E6C)        # About screen, boot log (patches.p_version)
 
@@ -111,7 +115,7 @@ class ProfileChain(unittest.TestCase):
         for prof in PROFILES.values():
             self.assertTrue(prof.parent is None or prof.parent in PROFILES, prof.name)
         self.assertEqual(list(PROFILES)[-1], LATEST)
-        self.assertEqual(LATEST, "pn2.27a")
+        self.assertEqual(LATEST, "pn2.33")
         self.assertEqual({p.flag for p in PROFILES.values()}, set(BY_FLAG))
 
     def test_each_profile_adds_exactly_its_own_patches(self):
@@ -132,13 +136,14 @@ class ProfileChain(unittest.TestCase):
         self.assertNotIn("scan-sync", PROFILES[LATEST].patch_ids())
 
     def test_release_builders_and_registry_import_without_cycles(self):
-        for first in ('patches', 'profiles', 'tone_precision', 'tone_alignment'):
+        for first in ('patches', 'profiles', 'tone_precision', 'tone_alignment',
+                      'cable_check', 'cable_colours', 'cable_fix', 'cable_safe'):
             with self.subTest(first_import=first):
                 result = subprocess.run(
                     [sys.executable, '-c',
                      f'import {first}; from profiles import PROFILES, LATEST; '
-                     'assert LATEST == "pn2.27a"; '
-                     'assert PROFILES[LATEST].version == "PN2.27A"'],
+                     'assert LATEST == "pn2.33"; '
+                     'assert PROFILES[LATEST].version == "PN2.33"'],
                     cwd=HERE, capture_output=True, text=True, timeout=30)
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
@@ -224,7 +229,7 @@ class BuildCli(unittest.TestCase):
         image.save.assert_not_called()
 
     def test_real_default_and_explicit_latest_emit_the_device_tested_binary(self):
-        for selection in ((), ('--profile', 'pn2.27a')):
+        for selection in ((), ('--profile', 'pn2.33')):
             with self.subTest(selection=selection), tempfile.TemporaryDirectory() as folder:
                 output = os.path.join(folder, 'tx.bin')
                 with mock_patch('sys.argv', ['build.py', *selection, '--out', output, '--write']), \
@@ -232,7 +237,7 @@ class BuildCli(unittest.TestCase):
                     self.assertEqual(build.main(), 0)
                 with open(output, 'rb') as artifact:
                     data = artifact.read()
-                self.assertEqual(hashlib.sha256(data).hexdigest(), PINNED['pn2.27a'][0])
+                self.assertEqual(hashlib.sha256(data).hexdigest(), PINNED['pn2.33'][0])
                 self.assertEqual(len(data), 401408)
 
     def test_default_is_the_frozen_baseline(self):

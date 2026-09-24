@@ -1,0 +1,82 @@
+TX PN2.28 - Cable Test ตรวจว่าสายแต่ละเส้นไปถึงขาคู่ที่ถูกต้อง + กันปุ่มกดระหว่างทดสอบ
+2026-09-24 - SUPERSEDED - ทดสอบบนเครื่อง: "2.28 tested" (เจ้าของ) แต่การตรวจขาคู่ในโหมด Switch ทำให้สายดีในสวิตช์ของเจ้าของขึ้นเหลือง (รายงานบน PN2.29) -> ถอนออกใน PN2.33 (release v2.33) ซึ่งคงกฎโหมดเครื่องรับ ปุ่ม และ "กำลังทดสอบ" ของรุ่นนี้ไว้
+
+ไฟล์: LPM-10A-TX_PN2.28-cable-check.bin  (ขนาดเท่า PN2.27A: 401 408 ไบต์)
+ใช้คู่กับ RX PN1.29 (RX ไม่ต้องเปลี่ยน)
+รายงานตรวจสอบ: docs/TX-CABLE-TEST-AUDIT-2026-09-23.md
+ย้อนกลับ: LPM-10A-TX_PN2.27A-analog-alignment.bin (release v2.27A)
+
+---------------------------------------------------------------------------
+ภาษาไทย
+---------------------------------------------------------------------------
+แก้อะไร (จากการตรวจ Cable Test ของ PN2.27A ในอีมูเลเตอร์ที่รันเฟิร์มแวร์จริง)
+
+โหมด Switch (สวิตช์)
+  เดิม: นับแค่ว่าขามีทางต่อถึงขาอื่นหรือไม่ ไม่เคยดูว่าต่อถึง "ขาไหน"
+        สายเข้าหัวผิดคู่ หรือสายช็อตข้ามคู่ ขึ้นเขียวผ่านทั้ง 8 เส้น ไฟเขียว
+  ใหม่: สวิตช์ต่อสองขาของคู่เดียวกันเข้าด้วยกันเท่านั้น (1-2, 3-6, 4-5, 7-8)
+        เครื่องตรวจว่าแต่ละเส้นต่อถึงขาคู่ของมันเท่านั้น
+        - ต่อถึงขาอื่นเส้นเดียว = เข้าหัวผิดคู่ -> เส้นสีแดงเต็มเส้น (ไม่มี X)
+        - ต่อถึงหลายขา = ช็อต -> เส้นสีเหลือง
+        - สายไม่ได้เสียบสวิตช์แต่มีช็อต -> เหลือง (เดิมขึ้นเขียว)
+        - ขา G: สวิตช์ไม่มีทางให้ชีลด์ -> เส้นสีเทา "ไม่ได้ทดสอบ" (เดิมแดงมี X ทุกครั้ง)
+          ถ้ามีขาใดช็อตกับ G -> เหลือง และถือว่าเสีย
+        - มีจุดเสีย = ไฟแดง + บี๊บสองครั้ง
+  สายไขว้ (crossover) และคู่สลับขั้วยังผ่านเหมือนเดิม (สวิตช์มองไม่เห็นความต่าง)
+  สาย split pair (ขาตรงแต่บิดคู่ผิด) ยังตรวจไม่ได้ในทั้งสองโหมด (ต้องใช้ TDR/crosstalk)
+
+โหมดเครื่องรับ (RX unit)
+  เดิม: ถ้าค่าที่อ่านได้ "ช่องใดช่องหนึ่งใน 8 ช่อง" อยู่ในหน้าต่าง ±5% ของขาตัวเอง ถือว่าตรง
+        ขา 5 ขึ้นไปหน้าต่างซ้อนกัน สายสลับ 6-7, 7-8, 8-G อาจขึ้นว่าตรง
+        และค่าจากเส้นที่ขาด (ลอย) ถูกเอามาเฉลี่ยรวมตอนตัดสินว่าไขว้ไปไหน
+  ใหม่: ใช้ค่าเฉลี่ยตัดหัวท้ายของทุกช่องที่ไม่ลอย แล้วเลือกขาที่ค่าใกล้ที่สุด
+        ปรับชดเชยความคลาดเคลื่อนรวม (gain) ของทั้งชุดอัตโนมัติ ±7%
+        ผลที่เครื่องรับเป็นไปไม่ได้ -> แสดง "Result error!!" + ไฟแดง แทนการวาดแผนผังสายปลอม:
+          สองเส้นไปถึงขาเดียวกัน / เส้นไปถึง G ที่ขาด / ทุกเส้นค่าเท่ากัน (สายรั่ว ไม่ได้เสียบ)
+  การตัดสินขาด (open) และช็อต ไม่เปลี่ยน
+
+ปุ่มระหว่างทดสอบ (~0.9 วินาที)
+  - กด OK ซ้ำระหว่างทดสอบ ไม่ต่อคิวทดสอบเพิ่มแล้ว
+  - กด Back ระหว่างทดสอบ ไม่มีปุ่ม "Test Retry" ค้างบนหน้าเลือกโหมด และครั้งต่อไปขึ้น "Test Start"
+  - ออกจากหน้า Cable Test แล้ว การทดสอบที่ค้างในคิวจะไม่วิ่งทับหน้า Home / SPEED
+  - ปุ่มแสดง "Testing..." / "กำลังทดสอบ" ระหว่างวัด
+
+เช็กลิสต์ทดสอบบนเครื่อง (โปรดถ่ายรูปผลทุกข้อ)
+  A. About ต้องขึ้น PN2.28
+  B. Switch: สายดีเสียบสวิตช์ -> 1-8 เขียว, G เทา, ไฟเขียว; กด Test Retry 5 ครั้ง ผลต้องเหมือนเดิมทุกครั้ง
+     (สำคัญที่สุด: ถ้าสายดีขึ้นเหลือง/แดง แจ้งทันที พร้อมรูปตัวเลขท้ายเส้น)
+  C. Switch: สายไขว้ (ถ้ามี) เสียบสวิตช์ -> ผ่านเหมือนสายตรง
+  D. Switch: สายที่ตั้งใจเข้าหัวผิด (เช่นสลับขา 2 กับ 3 ปลายเดียว) -> เส้นที่ผิดเป็นแดง ไฟแดง
+  E. Switch: ไม่เสียบอะไรปลายสาย -> "Not connected" เหมือนเดิม
+  F. RX unit: สายตรง UTP และ STP เสียบเครื่องรับ -> ตรงทุกเส้น (UTP: G แดงเหมือนเดิม) Test Retry 5 ครั้ง
+  G. RX unit: สายไขว้ -> เส้นทแยงเหมือนเดิม
+  H. กด OK หลายครั้งระหว่างทดสอบ / กด Back ระหว่างทดสอบ -> ไม่มีอาการค้างหรือปุ่มลอย
+  I. Length / SPEED / FLASH / PoE / SCAN / QC ใช้ได้เหมือน PN2.27A
+
+---------------------------------------------------------------------------
+English
+---------------------------------------------------------------------------
+Fixes from the Cable Test audit of PN2.27A (real firmware in the emulator):
+- Switch mode checks each wire's partner (a switch joins only 1-2, 3-6, 4-5, 7-8): a wire in
+  the wrong pair is redrawn red (full length), a short between pairs yellow, a short on an
+  unplugged cable yellow instead of green; the shield row is grey "not tested" (a switch gives
+  it nowhere to go) and yellow when a pin reaches it; any fault turns the LED red with the
+  double beep. Crossover and reversed pairs still pass (a switch cannot tell). (B1, B3, B4)
+- RX unit mode: the nearest ladder value of the trimmed mean of the non-floating slots, with
+  a common gain estimate (median over rows, clamped +-7 %), replaces "any one slot inside its own
+  +-5 % window"; two wires on one remote pin, a wire on an open shield and one level on every
+  wire (leakage) are shown as unknown ("Result error!!", red LED). (B2, B5, B6)
+- Keys: OK during a test is ignored; Cable Test messages run only on the Cable Test screen; no
+  stray "Test Retry" after Back during a test; each routine draws its own number format; the
+  button reads "Testing..." during the test. (B7, B10, B13, NEW-1, I5)
+Unchanged: thresholds 1240 / 4000, the RX ladder, the RX open test (B8), sampling (11 x 1 ms).
+
+Validation: test_cable_check (19 tests) runs the real PN2.28 routines against modelled far ends
+(switch pairs, Bob-Smith paths, a 4-5-7-8-tied 10/100 port, miswires, shorts, the RX ladder at
+-5 % .. +5 % gain with 50 Hz hum, leakage) and asserts PN2.27A's wrong answer for every fixed
+finding. Emulator results only: the switch margins (a pin is "joined" within 4 counts + 1/16
+of the row's lowest reading) come from the model, not from device captures - checklist B
+decides them.
+
+Build:  python cable_check.py --write      (sdk)
+Tests:  python -m unittest test_cable_check -v

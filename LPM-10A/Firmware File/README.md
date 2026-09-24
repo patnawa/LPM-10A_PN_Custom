@@ -4,16 +4,27 @@
 
 | Device | File | How |
 |---|---|---|
-| TX tester | `LPM-10A-TX_PN2.27A-analog-alignment.bin` | tester off → hold **M + Power** → plug USB-C → copy onto the drive → long-press Power, power on |
+| TX tester | `LPM-10A-TX_PN2.33-cable-safe.bin` | tester off → hold **M + Power** → plug USB-C → copy onto the drive → long-press Power, power on |
 | RX probe | `APP_LPM-10RX_PN1.29-levels-update.bin` | probe off → hold **SCAN** → plug USB → copy onto the `BOOTLOADER` drive with Explorer → the drive disappears in ~1 s |
 
-`SHA256SUMS.txt` has both checksums; `TX-PN2.27A-README.txt` and `RX-PN1.29-README.txt` say what each build
+`SHA256SUMS.txt` has both checksums; `TX-PN2.33-README.txt` and `RX-PN1.29-README.txt` say what each build
 does and how to roll back. The RX procedure in full (Thai + English): [`../../docs/RX-UPDATE-GUIDE.md`](../../docs/RX-UPDATE-GUIDE.md).
 
-The owner reports **TX PN2.27A passed device testing paired with RX PN1.24, 2026-09-22**.
-It reduces carrier-switching work and aligns Analog modulation to nominal 816.832 Hz,
-displayed as Analog 817 Hz, while retaining Digital timing and the PN2.26 QC/Length fixes.
-[Implementation and validation](../../docs/TX-TONE-PRECISION-PN2.27-2026-09-22.md).
+The owner reports **TX PN2.33 passed device testing, 2026-09-24** ("2.33 test pass"). RX stays PN1.29;
+PN2.33 needs no RX change. Only the Cable Test changes; Length, SPEED, FLASH, PoE, SCAN tone, QC and About
+are PN2.27A's.
+Wires are drawn in their LAN cable colours (T568B, white dashes on wires 1, 3, 5, 7, G silver); a fault
+still wins: red = open with the X, yellow = short.
+Keys: OK is ignored while a test runs (about 0.86 s, button "Testing..."), and a test queued before leaving
+the screen no longer paints the Cable Test layout over Home or SPEED.
+RX unit mode: a wire's value is the median of its non-floating readings, put on the nearest ladder value
+with a common gain estimate; two wires on one remote pin, a wire on an open shield or one level on every
+wire give "Result error!!" instead of a map.
+Switch mode decides and draws exactly as PN2.27A, in the LAN colours (it still cannot tell a crossover, a
+reversed pair or a wire crimped into the wrong pair: the switch joins each pair's far ends).
+The owner's report is the device confirmation; the emulator results and the open findings are in
+[the Cable Test audit](../../docs/TX-CABLE-TEST-AUDIT-2026-09-23.md) and
+[release notes v2.33](../../docs/releases/v2.33.md).
 If QC requests Init after the update, **disconnect all cables and hold Right**
 until Init succeeds. Calibration made before PN2.25 requires this once.
 
@@ -41,15 +52,15 @@ repository; the build tools look for them in a folder next to the repository (se
 
 | Folder / file | What it is |
 |---|---|
-| `sdk/` | TX toolkit: patch chain PN 2.9 → 2.27A (`profiles.py`), assembler, verifier, Thai UI, tests (`python build.py --write` = the latest profile) |
+| `sdk/` | TX toolkit: patch chain PN 2.9 → 2.33 (`profiles.py`), assembler, verifier, Thai UI, tests (`python build.py --write` = the latest profile) |
 | `rx-sdk/` | RX toolkit: patch chain PN 1.0 → 1.29 (`profiles.py`), update container, CPU-model tests (`python build.py --write` = the latest profile, PN1.29) |
 | `experimental/` | **build outputs of every PN version**, TX and RX, with their notes and checksums; the test suites rebuild and compare against these byte for byte, so they stay. `README.md` inside lists them. |
-| `archive/` | earlier release copies and their per-version notes (including TX PN2.26 and RX PN1.23, PN1.24, PN1.27) — history only |
+| `archive/` | earlier release copies and their per-version notes (including TX PN2.26, TX PN2.27A and RX PN1.23, PN1.24, PN1.27) — history only |
 | `FORMULA-AUDIT.md` | every measurement formula with verdicts: TX §1–6, receiver PN formulas §7 |
 
 To publish a new release: first move the release being replaced (its root `.bin` and notes) to
 `archive/` and add a per-version checksum file there (`RX-PN1.xx-SHA256SUMS.txt` or
-`TX-PN2.xx-SHA256SUMS.txt`), as was done for RX PN1.27. Then run `publish_current.py` with both
+`TX-PN2.xx-SHA256SUMS.txt`), as was done for RX PN1.27 and TX PN2.27A. Then run `publish_current.py` with both
 current file names, TX and RX; it copies the named builds from `experimental/` to this folder,
 removes the previous release files listed in `SHA256SUMS.txt` that are not named, and rewrites
 `SHA256SUMS.txt`. Finally copy the new build's `…-README.txt` from `experimental/` and update the

@@ -38,7 +38,7 @@ class PublicationTests(unittest.TestCase):
 
     def test_defaults_select_confirmed_tx_and_rx_update_releases(self):
         self.assertEqual(publisher.DEFAULT_NAMES, (
-            "LPM-10A-TX_PN2.27A-analog-alignment.bin",
+            "LPM-10A-TX_PN2.33-cable-safe.bin",
             "APP_LPM-10RX_PN1.29-levels-update.bin",
         ))
 

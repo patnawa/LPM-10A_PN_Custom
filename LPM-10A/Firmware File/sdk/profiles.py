@@ -151,6 +151,18 @@ _CHAIN = [
     ("pn2.27a", "tone-alignment", ReleaseStage("tone_alignment"), "pn2.27", "experimental/LPM-10A-TX_PN2.27A-analog-alignment.bin",
      "PN2.27A Analog phase alignment at nominal 816.832 Hz, plus faster carrier GPIO transitions",
      "owner reported test pass paired with RX PN1.24, 2026-09-22 (release v2.27A)"),
+    ("pn2.28", "cable-check", ReleaseStage("cable_check"), "pn2.27a", "experimental/LPM-10A-TX_PN2.28-cable-check.bin",
+     "PN2.28 Cable Test: Switch-mode pair-partner check, RX-unit nearest-ladder + plausibility, key/busy guard, Testing... button",
+     "owner reported '2.28 tested' 2026-09-24; the Switch-mode check flagged a good cable on the owner's switch (PN2.29 report); superseded"),
+    ("pn2.29", "cable-colours", ReleaseStage("cable_colours"), "pn2.28", "experimental/LPM-10A-TX_PN2.29-cable-colours.bin",
+     "PN2.29 Cable Test wires in T568B colours with white stripes",
+     "owner 2026-09-24: colours right, but every wire yellow with a good cable in a switch port; superseded"),
+    ("pn2.30", "cable-fix", ReleaseStage("cable_fix"), "pn2.29", "experimental/LPM-10A-TX_PN2.30-cable-fix.bin",
+     "PN2.30 partner check that tolerates centre-tap paths; RX-unit median; single beep; panel background",
+     "owner 2026-09-24: wires 1-8 still yellow in Switch mode; superseded (PN2.31/2.32 interim builds not archived)"),
+    ("pn2.33", "cable-safe", ReleaseStage("cable_safe"), "pn2.30", "experimental/LPM-10A-TX_PN2.33-cable-safe.bin",
+     "PN2.33 Switch mode decides and draws as PN2.27A (LAN colours); RX-unit plausibility and key guard kept",
+     "owner reported '2.33 test pass', 2026-09-24 (release v2.33)"),
 ]
 
 PROFILES = OrderedDict((n, Profile(n, *rest)) for n, *rest in _CHAIN)

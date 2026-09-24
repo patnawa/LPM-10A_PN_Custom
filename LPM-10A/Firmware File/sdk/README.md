@@ -1,10 +1,43 @@
 # LPM-10A firmware SDK
 
-**PN2.27A release (2026-09-22):** the owner reports a test pass with TX PN2.27A
-paired with RX PN1.24. `python build.py --write` (or
-`python build.py --profile pn2.27a --write`) builds
-`experimental/LPM-10A-TX_PN2.27A-analog-alignment.bin`, byte-identical to the
-tested file: SHA-256 `c12b127a634baa038c2504b8e30262a38f963c4900e0967094d7a7f4b1084420`.
+**PN2.33 release (2026-09-24):** the owner reports "2.33 test pass" on the device;
+RX stays PN1.29, no RX change is needed. `python build.py --write` (the default
+profile `pn2.33`, alias `--cable-safe`; or `python build.py --profile pn2.33 --write`)
+builds `experimental/LPM-10A-TX_PN2.33-cable-safe.bin`, byte-identical to the
+released file: SHA-256 `84f9fb991a5bf43f0e29d978277ebe76baa58ff21714b430c1b6cef040751e91`,
+401 408 bytes. It is four modules on PN2.27A, each pinning its exact parent's
+SHA-256: `cable_check.py` (PN2.28: RX-unit rows decided from the readings of their
+non-floating slots and the nearest ladder value, plausibility checks that turn an
+impossible map into "Result error!!", OK ignored while a test runs, the
+"Testing..." button, plus a Switch-mode pair-partner check), `cable_colours.py`
+(PN2.29: the T568B wire colours in the table at 0x0801E2CC, white dashes on wires
+1, 3, 5, 7), `cable_fix.py` (PN2.30: the partner check rebuilt around the pair
+partner, the RX-unit median instead of the trimmed mean, a single fault beep, the
+panel background restored after "Testing...") and `cable_safe.py` (PN2.33: PN2.30
+with the Switch-mode check withdrawn, so Switch mode decides and draws as PN2.27A,
+in the LAN colours). Only the Cable Test changes; everything else is PN2.27A's.
+
+`python build.py --profile pn2.28 --write` (`pn2.29`, `pn2.30`) reproduces each
+historical stage; all three were superseded on the device the same day because
+their Switch-mode check took the switch port's centre-tap paths, which read within
+a few counts of the pair winding on the owner's switch, for shorts and turned every
+wire of a good cable yellow. `python cable_diag2.py --write` builds the diagnostic
+`experimental/LPM-10A-TX_PN2.30D-diag.bin`, not a release: Switch mode prints each
+wire's two lowest readings and the pins they reach (`2  60 5  63`) for a photo of a
+good cable in the switch. `python -m unittest test_cable_check test_cable_colours
+test_cable_fix -v` runs 19 / 6 / 9 emulator tests (one preview-image test skips
+unless `CABLE_PREVIEW` names a folder); every defect test also runs the parent
+build and asserts its wrong answer, and `test_profiles.py` pins the PN2.33 digest.
+These are emulator results; the device confirmation is the owner's report. What
+shipped, what was withdrawn and what stays open:
+[Cable Test audit](../../../docs/TX-CABLE-TEST-AUDIT-2026-09-23.md) and
+[release notes v2.33](../../../docs/releases/v2.33.md).
+
+**PN2.27A release (2026-09-22, superseded by PN2.33):** the owner reports a test
+pass with TX PN2.27A paired with RX PN1.24. `python build.py --profile pn2.27a --write`
+builds `experimental/LPM-10A-TX_PN2.27A-analog-alignment.bin`, byte-identical to the
+tested file: SHA-256 `c12b127a634baa038c2504b8e30262a38f963c4900e0967094d7a7f4b1084420`;
+its release copy and notes are in `../archive/`.
 The release inherits PN2.26's QC and Length fixes, specializes carrier GPIO
 updates, and aligns Analog to nominal 816.832 Hz (`Analog 817 Hz` on screen)
 at the unchanged timer cadence. Digital timing, carrier configuration,
@@ -69,7 +102,7 @@ OK stops/starts a new session; Right starts a new session; existing Init and
 Back remain available. Actual Thumb/GUI tests cover timer sharing, cancellation,
 rapid reentry and stale queued messages. Device validation is pending.
 See [operation and validation](../../../docs/TX-QC-FLEX-PN2.23Q-2026-09-22.md).
-The default release profile is now PN2.27A; Q remains a historical experiment.
+The default release profile is now PN2.33; Q remains a historical experiment.
 
 **Build profiles (2026-09-21):** `python build.py --write` emits the latest profile;
 `profiles.py` lists every PN version as its parent plus one module, with its output file
@@ -216,7 +249,7 @@ needs `uharfbuzz`.
 python test_thumb.py            # assembler self-test
 python build.py --list          # what patches and profiles exist
 python build.py                 # dry run of the latest profile: prints every byte it would change
-python build.py --write         # emit the release: experimental/LPM-10A-TX_PN2.27A-analog-alignment.bin
+python build.py --write         # emit the release: experimental/LPM-10A-TX_PN2.33-cable-safe.bin
 python build.py --profile pn2.14 --write   # an earlier version (PN 2.14 was the release before PN 2.20)
 python build.py --default --write   # the frozen baseline, LPM-10A-TX_PN2.9.bin (unreleased, what verify.py models)
 python verify.py                # prove the baseline is what was intended
@@ -380,10 +413,15 @@ The assembler rejects anything it does not recognise rather than guessing, and
 The table above is the frozen baseline (`default=True`, what `verify.py` models). Everything since
 PN 2.9 is a module selected by a profile (`profiles.py`, `python build.py --list`): `roadmap.py`
 (service task, watchdog, calibration autosave, crash record), `portflash.py`, `audit_fixes.py`,
-`portflash_status.py`, `scan_sync.py` (retired), `scan_recovery.py`, and the PN 2.15 … 2.23 chain
+`portflash_status.py`, `scan_sync.py` (retired), `scan_recovery.py`, the PN 2.15 … 2.23 chain
 `length_progress.py`, `about_values.py`, `speed_partner.py`, `length_reference.py`,
-`cable_test.py`, `cable_clear.py`, `cable_values.py`, `length_ref_anytime.py`, `length_ref_reset.py`. Each module
-pins its parent image's SHA-256, writes its own version string and has its own test file.
+`cable_test.py`, `cable_clear.py`, `cable_values.py`, `length_ref_anytime.py`, `length_ref_reset.py`,
+the PN 2.24 … 2.27A modules described above, and the PN 2.28 … 2.33 Cable Test chain
+`cable_check.py`, `cable_colours.py`, `cable_fix.py`, `cable_safe.py` (tests `test_cable_check`,
+`test_cable_colours`, `test_cable_fix`, 19 / 6 / 9; `cable_diag2.py` is the PN2.30D diagnostic, not
+a profile). Each module pins its parent image's SHA-256, writes its own version string and has its
+own test file (`cable_safe.py`, which only withdraws PN2.30's Switch-mode check, has no file of its
+own: `test_profiles.py` pins its digest).
 
 `risk=untested` patches are excluded unless you pass `--all`; they are things
 that look right on paper but need a real device to confirm. Everything else

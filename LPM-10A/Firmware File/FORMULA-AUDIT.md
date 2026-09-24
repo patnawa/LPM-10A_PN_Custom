@@ -410,17 +410,24 @@ validation. PN2.26 orders those draws and rejects stale connector messages,
 retaining the timing correction and classic automatic screen. See
 [the reproduced framebuffer defect and correction](../../docs/TX-QC-DISPLAY-PN2.26-2026-09-22.md).
 The owner confirmed every PN2.26 function passed on the device on 2026-09-22;
-the exact tested image is now the default TX release.
+the exact tested image was the default TX release until PN2.27A (release v2.27A,
+2026-09-22). The current release is PN2.33 (v2.33, owner "2.33 test pass"
+2026-09-24); it keeps this QC code and only changes the Cable Test of §4.1.
 
-### 4.1 Wire map (Cable Test) — far end 0x0800C4E0, switch 0x0800CB68 — **FIXED in the PN 2.19 candidate**
+### 4.1 Wire map (Cable Test) — far end 0x0800C4E0, switch 0x0800CB68 — **PN 2.19 … PN 2.33**
 
-The Cable Test is a resistive matrix in the CNT task.  For each of nine tester
-pins (1..8 and the shield) it drives that pin through the source mux
-(0x080180A0, mode 0) and reads the other eight through the sense mux (mode 1)
-into ADC channel 4 (`0x080107A4`, the latest DMA sample), one reading each,
-2 ms after switching:
+The Cable Test is a resistive matrix run in the **GUI task**, not the CNT task
+(earlier revisions of this section said CNT; corrected 2026-09-24): OK on the
+Cable Test screen makes the COUNT task post GUI message 0x11 (0x0800C418), and
+the GUI handler 0x0800C344 (messages 0x0F..0x12) calls the far-end or the
+switch routine.  Bit 0x10 of the mode byte 0x20000010 means "layout armed",
+not "test started".  For each of nine tester pins (1..8 and the shield) the
+routine drives that pin through the source mux (0x080180A0, mode 0) and reads
+the other eight through the sense mux (mode 1) into ADC channel 4
+(`0x080107A4`, the latest DMA sample), one reading each, 2 ms after switching:
 
 ```
+stock (PN 1.0 … 2.18):
 switch mode:  open if all 8 readings > 4000, else connected      (no pattern check)
 far-end mode: short if any reading <= 1240 (0x4D8, map bit set)
               open  if all 8 readings > 4000
@@ -442,6 +449,83 @@ short threshold) instead of anything under 4000; all eight signal pins open
 prints "Not connected".  The thresholds and the ladder table are stock's; the
 `cable-diag` build prints the deciding numbers per row so the owner's unit
 can confirm them (protocol in `experimental/TX-PN2.19-CABLE-README.txt`).
+
+**PN 2.21** (`cable-values`) prints a number at the right end of each wire:
+in switch mode the partner pin and the row's lowest median (`2   60`), in RX
+unit mode the ladder value (`1655`).  That number is the lowest median; it is
+not always the value that decided the row (the far-end rule averages, and
+PN 2.33 takes a median, over several slots), so it reads as the state of the
+cable, not as the decision.
+
+**PN 2.33** (`cable-check` … `cable-safe`, release v2.33, owner "2.33 test
+pass" 2026-09-24) changes the RX unit decision and leaves switch mode on the
+PN 2.19 rules.  Both start from PN 2.19's eleven-sample medians (and highest
+samples) per driven pin:
+
+```
+RX unit mode (PN 2.33):
+  short    if any median <= 1240                                        (stock)
+  open     if every slot's highest sample > 4000                        (PN 2.19)
+  else     kept slots = highest sample <= 4000 and median > 1240       (floating slots dropped)
+           X = median of the kept slots' medians
+           k = median over the rows of X / nearest ladder value, clamped 0.93 .. 1.07
+               (Q12: 3809 .. 4383, one common gain for the whole map)
+           remote pin = ladder value [1655 1975 2319 2607 2935 3183 3391 3679 3900]
+               nearest to X with k taken out: same index -> straight, other -> crossed
+  after the pass: two wires on one remote pin, a wire landing on the shield while
+           the shield row is open, or one level on every wire (leakage of an
+           unplugged cable) -> "unknown": blank row, "Result error!!", red LED
+switch mode (PN 2.33 = PN 2.19): connected if any sensed pin's median <= 1240, open
+           otherwise; all eight open -> "Not connected"; G open -> red X; LED ignores G
+```
+
+Stock's rule — straight when any one of the eight readings falls inside the
+driven pin's own ±5 % window — fails from pin 5 up, where the windows overlap.
+Emulator results: a 6↔7 or 8↔G crossing at +1 % gain no longer passes as
+straight; a reversed 1-2 pair with a floating shield under 50 Hz hum maps
+correctly at every phase (PN 2.27A misread some); straight and crossover
+cables map correctly from −5 % to +5 % gain, as PN 2.27A, and also at +6 %.
+The device confirmation is the owner's report.
+
+**PN 2.28 … 2.30** (`cable-check`, `cable-colours`, `cable-fix`; owner-flashed
+2026-09-24, withdrawn) also gave switch mode a pair-partner check: the pins a
+row reaches are those within m1 + 4 + m1/16 (never above 1240) of its lowest
+median m1; behind a switch a wire joined to its own T568 partner only is good,
+to one other pin a miswire (red), to several pins a short (yellow), and the
+shield row is drawn grey "not tested".  On the owner's switch a good cable came
+back with every wire yellow (PN 2.29 "still yellow color no color show",
+PN 2.30 "every line cable test 1-8 show yellow").  The explanation carried in
+the code — the port's centre-tap (Bob-Smith) paths between pairs read within a
+few counts of the pair winding, so every wire looked joined to several pins —
+is inferred from the owner's device result and reproduced in the emulator once
+modelled that way; it is not measured, no device readings exist.  PN 2.30D
+(`cable_diag2.py`, not a release) prints each wire's two lowest medians and
+their pins (`2  60 5  63`) to collect them; until then PN 2.33 runs switch mode
+on the PN 2.19 rules, which cannot tell a crossover, a reversed pair, a wire
+crimped into the wrong pair, or a cross-pair short behind a switch with centre
+taps.  A true split pair is invisible to a DC test in both modes.
+
+**Keys** (PN 2.33, from PN 2.28): the measurement blocks the GUI task for about
+0.86 s (11 samples × 72 pin pairs) while the key task keeps running.  Stock
+wrote the "routine running" byte 0x20000011 at the start and end of both
+routines and never read it, so every OK became a GUI 0x11 and each 0x11 while
+armed ran a full test.  PN 2.33 reads it:
+
+```
+COUNT task, OK (0x0800C418):   post 0x11 only if 0x20000011 == 0          (no queued tests)
+GUI handler (0x0800C344):      run 0x0F..0x12 only while sysState == 4    (no test over Home / SPEED)
+both tails:                    post "Test Retry" (0x12) only if the screen is still armed
+values drawer:                 takes the routine's own mode, does not re-read 0x20000010
+button:                        "Testing..." / "กำลังทดสอบ" while measuring; panel colour restored
+```
+
+**Colours** (PN 2.33, from PN 2.29): the u16[9] table at 0x0801E2CC, read only
+by the Cable Test, held stock's greens and cyans and now holds T568B — 1
+white-orange, 2 orange, 3 white-green, 4 blue, 5 white-blue, 6 green, 7
+white-brown, 8 brown, G silver; wires 1, 3, 5 and 7 carry white dashes (5 px
+every 12 px, x 29..170) along straight wires and RX-unit diagonals; the PN 2.21
+number is in the wire's colour.  Fault colours win and get no dashes: red =
+open (with the X), yellow = short (RX unit mode); an unknown row is blank.
 
 ---
 
@@ -514,8 +598,8 @@ real unit: PN 1.0–1.3 on 2026-09-18 (the length data in §1.6, Zero + NVP,
 four-run averaging), PN 2.2 / 2.4 the same day (Thai UI, FLASH blink), PN 2.8
 and 2.12 on 2026-09-19 (Port FLASH on a D-Link gigabit switch), and PN 2.14 was
 then the build in daily use; PN 2.26 (QC, Length) and PN 2.27A (with RX PN 1.24)
-were confirmed on the device on 2026-09-22, and TX PN 2.27A is the current
-release. The PoE supply paths, the divider ratio and the class
+were confirmed on the device on 2026-09-22, PN 2.33 (Cable Test, §4.1) on
+2026-09-24, and TX PN 2.33 is the current release. The PoE supply paths, the divider ratio and the class
 comparators still await a reference PSE (no PoE switch or injector has been
 available); the no-supply path was checked on the unit.
 

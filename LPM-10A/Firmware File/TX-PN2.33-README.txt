@@ -1,0 +1,57 @@
+TX PN2.33 - Cable Test สีสาย LAN, กันปุ่มกดระหว่างทดสอบ, โหมดเครื่องรับแม่นขึ้น
+2026-09-24 - RELEASE v2.33 - ทดสอบบนเครื่องผ่าน: "2.33 test pass" (เจ้าของ 2026-09-24)
+
+ไฟล์ที่ใช้ติดตั้ง: LPM-10A-TX_PN2.33-cable-safe.bin  (401 408 ไบต์ เท่า PN2.27A)
+ใช้คู่กับ RX PN1.29 (RX ไม่ต้องเปลี่ยน)
+ย้อนกลับ: archive/LPM-10A-TX_PN2.27A-analog-alignment.bin (release v2.27A)
+รายงานตรวจสอบ Cable Test: docs/TX-CABLE-TEST-AUDIT-2026-09-23.md
+
+---------------------------------------------------------------------------
+ภาษาไทย
+---------------------------------------------------------------------------
+เปลี่ยนอะไรจาก PN2.27A (นอกนั้น Length / SPEED / FLASH / PoE / SCAN / QC เหมือน PN2.27A)
+  1. Cable Test วาดสายแต่ละเส้นด้วยสีสาย LAN (T568B):
+       1 ขาว-ส้ม  2 ส้ม  3 ขาว-เขียว  4 น้ำเงิน  5 ขาว-น้ำเงิน  6 เขียว  7 ขาว-น้ำตาล  8 น้ำตาล  G เงิน
+     สายลายขาว (1, 3, 5, 7) มีขีดขาวตามเส้น (สายไขว้ในโหมดเครื่องรับก็มีขีดตามเส้นทแยง)
+     ตัวเลขท้ายเส้นเป็นสีเดียวกับสาย  สีผลเสียชนะเสมอ: แดง = ขาด (มี X), เหลือง = ช็อต (โหมดเครื่องรับ)
+  2. ปุ่มระหว่างทดสอบ (~0.9 วินาที): กด OK ซ้ำไม่ต่อคิวทดสอบเพิ่ม; ออกจากหน้าแล้วการทดสอบที่ค้างคิว
+     ไม่วิ่งทับหน้า Home / SPEED; กด Back ระหว่างทดสอบไม่มีปุ่ม "Test Retry" ค้าง และครั้งต่อไปขึ้น
+     "Test Start"; ปุ่มแสดง "กำลังทดสอบ" ระหว่างวัด
+  3. โหมดเครื่องรับ (RX unit): ใช้ค่ามัธยฐานของช่องที่ไม่ลอย เลือกขาที่ค่าใกล้ที่สุด พร้อมชดเชยความ
+     คลาดเคลื่อนรวมของทั้งชุด (±7%) แทนกฎเดิม "ช่องใดช่องหนึ่งอยู่ในหน้าต่าง ±5% ของขาตัวเอง"
+     (หน้าต่างขา 5 ขึ้นไปซ้อนกัน สายสลับ 6-7 / 8-G เคยขึ้นว่าตรง)
+     ผลที่เครื่องรับเป็นไปไม่ได้ (สองเส้นไปขาเดียวกัน / ไปถึง G ที่ขาด / ทุกเส้นค่าเท่ากัน = สายรั่ว
+     ไม่ได้เสียบ) แสดง "Result error!!" + ไฟแดง แทนการวาดแผนผังปลอม  กฎขาด/ช็อตเหมือนเดิม
+  4. โหมด Switch: ตัดสินและวาดเหมือน PN2.27A ทุกอย่าง (ต่อถึง = เส้นสีสาย, ขาด = แดงมี X, G ไม่มีชีลด์
+     = แดง X, ไฟไม่นับ G) ในสีสาย LAN
+
+ที่ลองแล้วถอนออก (PN2.28-2.30, 2026-09-24): การตรวจว่าสายไปถึง "ขาคู่" ของมันในโหมด Switch
+  (เข้าหัวผิดคู่ = แดง, ช็อตข้ามคู่ = เหลือง) ทำให้สายดีในสวิตช์ของเจ้าของขึ้นเหลืองทุกเส้น
+  เพราะพอร์ตสวิตช์มีทางไฟผ่าน centre tap ระหว่างคู่ อ่านค่าใกล้กับคู่สายจริงมาก
+  ถ้าจะเปิดใช้อีก ต้องมีรูปจากไฟล์วินิจฉัย LPM-10A-TX_PN2.30D-diag.bin (สายดีในสวิตช์ โหมด Switch)
+  ซึ่งแสดงค่าต่ำสุด 2 ค่าต่อเส้นพร้อมขา เช่น "2  60 5  63"
+
+ข้อจำกัด (เหมือน PN2.27A): โหมด Switch มองไม่เห็นสายไขว้ / คู่สลับขั้ว / เข้าหัวผิดคู่ / ช็อตข้ามคู่
+  (สวิตช์ต่อปลายคู่เข้าด้วยกัน); split pair ตรวจไม่ได้ทั้งสองโหมด; Length วัดสาย ≤ 2 m ไม่ได้
+
+---------------------------------------------------------------------------
+English
+---------------------------------------------------------------------------
+Changes from PN2.27A: (1) Cable Test wires in T568B colours with white dashes on 1/3/5/7, readings in
+the wire's colour, fault colours win; (2) OK ignored during the ~0.86 s test, Cable Test messages run
+only on the Cable Test screen, no stray Test Retry after Back, "Testing..." on the button; (3) RX unit
+mode: nearest ladder value of the median of the non-floating readings with a common gain estimate
+(+-7 %), plausibility check (two wires on one remote pin, landing on an open shield, one level on every
+wire -> "Result error!!"); short and open rules unchanged; (4) Switch mode decides exactly as PN2.27A,
+in LAN colours. The PN2.28-2.30 Switch-mode pair-partner check was withdrawn: on the owner's switch the
+centre-tap paths read within a few counts of the pair winding and every good wire went yellow.
+
+Validation (emulator, real ARM code; modelled far ends): test_cable_check 19, test_cable_colours 6,
+test_cable_fix 9, plus the PN2.19-2.21 cable tests 22 = 56; each defect test asserts the parent's wrong
+answer. Software-model results only; the device confirmation is the owner's report.
+
+Build:  python build.py --write            (sdk; profile pn2.33; python cable_safe.py --write standalone)
+Tests:  python -m unittest test_cable_check test_cable_colours test_cable_fix -v
+
+SHA-256 (TX-PN2.33-SHA256SUMS.txt; also in the folder root's SHA256SUMS.txt):
+  84f9fb991a5bf43f0e29d978277ebe76baa58ff21714b430c1b6cef040751e91  LPM-10A-TX_PN2.33-cable-safe.bin

@@ -56,13 +56,66 @@ rhythm. NCV always gets the knob's gain; beeps are about 9.5 dB louder.
 [analysis and tests](../../../docs/RX-ISOLATE-PN1.25-2026-09-23.md).
 Roll back with the PN1.24 update file.
 
-**TX PN2.27A release (2026-09-22):** the owner reports a test pass with the named
-TX image paired with RX PN1.24. The default build and current download preserve
-the exact tested bytes. It specializes carrier GPIO updates and aligns Analog
-to nominal 816.832 Hz (817 Hz on screen), retaining the shared timer and Digital timing.
-[Firmware](LPM-10A-TX_PN2.27A-analog-alignment.bin),
+**TX PN2.33 release (2026-09-24):** the owner reports "2.33 test pass" on the tester, paired with
+RX PN1.29 (no RX change). Four Cable Test changes on top of PN2.27A, everything else PN2.27A's: the
+nine wires are drawn in their LAN cable colours (T568B, white dashes on 1, 3, 5 and 7, the PN2.21
+reading in the wire's colour; red open and yellow short still win); keys during the ~0.86 s test are
+guarded (a second OK queues nothing, a test queued before leaving cannot paint over Home or SPEED,
+Back leaves no stray "Test Retry", the button reads "Testing..." / "กำลังทดสอบ"); RX unit mode decides
+a row from the median of its non-floating slots against the nearest ladder value with a common gain
+(0.93 … 1.07) and turns maps no RX unit can produce (two wires on one remote pin, a wire on an open
+shield, one level on every wire) into "Result error!!", replacing stock's overlapping ±5 % windows;
+Switch mode decides and draws exactly as PN2.27A (PN2.19 rules) in the new colours. In the emulator
+a 6↔7 or 8↔G crossing at +1 % gain no longer passes as straight and straight / crossover cables map
+from −5 % to +6 % gain (56 Cable Test tests in `sdk/`); the device confirmation is the owner's report.
+The default build (`python build.py --write`, profile pn2.33) and the
+[published release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.33)
+retain the exact tested bytes archived here.
+[Default TX firmware](../LPM-10A-TX_PN2.33-cable-safe.bin),
+[archived copy](LPM-10A-TX_PN2.33-cable-safe.bin), [notes](TX-PN2.33-README.txt),
+[checksums](TX-PN2.33-SHA256SUMS.txt),
+[Cable Test audit](../../../docs/TX-CABLE-TEST-AUDIT-2026-09-23.md),
+[release notes](../../../docs/releases/v2.33.md).
+Roll back with the [PN2.27A firmware](../archive/LPM-10A-TX_PN2.27A-analog-alignment.bin).
+
+**TX PN2.28-2.30 candidates (2026-09-24; superseded by PN2.33):** three stages on top of PN2.27A,
+each flashed by the owner the same day. **PN2.28** (`cable-check`) added a Switch-mode pair-partner
+check (a wire reaching one pin outside its T568 pair = red miswire, several pins = yellow short,
+shield grey "not tested", any fault = red LED and two beeps), the RX-unit nearest-ladder decision
+with plausibility, the key/busy guard and the "Testing..." button; the owner: "2.28 tested", then
+asked for "color per line base on lan cable". **PN2.29** (`cable-colours`) drew the wires in the T568B
+colours with white stripes, decisions PN2.28's; the owner: "still yellow color no color show".
+**PN2.30** (`cable-fix`) let a wire pass when its own partner sits among the lowest readings, replaced
+the RX-unit trimmed mean by the median (two leaky loose wires shifted a good row, a code-review P1),
+one beep, panel background; the owner: "every line cable test 1-8 show yellow" with a good cable in
+a switch port. Cause (reproduced in the emulator and found independently by a code review of PN2.28):
+the partner check assumed a switch port's centre-tap (Bob-Smith) paths between pairs read well above
+the pair winding; on the owner's switch they read within a few counts of it, so every wire looked
+joined to several pins and was called a short. PN2.33 withdraws the check and keeps the rest; bringing
+it back needs the owner's PN2.30D readings. PN2.31 and PN2.32 were interim builds ("every color right
+but ground show connect even my cable no ground", "ground status seems not fix": their grey shield line
+read as a connected wire); they are not archived and not reproducible.
+PN2.28 [firmware](LPM-10A-TX_PN2.28-cable-check.bin), [notes](TX-PN2.28-README.txt),
+[checksums](TX-PN2.28-SHA256SUMS.txt); PN2.29 [firmware](LPM-10A-TX_PN2.29-cable-colours.bin),
+[notes](TX-PN2.29-README.txt), [checksums](TX-PN2.29-SHA256SUMS.txt); PN2.30
+[firmware](LPM-10A-TX_PN2.30-cable-fix.bin), [notes](TX-PN2.30-README.txt),
+[checksums](TX-PN2.30-SHA256SUMS.txt). `python build.py --profile pn2.28` (`pn2.29`, `pn2.30`)
+reproduces each byte for byte; `sdk/test_profiles.py` pins the digests. The **PN2.30D diagnostic**
+[LPM-10A-TX_PN2.30D-diag.bin](LPM-10A-TX_PN2.30D-diag.bin) ([checksum](TX-PN2.30D-SHA256SUMS.txt),
+`python cable_diag2.py --write`) is PN2.30 with the Switch-mode readings at the wire ends replaced by
+each wire's two lowest readings and the pins they reach, e.g. `2  60 5  63`. Not a release: flash it,
+photograph a good cable in the owner's switch, flash back; that photo is what a partner check that
+tolerates the owner's switch needs.
+
+**TX PN2.27A release (2026-09-22; superseded by PN2.33):** the owner reports a test pass with the named
+TX image paired with RX PN1.24. It specializes carrier GPIO updates and aligns Analog
+to nominal 816.832 Hz (817 Hz on screen), retaining the shared timer and Digital timing;
+PN2.33 keeps all of it. `python build.py --profile pn2.27a` reproduces it, and
+[release v2.27A](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.27A)
+retains the exact tested bytes.
+[Roll-back copy](../archive/LPM-10A-TX_PN2.27A-analog-alignment.bin),
+[archived copy](LPM-10A-TX_PN2.27A-analog-alignment.bin),
 [notes](TX-PN2.27A-README.txt), [SHA256](TX-PN2.27A-SHA256SUMS.txt),
-[release v2.27A](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.27A),
 [analysis and tests](../../../docs/TX-TONE-PRECISION-PN2.27-2026-09-22.md).
 The intermediate [PN2.27](LPM-10A-TX_PN2.27-tone-precision.bin) retains the
 original Analog frequency and remains a historical comparison; its standalone

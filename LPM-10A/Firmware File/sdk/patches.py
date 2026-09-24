@@ -2065,3 +2065,11 @@ _register_release_stage('tone_precision', 'Tone: specialize carrier GPIO transit
                         'qc-display')
 _register_release_stage('tone_alignment', 'Tone: align Analog with a local phase accumulator at unchanged timer cadence',
                         'tone-precision')
+_register_release_stage('cable_check', 'Cable Test: pair-partner check, RX-unit plausibility, keys ignored while measuring',
+                        'tone-alignment')
+_register_release_stage('cable_colours', 'Cable Test: wires in their T568B colours with white stripes',
+                        'cable-check')
+_register_release_stage('cable_fix', 'Cable Test: partner check tolerant of centre taps, RX-unit median',
+                        'cable-colours')
+_register_release_stage('cable_safe', 'Cable Test: Switch mode decides as stock, LAN colours kept',
+                        'cable-fix')
