@@ -36,12 +36,13 @@ PERIOD_JND = 1.12
 
 
 def builds():
-    import rx_precision, knob_reference, pair_rank, level_display
+    import rx_precision, knob_reference, pair_rank, level_display, clean_strength
     with contextlib.redirect_stdout(io.StringIO()):
         return {'pn1.24': bytes(rx_precision.build_candidate().data),
                 'pn1.27': bytes(knob_reference.build_candidate().data),
                 'pn1.28': bytes(pair_rank.build_candidate().data),
-                'pn1.29': bytes(level_display.build_candidate().data)}
+                'pn1.29': bytes(level_display.build_candidate().data),
+                'pn1.30': bytes(clean_strength.build_candidate().data)}
 
 
 class _Runner(Streams):

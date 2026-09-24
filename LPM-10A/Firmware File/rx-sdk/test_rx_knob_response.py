@@ -9,6 +9,7 @@ import contextlib
 import io
 import unittest
 
+import clean_strength as pn130
 import knob_reference as pn127
 import level_display as pn129
 import pair_rank as pn128
@@ -32,6 +33,7 @@ def setUpModule():
     with contextlib.redirect_stdout(io.StringIO()):
         CANDIDATES['PN1.28'] = bytes(pn128.build_candidate().data)
         CANDIDATES['PN1.29'] = bytes(pn129.build_candidate().data)
+        CANDIDATES['PN1.30'] = bytes(pn130.build_candidate().data)
 
 
 class KnobResponse(harness.Analysers, unittest.TestCase):
@@ -78,7 +80,7 @@ class KnobResponse(harness.Analysers, unittest.TestCase):
         self.assertTrue(any('as fast as 100 %' in p for p in problems))
 
     def test_candidate_follows_the_knob_and_stays_audible(self):
-        for label in ('PN1.27', 'PN1.28', 'PN1.29'):
+        for label in ('PN1.27', 'PN1.28', 'PN1.29', 'PN1.30'):
             with self.subTest(label=label):
                 self.assertEqual(self.report(label), [], label)
 

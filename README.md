@@ -5,7 +5,7 @@
 Unofficial firmware for the **FNIRSI LPM-10A** network cable tester (TX) and its tone probe (RX).
 Built by patching the shipped binaries — no vendor source — and verified by emulation and on a real unit.
 
-![tester](https://img.shields.io/badge/TX-PN%202.33-blue) ![receiver](https://img.shields.io/badge/RX-PN%201.29-blue) ![licence](https://img.shields.io/badge/licence-MIT-green)
+![tester](https://img.shields.io/badge/TX-PN%202.33-blue) ![receiver](https://img.shields.io/badge/RX-PN%201.30-blue) ![licence](https://img.shields.io/badge/licence-MIT-green)
 
 <img src="docs/img/hero.png" alt="LPM-10A PN Custom Firmware: TX PN 2.14, RX PN 1.23 — Length, PoE and tone screens rendered from the firmware's own draw code" width="1000">
 
@@ -16,7 +16,7 @@ Built by patching the shipped binaries — no vendor source — and verified by 
 | Device | Version | Download | File to copy |
 |---|---|---|---|
 | **TX** tester | **PN 2.33** | [Release v2.33](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.33) | `LPM-10A-TX_PN2.33-cable-safe.bin` |
-| **RX** probe | **PN 1.29** | [Release rx-v1.29](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.29) | `APP_LPM-10RX_PN1.29-levels-update.bin` |
+| **RX** probe | **PN 1.30** | [Release rx-v1.30](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.30) | `APP_LPM-10RX_PN1.30-clean-strength-update.bin` |
 
 The owner reports **TX PN2.33 passed device testing (2026-09-24)**: "2.33 test pass".
 PN2.33 changes the Cable Test only: the wires are drawn in their **LAN cable colours** (T568B), keys
@@ -25,20 +25,25 @@ median of its readings against the ladder and rejects impossible maps with "Resu
 mode decides exactly as PN2.27A did. Length, SPEED, FLASH, PoE, tone, QC and About are PN2.27A's.
 See the [Cable Test audit](docs/TX-CABLE-TEST-AUDIT-2026-09-23.md) and the
 [v2.33 release notes](docs/releases/v2.33.md). No RX change is needed.
-The owner reports **RX PN1.29 passed device testing (2026-09-23)**: "1.29 test pass work perfect".
-PN1.29 shows the tone's strength as **ten fixed levels 3 dB apart**, like the LEDs of a Fluke
-IntelliTone: no peak memory and no mute, and after about 2 s on a pair its level follows that
-pair's strength, not the pair touched before. Knob fully up = **Locate** (find the bundle or
-cabinet); about a fifth of its travel = **Isolate** (the toned pair plays the fastest level, its
-neighbours at least one level slower).
-See the [PN1.29 analysis and validation](docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md).
+The owner reports **RX PN1.30 passed device testing (2026-09-24)**: "1.30 test pass flicker fixed".
+PN1.30 keeps PN1.29's display, **ten fixed levels 3 dB apart** like the LEDs of a Fluke IntelliTone
+(no peak memory, no mute; knob fully up = **Locate**, about a fifth of its travel = **Isolate**), and
+fixes three things found by running PN1.29 in the emulator: the Digital strength no longer dips when
+the transmitter's 5.05 ms chip edges drift through the probe's sample readings (a probe held still
+no longer flickers between two levels), a strong touch settles its gain in about 0.8 s instead of
+1.5 s with the rhythm rising step by step and no gap, and a saturated reading never walks the display
+down. See the [PN1.30 analysis and validation](docs/RX-CLEAN-STRENGTH-PN1.30-2026-09-24.md), the
+[rx-v1.30 release notes](docs/releases/rx-v1.30.md) and, for the level display's design, the
+[IntelliTone analysis](docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md). TX PN2.33 is unchanged.
 Each release carries its notes and a SHA-256 file. **TX and RX firmware are not interchangeable.**
 FNIRSI's own files are not redistributed here.
 
 The default TX build reproduces the exact owner-tested PN2.33 file. PN2.27A is the previous release
 (device-tested 2026-09-22; its files are in `LPM-10A/Firmware File/archive/`): flash it to roll back.
+The default RX build reproduces the exact owner-tested PN1.30 file; PN1.29 is the previous RX release
+(device-tested 2026-09-23; its files are in `archive/` too).
 
-> **สรุปภาษาไทย:** TX ใช้ PN 2.33, RX ใช้ PN 1.29 (ปุ่มสุด = Locate หามัด/ตู้, ราว 1/5 = Isolate แยกคู่) ·
+> **สรุปภาษาไทย:** TX ใช้ PN 2.33, RX ใช้ PN 1.30 (ปุ่มสุด = Locate หามัด/ตู้, ราว 1/5 = Isolate แยกคู่; จังหวะนิ่งไม่กระตุก แตะสายแรงลงตัวใน ~0.8 วิ) ·
 > TX อัปเดต: ปิดเครื่อง → กด **M + Power** ค้าง → เสียบ USB → ก๊อปปี้ไฟล์ ·
 > RX อัปเดต: ปิดเครื่อง → กด **SCAN** ค้าง → เสียบ USB → ไดรฟ์ `BOOTLOADER` → ก๊อปปี้ไฟล์ **`-update.bin`** ด้วย Explorer →
 > ไดรฟ์หายใน 1 วิ = เสร็จ · รายละเอียดและวิธีย้อนกลับ: [คู่มืออัปเดต RX](docs/RX-UPDATE-GUIDE.md)
@@ -64,10 +69,10 @@ If the drive refuses the file, rename it exactly `LPM-10A-TX_V2.0.7_260610.bin` 
 ### RX (probe) — read this, the FNIRSI file will not work as shipped
 
 1. Probe off. **Hold SCAN**, plug USB into the PC. A drive named **`BOOTLOADER`** appears.
-2. Copy **`APP_LPM-10RX_PN1.29-levels-update.bin`** onto it with Explorer (an ordinary copy).
+2. Copy **`APP_LPM-10RX_PN1.30-clean-strength-update.bin`** onto it with Explorer (an ordinary copy).
 3. Within about **one second the drive disappears**: the probe has programmed the file and restarted.
    Unplug USB; press the power key if it is silent. PN 1.14+ chirps high→low at power-on; entering the
-   drive again (no copy) shows `PN1.29.TXT`, the installed build.
+   drive again (no copy) shows `PN1.30.TXT`, the installed build.
 
 Only the **`-update.bin` container** is accepted. The raw image FNIRSI ships for the RX — and every
 `.bin` without `-update` — is silently ignored (the drive's status file shows `UNKOWN.TXT`). Slow or
@@ -400,20 +405,20 @@ Formulas, addresses and verdicts for every calculation, TX and RX: [`FORMULA-AUD
 
 ### RX (probe) — summary
 
-| | Stock (V3.0.0 / 3.0.1) | PN 1.29 |
+| | Stock (V3.0.0 / 3.0.1) | PN 1.30 |
 |---|---|---|
 | Sound per mode | one 2.5 kHz beep in every mode | **Digital 2.5 kHz, Analog 1.25 kHz, mains 5 kHz**, about **9.5 dB louder**; key beeps chirp toward the mode (Digital low→high, Analog high→low) |
-| Strength feedback | 50 ms beep / 50 ms gap whenever a signal is detected | 30 ms pulses (Analog 12 ms) whose rate shows the strength against the knob's reference as **ten absolute levels 3 dB apart**: quiet interval 146 ms (level 0) → 20 ms (level 9); the same strength gives the same level (0.5 dB hysteresis at each level boundary) |
+| Strength feedback | 50 ms beep / 50 ms gap whenever a signal is detected | 30 ms pulses (Analog 12 ms) whose rate shows the strength against the knob's reference as **ten absolute levels 3 dB apart**: quiet interval 146 ms (level 0) → 20 ms (level 9); the same strength gives the same level (0.5 dB hysteresis at each level boundary); since PN 1.30 the Digital estimate ignores the samples that hold a chip edge, so a probe held still keeps one level (PN 1.29 read 23 % of its windows 1.6–6 dB low and flickered near a level boundary) |
 | Sensitivity knob | sets the gain; the middle of its travel fell to the lowest gain (firmware bug); below the middle only strong signals were heard | **full gain at every position**; the knob sets the reference (0 dB on the top sixteenth, about 2 dB per sixteenth lower, −30 dB at the bottom): **fully up = Locate**, **about a fifth of the travel = Isolate** — lower knob, slower rhythm; the reference never mutes (Analog, as in stock, is off below about 14 % of the knob) |
 | Crowded bundle or cabinet | every coupled pair sounds | at **Isolate** the toned pair plays the fastest level and its neighbours at least one level slower (touch each pair about 2 s); at Locate strong pairs all play the top level, by design; no peak memory and no mute: after about 2 s a pair's level follows its own strength, except within 0.5 dB of a level boundary |
-| Moving/adjusting gain | — | automatic range changes use a fresh completed acquisition; the gain steps **down every 0.5 s** and up every 1 s; confirmed Digital feedback bridges fresh acquisition (the owner confirmed no signal drops in Digital or Analog on PN 1.24; no audio gap over 150 ms in the emulator's PN 1.29 stream test) |
+| Moving/adjusting gain | — | automatic range changes use a fresh completed acquisition; the gain steps **down at every displayed window** (about 0.28 s in Digital, 21 ms in Analog; PN 1.29: every 0.5 s) and up every 1 s; confirmed Digital feedback bridges fresh acquisition (the owner confirmed no signal drops in Digital or Analog on PN 1.24; no audio gap over 150 ms in the emulator's PN 1.29 stream test) |
 | Delayed measurements | no completion-age guard | expired Digital/Analog results cannot renew feedback; quiet-input Analog analysis uses about **97% fewer modeled instructions** than PN1.23G |
 | Signal loss | audio kept going ~1 s after the TX stopped | stops within ~¼ s; a single missed reading no longer cuts the rhythm |
-| Very strong signal | — | the automatic gain steps down when the front end saturates (~2400 counts p-p) to restore distance resolution, 7 → 2 → 1 → 0 within 1.5 s; a clipped window counts as the saturation score at the driven gain at every knob position; touching a lone cable plays the fastest level from about three quarters of the knob up |
+| Very strong signal | — | the automatic gain steps down when the front end saturates (~2400 counts p-p) to restore distance resolution, 7 → 2 → 1 → 0 within about 0.8 s (PN 1.29: 1.5 s), each gain's saturated reading heard once as a lower bound that never walks the display down; a clipped window counts as the saturation score at the driven gain at every knob position; touching a lone cable plays the fastest level from about three quarters of the knob up |
 | Mains (NCV) | the knob's gain step | the knob's gain step, **full from a quarter of the knob up**, set again every 500 ms (also right after a tracing mode) |
 | Update rate | Digital every 80 ms | **Digital every 40 ms** (Analog every 21 ms as before) |
 | Detection | exact 16-bit code match | PN 1.12 detector: full-window code search with bounded bit errors, upper-rail handling, guarded sample ownership |
-| Installed build | — | the `BOOTLOADER` drive's status file names it: `PN1.29.TXT` |
+| Installed build | — | the `BOOTLOADER` drive's status file names it: `PN1.30.TXT` |
 | Low battery | uncancellable shutdown at one sample | recoverable |
 
 ### RX (probe) — in detail
@@ -516,11 +521,15 @@ window belongs to the current gain and skips one callback after an automatic cha
 that hold after a step **down**: the next 500 ms callback may decide again, and its freshness guard
 still requires a complete window acquired at the new gain; a step up keeps the one-callback hold. A
 saturated front end therefore steps 7 → 2 → 1 → 0 at 0.5 / 1.0 / 1.5 s (PN1.24: 0.5 / 1.5 / 2.5 s), with
-no audio gap over 150 ms in the emulator's stream test. A held callback skips the sample scan. The
+no audio gap over 150 ms in the emulator's stream test. A held callback skips the sample scan. PN 1.30
+lets the TIM1 1 ms tick call the same guarded routine once per completed window, after the display has
+shown that window, so the steps come about 0.24 s apart in Digital and 21 ms apart in Analog (a strong
+touch settles in about 0.8 s / 0.07 s); a step up still holds one 500 ms tick, and the 500 ms call stays. The
 strength normaliser reads the gain actually driven, so the level stays meaningful after a step; the mode
 gates (Digital raw ≥ 2, Analog code ≥ 1) still follow the knob. Gain state: four bytes at `0x20000200`;
 completion/analysis timestamps and validity: twelve bytes at `0x20000204`; the level display's shown
-strength (u32) and level (u8): `0x20000210` and `0x20000214`, zero-initialised and unused by PN1.24.
+strength (u32) and level (u8): `0x20000210` and `0x20000214`, zero-initialised and unused by PN1.24; PN 1.30's
+last-judged and last-displayed window stamps: `0x20000218` and `0x2000021C`.
 </details>
 
 <details>
@@ -558,9 +567,12 @@ probe sounds (Digital of 24 / audible Analog of 18: PN 1.24 0 / 0, PN 1.27 4 / 3
 Analog is silent at the 13 % and 6 % positions, below its stock gate at about 14 % of the knob; the
 script counts those six silent cases as passes, which gives its raw Analog totals of 6, 9, 8 and 19 of
 24 for PN 1.24, 1.27, 1.28 and 1.29. At 19 % of the knob PN 1.29 identifies all three contact
-strengths in both modes, in Analog anywhere from 19 % to 38 %. The manual's comparison, the owner's
-reports and the scorecard:
-[docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md](docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md).
+strengths in both modes, in Analog anywhere from 19 % to 38 %. PN 1.30 gives the same verdict on every
+Digital row and on all but one boundary row in Analog (14 / 18 of 24), and the spread of one pair's tone
+fraction across its visits falls from 0.043 to 0.007 in Digital and 0.015 to 0.001 in Analog. The
+manual's comparison, the owner's reports and the scorecard:
+[docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md](docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md); PN 1.30's
+findings and validation: [docs/RX-CLEAN-STRENGTH-PN1.30-2026-09-24.md](docs/RX-CLEAN-STRENGTH-PN1.30-2026-09-24.md).
 </details>
 
 <details>
@@ -572,7 +584,8 @@ keeps the last interval on a rejected window and instead clamps the freshness co
 > 500): to 660 in Digital (one missed 80 ms update bridged; three at 40 ms) and 560 in Analog, so a signal
 that is really gone still stops within ~¼ s. PN 1.17 moved the published interval **half way** toward
 each new target; PN 1.29 replaces that step with the level display's filter and 0.5 dB hysteresis
-(above). The sensitivity knob's gate, RECENT countdown and the 800 ms power keep-alive are stock.
+(above). PN 1.30 keeps them and moves half way per window when an unsaturated window is 2.5 dB or more
+below the shown strength, so a 6 dB drop shows in about 0.6 s. The sensitivity knob's gate, RECENT countdown and the 800 ms power keep-alive are stock.
 </details>
 
 <details>
@@ -596,10 +609,11 @@ sweeping the knob and moving the probe (the SWD header is beside the MCU):
 [docs/RX-SENSITIVITY-2026-09-21.md](docs/RX-SENSITIVITY-2026-09-21.md). The rhythm curve in the picture
 is PN 1.15–1.24's (110 → 20 ms, knob-independent); PN 1.29 plays ten fixed levels, 146 → 20 ms, against
 the knob's reference (above). The probe firmware, function by function:
-[docs/RX-AUDIT.md](docs/RX-AUDIT.md). PN1.29's numerical figures (knob
-response, level display, cabinet scorecard) are emulator results on the actual ARM code with modelled
-ADC, coupling and interrupts; the device confirmation is the owner's report ("1.29 test pass work
-perfect", 2026-09-23), which did not measure pickup distance, loudness or selectivity. Pair TX
+[docs/RX-AUDIT.md](docs/RX-AUDIT.md). PN1.29's and PN1.30's numerical figures (knob
+response, level display, steady-signal probe, cabinet scorecard) are emulator results on the actual ARM
+code with modelled ADC, coupling and interrupts; the device confirmations are the owner's reports ("1.29
+test pass work perfect", 2026-09-23; "1.30 test pass flicker fixed", 2026-09-24), which did not measure
+pickup distance, loudness or selectivity. Pair TX
 **Digital** with RX Digital and TX **Analog 817 Hz** with RX Analog. Only one hardware unit has been
 tested; range and cable selectivity are not quantified against another probe.
 
@@ -644,16 +658,16 @@ tested; range and cable selectivity are not quantified against another probe.
 ```
 LPM-10A/Firmware File/
   LPM-10A-TX_PN2.33-cable-safe.bin           current TX build — copy to the tester's update drive
-  APP_LPM-10RX_PN1.29-levels-update.bin      current RX build — copy to the probe's BOOTLOADER drive
-  TX-PN2.33-README.txt, RX-PN1.29-README.txt  notes for each: what it does, how to update, how to roll back
+  APP_LPM-10RX_PN1.30-clean-strength-update.bin  current RX build — copy to the probe's BOOTLOADER drive
+  TX-PN2.33-README.txt, RX-PN1.30-README.txt  notes for each: what it does, how to update, how to roll back
   SHA256SUMS.txt                             checksums of the two files above
   README.md                                  what is in this folder
   FORMULA-AUDIT.md                           every measurement formula with verdicts: TX §1-6, receiver PN formulas §7
   sdk/                                       TX toolkit: patch chain PN 2.9 → 2.33 (profiles.py), assembler, verifier, Thai UI, tests
-  rx-sdk/                                    RX toolkit: patch chain PN 1.0 → 1.29 (profiles.py), container, emulator, tests
+  rx-sdk/                                    RX toolkit: patch chain PN 1.0 → 1.30 (profiles.py), container, emulator, tests
   experimental/                              build outputs of every PN version (the test suites compare against them),
                                              the PN2.28–2.30 Cable Test stages and the PN2.30D diagnostic build
-  archive/                                   earlier release copies and their notes (PN2.27A and before; history only)
+  archive/                                   earlier release copies and their notes (TX PN2.27A, RX PN1.29 and before; history only)
 docs/
   RX-UPDATE-GUIDE.md                    how to update / roll back the RX and what was changed to make it work
   RX-UPDATE-PROCEDURE-2026-09-21.md     the SWD investigation that found the container requirement
@@ -662,9 +676,10 @@ docs/
   TX-NEXT-STEPS-2026-09-21.md           the same for the TX: what is left, what was done, where there is no room
   RX-FIELD-CHECKLIST-PN1.23.md          30-minute field measurements to compare builds
   RX-KNOB-PN1.27-2026-09-23.md          the PBX-cabinet report and PN1.27's knob reference (PN1.25 and PN1.26 steps linked; superseded)
-  RX-INTELLITONE-ANALYSIS-2026-09-23.md the RX against Fluke IntelliTone, the cabinet scorecard and PN1.29 (current RX)
+  RX-INTELLITONE-ANALYSIS-2026-09-23.md the RX against Fluke IntelliTone, the cabinet scorecard and PN1.29 (the level display's design)
+  RX-CLEAN-STRENGTH-PN1.30-2026-09-24.md the PN1.29 defects found by emulation (chip-edge dips, gain settle, walk-down) and PN1.30 (current RX)
   TX-CABLE-TEST-AUDIT-2026-09-23.md     the Cable Test wire-map audit (29 findings) behind PN2.28–2.33 (current TX)
-  releases/v2.33.md                     TX PN2.33 release notes (the other releases' notes sit beside it)
+  releases/v2.33.md, releases/rx-v1.30.md  TX PN2.33 and RX PN1.30 release notes (the other releases' notes sit beside them)
   RX-AUDIT.md                           the probe firmware, function by function
   ROADMAP.md                            what to test and build next
   README-DETAILED-2026-09-21.md         the full write-up: history, TDR science, maths, audits
@@ -681,7 +696,7 @@ release pair to the folder root with FNIRSI's images placed outside the reposito
 The [2026-09-22 deep audit](docs/DEEP-AUDIT-2026-09-22.md) documents new RX gain/sample
 and TX capability-display findings, opt-in corrections, and build/publication fixes.
 From `rx-sdk`, `python verify_release.py` checks the complete current RX update against
-an exact profile rebuild. PN1.29 builds on PN1.24's gain ownership and Digital continuity
+an exact profile rebuild. PN1.29 builds on PN1.24's gain ownership and Digital continuity, and PN1.30 on the exact PN1.29 image
 corrections, faster gain recovery, sample-age guards and Analog optimization.
 
 The [PN1.23G follow-up](docs/RX-DIGITAL-GAIN-PN1.23G-2026-09-22.md) addresses
@@ -695,7 +710,7 @@ PBX-cabinet field report of 2026-09-23 (two device-tested candidates, PN1.25 and
 PN1.26, led to it); the owner reported the device test passed the same day.
 [PN1.28](docs/RX-PAIR-RANK-PN1.28-2026-09-23.md) (pair ranking against a remembered peak) was
 device-tested worse ("detects, but not accurately") and superseded. The
-[PN1.29 release](docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md) (2026-09-23, built from PN1.24)
+[PN1.29 release](docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md) (2026-09-23, built from PN1.24) and the [PN1.30 release](docs/RX-CLEAN-STRENGTH-PN1.30-2026-09-24.md) (2026-09-24, built from PN1.29)
 replaces the peak and mute window with ten absolute levels and Locate / Isolate knob use; the owner
 reported "1.29 test pass work perfect" the same day. PN1.27 and PN1.28 are superseded; PN1.27's
 release files are in `LPM-10A/Firmware File/archive/`, PN1.28's in `experimental/`.

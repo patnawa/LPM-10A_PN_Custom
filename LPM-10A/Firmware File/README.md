@@ -5,12 +5,12 @@
 | Device | File | How |
 |---|---|---|
 | TX tester | `LPM-10A-TX_PN2.33-cable-safe.bin` | tester off → hold **M + Power** → plug USB-C → copy onto the drive → long-press Power, power on |
-| RX probe | `APP_LPM-10RX_PN1.29-levels-update.bin` | probe off → hold **SCAN** → plug USB → copy onto the `BOOTLOADER` drive with Explorer → the drive disappears in ~1 s |
+| RX probe | `APP_LPM-10RX_PN1.30-clean-strength-update.bin` | probe off → hold **SCAN** → plug USB → copy onto the `BOOTLOADER` drive with Explorer → the drive disappears in ~1 s |
 
-`SHA256SUMS.txt` has both checksums; `TX-PN2.33-README.txt` and `RX-PN1.29-README.txt` say what each build
+`SHA256SUMS.txt` has both checksums; `TX-PN2.33-README.txt` and `RX-PN1.30-README.txt` say what each build
 does and how to roll back. The RX procedure in full (Thai + English): [`../../docs/RX-UPDATE-GUIDE.md`](../../docs/RX-UPDATE-GUIDE.md).
 
-The owner reports **TX PN2.33 passed device testing, 2026-09-24** ("2.33 test pass"). RX stays PN1.29;
+The owner reports **TX PN2.33 passed device testing, 2026-09-24** ("2.33 test pass"). RX is PN1.30 (below);
 PN2.33 needs no RX change. Only the Cable Test changes; Length, SPEED, FLASH, PoE, SCAN tone, QC and About
 are PN2.27A's.
 Wires are drawn in their LAN cable colours (T568B, white dashes on wires 1, 3, 5, 7, G silver); a fault
@@ -28,7 +28,13 @@ The owner's report is the device confirmation; the emulator results and the open
 If QC requests Init after the update, **disconnect all cables and hold Right**
 until Init succeeds. Calibration made before PN2.25 requires this once.
 
-The owner confirms **RX PN1.29 passes on the probe, 2026-09-23** ("1.29 test pass work perfect").
+The owner confirms **RX PN1.30 passes on the probe, 2026-09-24** ("1.30 test pass flicker fixed"). PN1.30 is
+PN1.29 ("1.29 test pass work perfect", 2026-09-23) plus three fixes found by running PN1.29 in the emulator:
+the Digital strength estimate ignores the samples that hold a chip edge (PN1.29 read 23 % of its windows
+1.6–6 dB low, so a probe held still near a level boundary flickered between two levels), the gain decides
+at every displayed window instead of every 500 ms (a strong touch settles in about 0.8 s instead of 1.5 s,
+the rhythm rising step by step with no gap), and a saturated reading is a lower bound that never walks the
+display down; an unsaturated drop of 2.5 dB or more moves half way per window.
 The probe plays the tone's strength as one of ten absolute levels 3 dB apart (a weaker level's
 Digital pulse period is 15 % longer; no comparison with pairs touched before), with no peak memory
 and no muting. The knob scales the strength (0 dB at the top, −30 dB at the bottom, PN1.27's law);
@@ -43,7 +49,8 @@ steadily than Digital. NCV keeps the knob's gain; beeps stay about 9.5 dB louder
 (speaker duty 1100/500 against 900/700; worked out from the duty, not measured).
 The owner's report is a pass on the probe; it did not measure pickup distance, loudness or
 selectivity. The figures here are design or emulator values.
-[IntelliTone comparison, design and validation](../../docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md).
+[PN1.30 analysis and validation](../../docs/RX-CLEAN-STRENGTH-PN1.30-2026-09-24.md);
+[IntelliTone comparison and PN1.29's design](../../docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md).
 
 FNIRSI's own files (`LPM-10A-TX_V2.0.7_260610.bin`, `APP_LPM-10RX_V3.0.0_260416.bin`) are **not** in this
 repository; the build tools look for them in a folder next to the repository (see each `build.py`).
@@ -53,14 +60,14 @@ repository; the build tools look for them in a folder next to the repository (se
 | Folder / file | What it is |
 |---|---|
 | `sdk/` | TX toolkit: patch chain PN 2.9 → 2.33 (`profiles.py`), assembler, verifier, Thai UI, tests (`python build.py --write` = the latest profile) |
-| `rx-sdk/` | RX toolkit: patch chain PN 1.0 → 1.29 (`profiles.py`), update container, CPU-model tests (`python build.py --write` = the latest profile, PN1.29) |
+| `rx-sdk/` | RX toolkit: patch chain PN 1.0 → 1.30 (`profiles.py`), update container, CPU-model tests (`python build.py --write` = the latest profile, PN1.30) |
 | `experimental/` | **build outputs of every PN version**, TX and RX, with their notes and checksums; the test suites rebuild and compare against these byte for byte, so they stay. `README.md` inside lists them. |
-| `archive/` | earlier release copies and their per-version notes (including TX PN2.26, TX PN2.27A and RX PN1.23, PN1.24, PN1.27) — history only |
+| `archive/` | earlier release copies and their per-version notes (including TX PN2.26, TX PN2.27A and RX PN1.23, PN1.24, PN1.27, PN1.29) — history only |
 | `FORMULA-AUDIT.md` | every measurement formula with verdicts: TX §1–6, receiver PN formulas §7 |
 
 To publish a new release: first move the release being replaced (its root `.bin` and notes) to
 `archive/` and add a per-version checksum file there (`RX-PN1.xx-SHA256SUMS.txt` or
-`TX-PN2.xx-SHA256SUMS.txt`), as was done for RX PN1.27 and TX PN2.27A. Then run `publish_current.py` with both
+`TX-PN2.xx-SHA256SUMS.txt`), as was done for RX PN1.29 and TX PN2.27A. Then run `publish_current.py` with both
 current file names, TX and RX; it copies the named builds from `experimental/` to this folder,
 removes the previous release files listed in `SHA256SUMS.txt` that are not named, and rewrites
 `SHA256SUMS.txt`. Finally copy the new build's `…-README.txt` from `experimental/` and update the

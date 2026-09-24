@@ -2,14 +2,14 @@
 
 *ภาษาไทยก่อน, English below.* ใช้ได้กับ RX PN ทุกรุ่นตั้งแต่ PN 1.12 และกับการย้อนกลับไปโรงงาน V3.0.0
 พิสูจน์บนเครื่องจริง 2026-09-21 (แฟลชสำเร็จ 8 ครั้งในวันเดียว: V3.0.0, PN 1.12, 1.14, 1.15, 1.16, 1.17, 1.18, 1.19)
-รุ่นปัจจุบัน / current build: **RX PN 1.29** (`APP_LPM-10RX_PN1.29-levels-update.bin`, release [rx-v1.29](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.29))
+รุ่นปัจจุบัน / current build: **RX PN 1.30** (`APP_LPM-10RX_PN1.30-clean-strength-update.bin`, release [rx-v1.30](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.30))
 
 ---
 
 ## 1. สรุปสั้น (อ่านแค่นี้ก็ทำได้)
 
 1. ปิด RX → **กด SCAN ค้าง** → เสียบ USB เข้าคอม → ปล่อย SCAN เมื่อไดรฟ์ชื่อ **`BOOTLOADER`** ขึ้น
-2. **ก๊อปปี้ไฟล์ที่ชื่อลงท้าย `-update.bin`** (เช่น `APP_LPM-10RX_PN1.29-levels-update.bin`) ลงไดรฟ์นั้น
+2. **ก๊อปปี้ไฟล์ที่ชื่อลงท้าย `-update.bin`** (เช่น `APP_LPM-10RX_PN1.30-clean-strength-update.bin`) ลงไดรฟ์นั้น
    ด้วย **Explorer แบบปกติ** (ลาก-วาง หรือ Ctrl-C/Ctrl-V หรือ `Copy-Item`)
 3. **ภายใน ~1 วินาที ไดรฟ์จะหายไปเอง** = เขียนเสร็จและ RX รีบูตเข้าเฟิร์มแวร์ใหม่แล้ว ถอด USB ใช้งานได้
    (ถ้าเครื่องเงียบ กดปุ่มเปิดตามปกติ; ตอนบูตจะได้ยิน chirp สูง→ต่ำ ในรุ่น PN 1.14 ขึ้นไป)
@@ -59,14 +59,14 @@ offset  ขนาด  ความหมาย                                  
 
 | ชื่อไฟล์ | ความหมาย |
 |---|---|
-| `PN1.20.TXT` … `PN1.29.TXT` | รุ่น PN ที่ติดตั้งอยู่ (ตั้งแต่ PN 1.20 แอปเขียนชื่อรุ่นลงหน้าเวอร์ชันทุกครั้งที่บูต) |
+| `PN1.20.TXT` … `PN1.30.TXT` | รุ่น PN ที่ติดตั้งอยู่ (ตั้งแต่ PN 1.20 แอปเขียนชื่อรุ่นลงหน้าเวอร์ชันทุกครั้งที่บูต) |
 | `3.0.0.TXT` (หรือ `3.0.1.TXT`, `3.0.2.TXT`) | แอปโรงงาน หรือ PN ก่อน 1.20 (ใช้สตริง `3.0.0` ของโรงงาน) |
 | `UNKOWN.TXT` | ไฟล์ล่าสุดที่ได้รับ**ไม่ใช่ container** → ถูกทิ้ง ไม่มีอะไรเปลี่ยน |
 | `APPRUN.TXT` | ได้รับส่วนหัว container แล้ว แต่ข้อมูลหยุดมาเกิน ~100 ms (เขียนช้า) → ยกเลิก เข้าแอปเดิม |
 
 ## 4. ตรวจว่าติดตั้งรุ่นไหน
 
-ตั้งแต่ PN 1.20 ดูจากไฟล์สถานะได้เลย: เข้าไดรฟ์ `BOOTLOADER` อีกครั้ง (ไม่ต้องก๊อปปี้อะไร) จะเห็นเช่น `PN1.29.TXT`
+ตั้งแต่ PN 1.20 ดูจากไฟล์สถานะได้เลย: เข้าไดรฟ์ `BOOTLOADER` อีกครั้ง (ไม่ต้องก๊อปปี้อะไร) จะเห็นเช่น `PN1.30.TXT`
 ถ้าเห็น `3.0.0.TXT` = โรงงานหรือ PN ก่อน 1.20 ซึ่งแยกได้ด้วยการฟัง:
 
 | ที่ได้ยิน | รุ่นที่ติดตั้ง |
@@ -82,8 +82,8 @@ offset  ขนาด  ความหมาย                                  
 
 ## 5. ย้อนกลับ (รุ่น PN ก่อนหน้า หรือโรงงาน V3.0.0)
 
-**รุ่น PN ก่อนหน้า:** ก๊อปปี้ไฟล์ `-update.bin` ของรุ่นนั้นตามข้อ 1 ได้เลย เช่น PN 1.27 =
-`LPM-10A/Firmware File/archive/APP_LPM-10RX_PN1.27-knob-update.bin` หรือไฟล์ใน release rx-v1.27
+**รุ่น PN ก่อนหน้า:** ก๊อปปี้ไฟล์ `-update.bin` ของรุ่นนั้นตามข้อ 1 ได้เลย เช่น PN 1.29 =
+`LPM-10A/Firmware File/archive/APP_LPM-10RX_PN1.29-levels-update.bin` หรือไฟล์ใน release rx-v1.29
 
 **โรงงาน V3.0.0:** ไฟล์โรงงานไม่อยู่ใน repo (กติกาของโปรเจกต์) สร้าง container เองจากไฟล์ในแพ็กเกจ FNIRSI V2.0.7:
 
@@ -98,7 +98,7 @@ python -m lpm10rx.container wrap "<path>/APP_LPM-10RX_V3.0.0_260416.bin" APP_LPM
 ## 6. สร้างไฟล์อัปเดตเอง / ตรวจไฟล์
 
 ```
-python build.py --write                       # PN 1.29 (โปรไฟล์ล่าสุด): ได้ทั้ง .bin และ -update.bin ใน experimental/
+python build.py --write                       # PN 1.30 (โปรไฟล์ล่าสุด): ได้ทั้ง .bin และ -update.bin ใน experimental/
 python -m lpm10rx.container check <ไฟล์.bin>  # บอกว่าเป็น container (ใช้ได้) หรือ image ดิบ (ใช้ไม่ได้)
 ```
 
@@ -110,7 +110,7 @@ python -m lpm10rx.container check <ไฟล์.bin>  # บอกว่าเป
 | ไฟล์สถานะ `APPRUN.TXT` และเครื่องเด้งเข้าแอป | เขียนช้า/สตรีม → ใช้ Explorer ธรรมดา |
 | ไดรฟ์ไม่ขึ้น | ต้องปิดเครื่องก่อน แล้วกด SCAN ค้างตอนเสียบ USB; ลองสาย/พอร์ต USB อื่น |
 | หลังไดรฟ์หาย เครื่องเงียบ | ปกติ — กดปุ่มเปิด |
-| อยากแน่ใจว่าไฟล์ถูกก่อนก๊อปปี้ | `python -m lpm10rx.container check` และเทียบ sha256 กับ `SHA256SUMS.txt` (หน้าโฟลเดอร์) หรือ `experimental/RX-PN1.29-SHA256SUMS.txt` |
+| อยากแน่ใจว่าไฟล์ถูกก่อนก๊อปปี้ | `python -m lpm10rx.container check` และเทียบ sha256 กับ `SHA256SUMS.txt` (หน้าโฟลเดอร์) หรือ `experimental/RX-PN1.30-SHA256SUMS.txt` |
 
 ถอด USB ขณะอยู่ในไดรฟ์ (ยังไม่ก๊อปปี้) = เครื่องดับ ไม่มีผลอะไร; การเขียนใช้เวลา ~1 วินาที ไม่พบกรณีเขียนค้าง
 
@@ -121,7 +121,7 @@ python -m lpm10rx.container check <ไฟล์.bin>  # บอกว่าเป
 ## 1. The short version
 
 1. Probe off → **hold SCAN** → plug USB into the PC → release SCAN when a drive named **`BOOTLOADER`** appears.
-2. **Copy the file whose name ends in `-update.bin`** (e.g. `APP_LPM-10RX_PN1.29-levels-update.bin`)
+2. **Copy the file whose name ends in `-update.bin`** (e.g. `APP_LPM-10RX_PN1.30-clean-strength-update.bin`)
    onto that drive with **Explorer** (drag-and-drop, Ctrl-C/Ctrl-V or `Copy-Item`).
 3. **Within about a second the drive disappears by itself** — the file is programmed and the probe has
    restarted on the new firmware. Unplug USB. (If it is silent, press the power key; PN 1.14+ chirps high→low at boot.)
@@ -172,7 +172,7 @@ name from its cache; the real name appears on a fresh mount or after Eject):
 
 | File | Meaning |
 |---|---|
-| `PN1.20.TXT` … `PN1.29.TXT` | the installed PN build (from PN 1.20 the application writes its build name to the version page at every boot) |
+| `PN1.20.TXT` … `PN1.30.TXT` | the installed PN build (from PN 1.20 the application writes its build name to the version page at every boot) |
 | `3.0.0.TXT` (or `3.0.1.TXT`, `3.0.2.TXT`) | the factory application, or a PN build before 1.20 (they keep the factory `3.0.0`) |
 | `UNKOWN.TXT` | the last file received was **not a container** → dropped, nothing changed |
 | `APPRUN.TXT` | a container header arrived but data stopped for >~100 ms (slow writer) → aborted, running the old app |
@@ -180,7 +180,7 @@ name from its cache; the real name appears on a fresh mount or after Eject):
 ## 4. Telling which build is installed
 
 From PN 1.20 the status file names the build: open the `BOOTLOADER` drive again (copy nothing) and it shows,
-for example, `PN1.29.TXT`. `3.0.0.TXT` means the factory application or a PN build before 1.20; tell those
+for example, `PN1.30.TXT`. `3.0.0.TXT` means the factory application or a PN build before 1.20; tell those
 apart by listening:
 
 | What you hear | Installed |
@@ -196,8 +196,8 @@ image's BL sites (method in RX-UPDATE-PROCEDURE).
 
 ## 5. Rolling back (an earlier PN build, or factory V3.0.0)
 
-**An earlier PN build:** copy that build's `-update.bin` as in section 1, for example PN 1.27 =
-`LPM-10A/Firmware File/archive/APP_LPM-10RX_PN1.27-knob-update.bin` or the file in release rx-v1.27.
+**An earlier PN build:** copy that build's `-update.bin` as in section 1, for example PN 1.29 =
+`LPM-10A/Firmware File/archive/APP_LPM-10RX_PN1.29-levels-update.bin` or the file in release rx-v1.29.
 
 **Factory V3.0.0:** the vendor file is not in this repository (project rule). Build the container from the file in FNIRSI's
 V2.0.7 package:
@@ -214,7 +214,7 @@ section 1 (verified on the device 2026-09-21). The 3.0.1 build the probe shipped
 ## 6. Building or checking an update file
 
 ```
-python build.py --write                       # PN 1.29 (latest profile): writes .bin and -update.bin to experimental/
+python build.py --write                       # PN 1.30 (latest profile): writes .bin and -update.bin to experimental/
 python -m lpm10rx.container check <file.bin>  # says whether it is a container (usable) or a raw image (ignored)
 ```
 
@@ -226,7 +226,7 @@ python -m lpm10rx.container check <file.bin>  # says whether it is a container (
 | status `APPRUN.TXT` and the probe jumped to the app | slow/streamed write → use a plain Explorer copy |
 | no drive appears | power off first, hold SCAN while plugging USB; try another cable/port |
 | silent after the drive vanished | normal — press the power key |
-| want to be sure before copying | `python -m lpm10rx.container check` and compare sha256 with the folder's `SHA256SUMS.txt` or `experimental/RX-PN1.29-SHA256SUMS.txt` |
+| want to be sure before copying | `python -m lpm10rx.container check` and compare sha256 with the folder's `SHA256SUMS.txt` or `experimental/RX-PN1.30-SHA256SUMS.txt` |
 
 Unplugging USB while the drive is shown (before copying) just powers the probe off; nothing changes. Programming
 takes about one second; no interrupted write has been observed.

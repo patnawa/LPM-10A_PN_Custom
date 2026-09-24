@@ -1,6 +1,24 @@
 # Experimental builds
 
-**RX PN1.29 levels release (2026-09-23):** the owner reports "1.29 test pass work perfect" on the
+**RX PN1.30 clean-strength release (2026-09-24):** the owner reports "1.30 test pass flicker fixed" on
+the probe. Built from the exact PN1.29 image: the Digital strength estimator ignores the samples that
+hold a chip edge (the transmitter's 5.05 ms chip drifts through the receiver's 5 ms slot's last-2-ms
+readings every ~0.55 s; PN1.29 read 23 % of its windows 1.6–6 dB low and flickered between two levels
+when a still probe sat 0.6–1.0 dB above a level threshold), the gain decides once per displayed window
+(Digital ~0.28 s, Analog 21 ms) instead of every 500 ms, a saturated window above the lowest gain counts
+1.2 dB lower and never lowers the display, and an unsaturated drop of 2.5 dB or more moves half way per
+window. Emulator: 0 level changes on a steady signal (PN1.29 0.8–1.2/s), a strong pair settles in 0.73 s
+(1.5 s), Analog in 66 ms, a 6 dB drop shows in 0.57 s; scorecard verdicts as PN1.29 on every Digital row
+and all but one boundary row in Analog, visit-to-visit spread down from 0.043 to 0.007 (Digital) and
+0.015 to 0.001 (Analog). The default build (`python build.py --write`, profile pn1.30) and
+[published release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.30) retain the exact tested bytes archived here.
+[Default RX update file](../APP_LPM-10RX_PN1.30-clean-strength-update.bin),
+[archived copy](APP_LPM-10RX_PN1.30-clean-strength-update.bin), [raw image](APP_LPM-10RX_PN1.30-clean-strength.bin),
+[notes and checklist](RX-PN1.30-README.txt), [checksums](RX-PN1.30-SHA256SUMS.txt),
+[analysis](../../../docs/RX-CLEAN-STRENGTH-PN1.30-2026-09-24.md).
+Roll back with the [PN1.29 update file](../archive/APP_LPM-10RX_PN1.29-levels-update.bin).
+
+**RX PN1.29 levels release (2026-09-23; superseded by PN1.30):** the owner reports "1.29 test pass work perfect" on the
 probe. IntelliTone-style display: strength against the knob's reference is shown as ten absolute
 rhythm levels 3 dB apart (in Digital each level's pulse period is 15 % longer than the next), with
 no peak memory (while audio continues a weaker window eases the shown strength down; a 3 dB drop
@@ -8,10 +26,9 @@ shows in about 0.3 s in Digital), no mute and no Compare ceiling; the gain may s
 the next 0.5 s callback; Digital/Analog tracing may use the full gain at every knob position. Knob
 fully up = Locate, about a fifth of the travel = Isolate. In the emulator's cabinet scorecard it
 identifies the toned pair in 14/24 Digital and 19/24 Analog cases (PN1.27: 4/24 and 9/24). The
-default build (`python build.py --write`, profile pn1.29) and
 [published release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.29)
-retain the exact tested bytes archived here.
-[Default RX update file](../APP_LPM-10RX_PN1.29-levels-update.bin),
+retains the exact tested bytes archived here (`python build.py --profile pn1.29 --write` rebuilds them).
+[Release copy](../archive/APP_LPM-10RX_PN1.29-levels-update.bin),
 [archived copy](APP_LPM-10RX_PN1.29-levels-update.bin), [raw image](APP_LPM-10RX_PN1.29-levels.bin),
 [notes and procedure](RX-PN1.29-README.txt), [checksums](RX-PN1.29-SHA256SUMS.txt),
 [analysis](../../../docs/RX-INTELLITONE-ANALYSIS-2026-09-23.md).

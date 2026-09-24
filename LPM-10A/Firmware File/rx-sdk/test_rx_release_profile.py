@@ -1,4 +1,4 @@
-"""PN1.29 default promotion preserves exact artifacts and historical builders."""
+"""PN1.30 default promotion preserves exact artifacts and historical builders."""
 from contextlib import redirect_stdout
 import hashlib
 import io
@@ -10,15 +10,15 @@ import unittest
 from unittest.mock import patch
 
 import build
-import level_display
+import clean_strength
 import profiles
 import verify_release
 from lpm10rx.container import wrap
 from lpm10rx.image import Image, PatchError
 
 
-RAW_SHA = '092d7ad1e4a7d16130b746172b504bd5ee8998590512376962ec044395dfa378'
-UPDATE_SHA = '5ab28e753a54e2425cf4e3214b196b291b2f49be4555bdeee516633dbe476ed2'
+RAW_SHA = '407b0ba3b80883e4f640ef7e2040a56004ca780a5bd8b81cf3a371ca04a67135'
+UPDATE_SHA = 'bf723bdd7b51ef850388cc485c02b471a8eb6a48e414701a24924ca336900180'
 SDK = Path(__file__).resolve().parent
 
 
@@ -31,9 +31,9 @@ def image_for(name):
 
 class ReleaseProfile(unittest.TestCase):
     def test_latest_and_pinned_parent_stages_rebuild_exact_owner_tested_bytes(self):
-        self.assertEqual(profiles.LATEST, 'pn1.29')
+        self.assertEqual(profiles.LATEST, 'pn1.30')
         self.assertEqual(profiles.PROFILES[profiles.LATEST].output,
-                         'experimental/APP_LPM-10RX_PN1.29-levels.bin')
+                         'experimental/APP_LPM-10RX_PN1.30-clean-strength.bin')
         for name, digest in (
             ('pn1.23', '384596d75fdfc95be31984173bac5fec116083b00bec4643757a8db9b0575392'),
             ('pn1.23f', '0c000550e4143032070bed34ab62ff24ec18fe60d53824a81ecb3d77c4e7e8c0'),
@@ -43,7 +43,8 @@ class ReleaseProfile(unittest.TestCase):
             ('pn1.26', 'd3f19545c3d9f382534e60e0cc91e64af038b80f03da77ff0c61c4d4006edab8'),
             ('pn1.27', 'febd648daa98b51cf06c35e855afa4a088bb789c8ae643acf42b0f828c081c83'),
             ('pn1.28', '0e4b34b2347b1054035194500e1885fffeb1a90ed57753739ed4a2fbb8f5a619'),
-            ('pn1.29', RAW_SHA),
+            ('pn1.29', '092d7ad1e4a7d16130b746172b504bd5ee8998590512376962ec044395dfa378'),
+            ('pn1.30', RAW_SHA),
         ):
             with self.subTest(profile=name):
                 image = image_for(name)
@@ -53,7 +54,7 @@ class ReleaseProfile(unittest.TestCase):
                 self.assertEqual(archived.read_bytes(), bytes(image.data),
                                  'the archived experimental file is this build')
         with redirect_stdout(io.StringIO()):
-            standalone = level_display.build_candidate()
+            standalone = clean_strength.build_candidate()
         self.assertEqual(image.data, standalone.data)
         self.assertEqual(hashlib.sha256(wrap(image.data)).hexdigest(), UPDATE_SHA)
 
@@ -61,9 +62,9 @@ class ReleaseProfile(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             fw = Path(directory)
             (fw / 'experimental').mkdir()
-            raw = fw / profiles.PROFILES['pn1.29'].output
+            raw = fw / profiles.PROFILES['pn1.30'].output
             update = Path(build.update_path(str(raw)))
-            for args in ([], ['--profile', 'pn1.29'], ['--levels']):
+            for args in ([], ['--profile', 'pn1.30'], ['--clean-strength']):
                 with self.subTest(args=args), patch.object(build, 'FW_DIR', directory), \
                         patch('sys.argv', ['build.py', *args, '--write']), \
                         redirect_stdout(io.StringIO()):
@@ -74,20 +75,20 @@ class ReleaseProfile(unittest.TestCase):
                 update.unlink()
 
     def test_verifier_accepts_default_release_and_rejects_previous_payload_as_latest(self):
-        latest = image_for('pn1.29')
-        previous = image_for('pn1.27')
+        latest = image_for('pn1.30')
+        previous = image_for('pn1.29')
         with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / 'APP_LPM-10RX_PN1.29-levels-update.bin'
+            path = Path(directory) / 'APP_LPM-10RX_PN1.30-clean-strength-update.bin'
             path.write_bytes(wrap(latest.data))
             with patch.object(verify_release, 'FW', Path(directory)), redirect_stdout(io.StringIO()):
                 self.assertEqual(verify_release.main([]), 0)
             path.write_bytes(wrap(previous.data))
-            with redirect_stdout(io.StringIO()), self.assertRaisesRegex(PatchError, 'does not match pn1.29'):
-                verify_release.verify_release(path, profiles.PROFILES['pn1.29'])
+            with redirect_stdout(io.StringIO()), self.assertRaisesRegex(PatchError, 'does not match pn1.30'):
+                verify_release.verify_release(path, profiles.PROFILES['pn1.30'])
 
     def test_candidate_import_orders_do_not_cycle_and_rebuild_latest(self):
         for first in ('profiles', 'auto_range_freshness', 'digital_gain_continuity', 'rx_precision',
-                      'isolate', 'relative_isolate', 'knob_reference', 'pair_rank', 'level_display'):
+                      'isolate', 'relative_isolate', 'knob_reference', 'pair_rank', 'level_display', 'clean_strength'):
             with self.subTest(first=first):
                 code = (
                     f'import {first}\n'
@@ -103,13 +104,16 @@ class ReleaseProfile(unittest.TestCase):
                 self.assertEqual(result.stdout.strip().splitlines()[-1], RAW_SHA)
 
     def test_lazy_release_stages_follow_complete_parent_without_changing_custom_registry(self):
-        selected = profiles.profile_patches(profiles.PROFILES['pn1.29'])
-        self.assertEqual([p.pid for p in selected[-4:]],
-                         ['rx-gain-freshness', 'rx-digital-gain', 'rx-gain-precision', 'rx-level-display'])
+        selected = profiles.profile_patches(profiles.PROFILES['pn1.30'])
+        self.assertEqual([p.pid for p in selected[-5:]],
+                         ['rx-gain-freshness', 'rx-digital-gain', 'rx-gain-precision', 'rx-level-display',
+                          'rx-clean-strength'])
         registry = {p.pid for p in profiles.rx_patches.REGISTRY}
-        self.assertTrue(all(p.pid not in registry for p in selected[-4:]))
+        self.assertTrue(all(p.pid not in registry for p in selected[-5:]))
+        pn129 = profiles.profile_patches(profiles.PROFILES['pn1.29'])
+        self.assertEqual(selected[:-1], pn129)
         parent = profiles.profile_patches(profiles.PROFILES['pn1.24'])
-        self.assertEqual(selected[:-1], parent)
+        self.assertEqual(pn129[:-1], parent)
         for branch in ('pn1.25', 'pn1.26', 'pn1.27'):
             with self.subTest(branch=branch):
                 self.assertEqual(profiles.profile_patches(profiles.PROFILES[branch])[:-1], parent)

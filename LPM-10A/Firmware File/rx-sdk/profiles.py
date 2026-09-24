@@ -6,7 +6,8 @@
 A profile's module pins the exact SHA-256 of its parent image inside apply(), so the
 chain is also verified byte for byte while building.  Side branches: pn1.10 (Sync32,
 off pn1.9), pn1.13 (audio-clock diagnostic, off pn1.12), pn1.25 / pn1.26 / pn1.27 (knob
-builds off pn1.24) and pn1.28 (off pn1.27); the release pn1.29 also branches from pn1.24.
+builds off pn1.24) and pn1.28 (off pn1.27); pn1.29 also branches from pn1.24, and the release
+pn1.30 is built on the exact pn1.29 image.
 
 Adding PN 1.x: write the module (PATCHES, OUTPUT, PARENT_SHA256, apply, register),
 register it at the end of rx_patches.py, and append one Profile line here.
@@ -111,7 +112,7 @@ _CHAIN = [
      "pn1.23g", "PN1.24 Digital/Analog gain response, Analog efficiency and sample freshness", True,
      "Hardware test passed: no Digital or Analog audio dropout reported by the owner, 2026-09-22"),
     # PN1.25-1.27 and PN1.29 branch from PN1.24 (each module pins the exact PN1.24 image);
-    # PN1.28 pins the exact PN1.27 image.
+    # PN1.28 pins the exact PN1.27 image; PN1.30 pins the exact PN1.29 image.
     ("pn1.25", "isolate", ReleaseStage("isolate", "rx-isolate",
         "experimental/APP_LPM-10RX_PN1.25-isolate.bin",
         "Knob-reference isolate below the middle, louder beeps, NCV gain"),
@@ -136,7 +137,12 @@ _CHAIN = [
         "experimental/APP_LPM-10RX_PN1.29-levels.bin",
         "Ten absolute strength levels against the knob reference; no memory; fast gain attack"),
      "pn1.24", "PN1.29 IntelliTone-style absolute levels, Locate/Isolate knob, full sensitivity, fast attack", True,
-     "Hardware test passed: owner reports '1.29 test pass work perfect', 2026-09-23"),
+     "Hardware test passed: owner reports '1.29 test pass work perfect', 2026-09-23 (superseded by PN1.30)"),
+    ("pn1.30", "clean-strength", ReleaseStage("clean_strength", "rx-clean-strength",
+        "experimental/APP_LPM-10RX_PN1.30-clean-strength.bin",
+        "Edge-free Digital strength, a gain decision at every displayed window, saturated lower bound, faster real drop"),
+     "pn1.29", "PN1.30 steady Digital strength (chip-edge dips removed), fast gain settle, no walk-down at a touch", True,
+     "Hardware test passed: owner reports '1.30 test pass flicker fixed', 2026-09-24"),
 ]
 
 PROFILES = OrderedDict((n, Profile(n, *rest)) for n, *rest in _CHAIN)

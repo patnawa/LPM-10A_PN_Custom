@@ -1,13 +1,14 @@
 # RX probe against Fluke IntelliTone: why the fixes got worse, and what can be done
 
 Date: 2026-09-23. Receiver builds PN1.24 (earlier release), PN1.27, PN1.28 and PN1.29. Transmitter
-TX PN2.27A, unchanged. Written while PN1.29 was a candidate. Status: PN1.29 is the owner-tested
+TX PN2.27A, unchanged. Written while PN1.29 was a candidate. Status: PN1.29 was the owner-tested
 release [rx-v1.29](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.29) (owner's
-device confirmation, 2026-09-23: "1.29 test pass work perfect"); PN1.27 (rx-v1.27) and PN1.28 are
-superseded. The owner's report did not measure pickup distance, loudness or selectivity; the
-scorecard and trace figures below are emulator results. Install file:
-`LPM-10A/Firmware File/APP_LPM-10RX_PN1.29-levels-update.bin` (notes: `RX-PN1.29-README.txt` in
-the same folder); PN1.27's files are in `LPM-10A/Firmware File/archive/`.
+device confirmation, 2026-09-23: "1.29 test pass work perfect") and is superseded by PN1.30
+([rx-v1.30](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.30), built from the exact PN1.29 image:
+[RX-CLEAN-STRENGTH-PN1.30-2026-09-24.md](RX-CLEAN-STRENGTH-PN1.30-2026-09-24.md)); PN1.27 (rx-v1.27) and
+PN1.28 are superseded too. The owner's report did not measure pickup distance, loudness or selectivity; the
+scorecard and trace figures below are emulator results. PN1.29's files are in
+`LPM-10A/Firmware File/archive/` with PN1.27's.
 
 ## สรุป (ภาษาไทย)
 

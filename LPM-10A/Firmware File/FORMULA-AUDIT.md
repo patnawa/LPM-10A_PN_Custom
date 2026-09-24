@@ -613,9 +613,10 @@ battery, keys, device binding). What PN adds is arithmetic of its own. Its
 measured inputs (the gain steps of MULT and the full gain's saturation score 40 000)
 come from the owner's unit on 2026-09-21
 ([`RX-SENSITIVITY-2026-09-21.md`](../../docs/RX-SENSITIVITY-2026-09-21.md)), and all
-of it is executed on a CPU model in `rx-sdk/test_rx_*.py`. The current receiver release is PN 1.29, built
-from PN 1.24 (`rx-sdk/level_display.py`; its display is 7.3 and 7.9); the owner confirmed it on
-the device on 2026-09-23 ("1.29 test pass work perfect"). Its level thresholds are the measured
+of it is executed on a CPU model in `rx-sdk/test_rx_*.py`. The current receiver release is PN 1.30, built
+from the exact PN 1.29 image (`rx-sdk/clean_strength.py`; PN 1.29 from PN 1.24, `rx-sdk/level_display.py`;
+the display is 7.3 and 7.9); the owner confirmed PN 1.30 on the device on 2026-09-24 ("1.30 test pass
+flicker fixed") and PN 1.29 on 2026-09-23 ("1.29 test pass work perfect"). Its level thresholds are the measured
 saturation point in 3 dB steps; the figures for their effect in 7.4 and 7.9 are emulator results.
 
 ### 7.1 Digital detection — PN 1.12 (`digital-correlation` … `rx-overload`)
@@ -632,6 +633,12 @@ strength    trimmed estimate over the 16 newest code-verified samples (one code 
             separable high/low level), or on the exact fallback one whose 16 newest raw samples
             are all 4095 -> 'uncertain' (interval 1);
             PN 1.29: the saturation score 40 000 through the level display instead (7.9)
+            PN 1.30 (2026-09-24, owner-tested "1.30 test pass flicker fixed"): contrast = median over the window's
+            3-4 triplets (a = the high before b, b = a high before a low, c = the low after b) of
+            2 max(a, b) - min(a, b) - c, so a chip edge inside b's or a's readings cancels
+            (PN 1.29 read 5/6, 2/3 or 1/2 of the contrast for ~200 ms every ~0.55 s while the
+            5.05 ms chip drifted through the 5 ms slot's last-2-ms readings); rail check on the
+            clean highs; score = contrast x 29 - (contrast x 29 / 46) x 12 as before
 overlap     since PN 1.21 keep the newest 40 samples, collect 8 -> re-evaluate every 40 ms
             (32 / 16 = 80 ms in PN 1.11-1.20); the first lock after a mode or gate change needs a full frame
 ```
@@ -706,6 +713,12 @@ AGC tick    (500 ms, main context; Digital and Analog)
               a step up, 0 after a step down (the next tick may decide again, still only on a complete
               acquisition at the new gain); in PN 1.29 saturation steps 7 -> 2 -> 1 -> 0 at
               0.5 / 1.0 / 1.5 s (PN 1.24: 0.5 / 1.5 / 2.5 s), no audio gap over 150 ms (emulator stream test)
+              PN 1.30: the TIM1 1 ms tick also calls the same routine once per completed
+              window that the display has shown (tracing modes, no hold pending), so a step down is
+              followed by the next decision after one heard window at the new gain: 7 -> 2 -> 1 -> 0
+              about 240 ms apart in Digital (settled in ~0.73 s), 21 ms apart in Analog (~63 ms);
+              a step up still holds one 500 ms tick; the 500 ms call is unchanged
+              (agc_update_500ms is called from TIM1_UP_IRQHandler, i.e. interrupt context, not main)
 ceiling     PN 1.22-1.25: the knob level; PN 1.26-1.28: 7 in the upper half of the knob, below the middle
             a peak-derived ceiling; PN 1.29: 7 at every knob position (the peak-derived ceiling is gone)
 mains       PN 1.25/1.26, unchanged in PN 1.29: driven = knob level (7 from raw >= 1024), set again at
@@ -783,6 +796,15 @@ peak, mute  none: no peak memory, no mute, no peak-derived gain ceiling (PN 1.26
               "Compare" ceiling, 7.4); once the display has settled (at once on a fresh window; a
               weaker window follows the 1/8 filter above) the same strength at the same knob
               position gives the same level, within the 0.5 dB hysteresis
+PN 1.30     release rx-v1.30 (rx-sdk/clean_strength.py, docs/RX-CLEAN-STRENGTH-PN1.30-2026-09-24.md), on top:
+              lower bound: while driven > 0 and the newest 40 buffer samples span >= 1900 counts (7.4's
+              saturation test) the strength counts as strength - strength >> 3 (-1.2 dB, a margin for
+              the MULT table) and a weaker window keeps the stored strength (a saturated reading is a
+              lower bound; PN 1.29 walked 8 -> 5 -> 7 -> 8 through them at a touch);
+              fall: an unsaturated weaker window moves stored -> stored - (stored - strength) / 2 when
+              strength <= 3/4 x stored, else / 8 as above (a 6 dB drop shows in ~0.6 s, was ~1 s);
+              RAM 0x20000218 u32 last window judged by the fast gain path, 0x2000021C u32 last window
+              displayed (both COMPLETED_AT values, zero-initialised)
 ```
 
 PN 1.26–1.28 compared each window with a decaying peak of recent strengths to mute or slow the

@@ -1,14 +1,36 @@
 # LPM-10A receiver (probe) firmware SDK
 
-**Current release: PN1.29.** `python build.py --write` builds the latest profile
+**Current release: PN1.30.** `python build.py --write` builds the latest profile
 and its update container. `python verify_release.py` verifies the published
 current update against an exact rebuild; pass an image path and `--profile pn1.xx`
 to check another registered profile. The older `verify.py` models historical
 PN 1.0–1.2 behavior. Notes for earlier versions below are historical.
 
-**Levels release PN1.29 (2026-09-23):** the owner reports "1.29 test pass work perfect" on the
+**Clean-strength release PN1.30 (2026-09-24):** the owner reports "1.30 test pass flicker fixed" on the
+probe. The default build reproduces the exact tested raw image and RX update container
+([release rx-v1.30](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.30)); `python clean_strength.py --write`
+retains copies in `experimental/`. Running PN1.29 in the emulator on one steady signal (`steady_probe.py`, new) showed that the
+transmitter's 5.05 ms chip edges drift through the sampler's last-2-ms readings every ~0.55 s and
+the Digital strength estimator then reads 5/6, 2/3 or 1/2 of the contrast for up to 200 ms, so a
+probe held still 0.6-1.0 dB above a level threshold flickered between two levels about once a
+second; a strong touch took 1.5 s of 500 ms gain steps while the display walked down through the
+saturated lower bounds. `python clean_strength.py --write` builds
+`experimental/APP_LPM-10RX_PN1.30-clean-strength*.bin` from the exact PN1.29 image: an edge-free
+triplet estimator (2 max - min - low over each "high before a low" and its neighbours), a gain
+decision at every displayed window (Digital ~280 ms, Analog ~21 ms; a step up still holds 500 ms),
+saturated windows above the lowest gain count 1.2 dB lower and never lower the display, and a real
+drop of 2.5 dB or more moves half way per window. Emulator: 0 level changes on a steady signal (PN1.29 0.8-1.2/s), a strong
+pair settles in 0.73 s (1.5 s) with one heard window per gain and no gap, Analog in 63 ms, a 6 dB
+drop shows in 0.57 s (0.64 s), scorecard verdicts as PN1.29 on every Digital row and all but one
+boundary row in Analog (14 / 18 of 24) with the visit-to-visit spread of a pair down from 0.043 to
+0.007 (Digital) and 0.015 to 0.001 (Analog), lone-cable knob response identical. `python -m unittest test_rx_clean_strength test_rx_knob_response -v` (26 tests).
+See the [analysis](../../../docs/RX-CLEAN-STRENGTH-PN1.30-2026-09-24.md) and
+[notes/checklist](../RX-PN1.30-README.txt). Profile pn1.30 (parent pn1.29); PN1.29's release copy is
+[archive/APP_LPM-10RX_PN1.29-levels-update.bin](../archive/APP_LPM-10RX_PN1.29-levels-update.bin).
+
+**Levels release PN1.29 (2026-09-23; superseded by PN1.30):** the owner reports "1.29 test pass work perfect" on the
 probe. The owner's report is qualitative; it did not measure pickup distance, loudness or
-selectivity. The default build reproduces the exact tested raw image and RX update container
+selectivity. `python build.py --profile pn1.29 --write` reproduces the exact tested raw image and RX update container
 ([release rx-v1.29](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.29));
 `python level_display.py --write` retains copies in `experimental/`. After PN1.28 tested worse
 ("detects, but not accurately") and the owner asked for IntelliTone-like precision,
@@ -267,7 +289,9 @@ rx-sdk/
     symbols.py    recovered symbol database: 156 functions, RAM map, constants
     image.py      raw-image loader, patch primitives, stock-image lookup
   rx_patches.py   the patch set
-  build.py        build a PN profile (default: latest, PN1.29) + its -update.bin; --default = PN 1.0
+  build.py        build a PN profile (default: latest, PN1.30) + its -update.bin; --default = PN 1.0
+  cabinet_scorecard.py  the owner's cabinet task on the real firmware: identified pairs per build
+  steady_probe.py       one steady signal: every window's raw score, level changes, gain steps
   verify.py       post-build verification (bytes + disassembly + emulation)
   verify_digital.py  opt-in detector: independent model, faults, noise and phase sweeps
   boot_emu.py     boots the image under emulation and prints the clock tree
@@ -283,7 +307,7 @@ transmitter SDK (`../sdk/lpm10a/thumb.py`).
 ```bash
 python build.py --list          # what patches exist
 python build.py                 # dry run: instruction-level diff
-python build.py --write         # emit PN1.29 raw image and -update.bin in ../experimental/
+python build.py --write         # emit PN1.30 raw image and -update.bin in ../experimental/
 python verify_release.py        # verify the current update against an exact rebuild
 python boot_emu.py              # clock tree and timer rates, from the running code
 python disasm.py funcs          # survey every function
@@ -313,7 +337,7 @@ checks reject truncated reads, unterminated strings and resized-image writes.
 The earlier two-patch digital command writes
 `../APP_LPM-10RX_PN1.1-digital-experimental.bin`, not PN 1.0 or PN 1.2.
 Those historical checks target PN 1.0/1.1; the default build and release verifier
-now target PN1.29. The historical internal vendor version string was deliberately
+now target PN1.30. The historical internal vendor version string was deliberately
 unchanged (`3.0.0`); use each candidate's hash to identify it.
 Stock's five-read trimmed sampler is retained: this is not oversampling or
 sub-slot clock recovery. The added contrast threshold needs bench calibration.

@@ -39,7 +39,7 @@ class PublicationTests(unittest.TestCase):
     def test_defaults_select_confirmed_tx_and_rx_update_releases(self):
         self.assertEqual(publisher.DEFAULT_NAMES, (
             "LPM-10A-TX_PN2.33-cable-safe.bin",
-            "APP_LPM-10RX_PN1.29-levels-update.bin",
+            "APP_LPM-10RX_PN1.30-clean-strength-update.bin",
         ))
 
     def test_single_uppercase_version_suffix_accepts_tx_and_rx_updates(self):

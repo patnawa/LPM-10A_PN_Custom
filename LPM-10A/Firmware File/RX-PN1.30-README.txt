@@ -1,0 +1,108 @@
+RX PN1.30 - ความแรงนิ่งขึ้น (ไม่กระตุกตามขอบสัญญาณ), เกนลงตัวเร็วขึ้น, แตะสายแรงแล้วจังหวะไม่ถอยลง
+2026-09-24 - RELEASE rx-v1.30 - ทดสอบบนเครื่องผ่าน: "1.30 test pass flicker fixed" (เจ้าของ 2026-09-24)
+            owner-tested release; the confirmation is the owner's device test; nothing here is a
+            measurement of real pickup, noise or loudness
+
+ไฟล์ที่ใช้ติดตั้ง: APP_LPM-10RX_PN1.30-clean-strength-update.bin  (อย่าก๊อปไฟล์ raw .bin)
+ใช้คู่กับ TX PN2.33 (TX ไม่ต้องเปลี่ยน)
+รายงานวิเคราะห์เต็ม: docs/RX-CLEAN-STRENGTH-PN1.30-2026-09-24.md
+
+---------------------------------------------------------------------------
+ภาษาไทย
+---------------------------------------------------------------------------
+เจอบั๊กอะไรใน PN1.29 (รันเฟิร์มแวร์จริงในอีมูเลเตอร์ 2026-09-24 ไม่ใช่รายงานจากเครื่อง)
+  1. ค่าความแรง Digital ตกเป็นช่วง ๆ: ตัวรับอ่าน ADC ช่วง 2 ms ท้ายของช่องเวลา 5 ms แต่ชิปของ
+     ตัวส่งยาว 5.05 ms ขอบสัญญาณจึงเลื่อนเข้ามาในช่วงอ่านทุก ~0.55 วินาที ตอนนั้นตัวอย่างที่ตามหลัง
+     ขอบเป็นค่าผสม ตัวประมาณเดิม (มัธยฐานสูง - มัธยฐานต่ำ) อ่านได้แค่ 5/6, 2/3 หรือ 1/2 ของค่าจริง
+     (-1.6 / -3.5 / -6 dB) นาน ~200 ms ผล: สัญญาณนิ่ง ๆ ที่แรงกว่าขั้นถัดไป 0.6-1.0 dB จังหวะ
+     กระโดดไป-มาสองขั้นราววินาทีละครั้ง และสัญญาณที่แรงกว่าขั้น 0.2 dB แสดงต่ำไปหนึ่งขั้น
+  2. แตะสายแรง: เกนลดได้แค่ที่จังหวะ 500 ms (7 -> 2 -> 1 -> 0 ใช้ 1.5 วินาที) ระหว่างนั้นค่าที่อ่านเป็น
+     ค่าอิ่มตัวของเกนที่สูงเกินไป (ขั้นต่ำของค่าจริง)
+  3. ระหว่างเกนลง จังหวะถอยลงก่อนแล้วค่อยขึ้น (ร่องรอย: ขั้น 8 -> 5 -> 7 -> 8 ใน 2 วินาที) เพราะ
+     ตัวกรองเดินตามค่าอิ่มตัวลงไป
+
+PN1.30 เปลี่ยนอะไร (จาก PN1.29 ที่ทดสอบผ่านแล้ว ไฟล์ตรงทุกไบต์ + ส่วนต่อท้าย 684 ไบต์)
+  - ตัวประมาณความแรง Digital ใหม่ ไม่กินขอบ: ในโค้ด 10110110 ใช้ชุดสาม "สูงก่อนหน้า, สูงก่อนต่ำ,
+    ต่ำถัดไป" (ห่างกัน 15 ms): 2 x max - min - ต่ำ = ค่าจริงไม่ว่าขอบจะอยู่ตรงไหน มัธยฐานของ 3-4 ชุด
+    ต่อหน้าต่างตัดชุดที่คร่อมการเปลี่ยนคู่สาย หน้าต่างสะอาดให้ค่าเท่าเดิมทุกไบต์
+  - เกนตัดสินใจทุกหน้าต่างที่แสดงผลแล้ว (Digital ~280 ms, Analog ~21 ms) ไม่ใช่ทุก 500 ms:
+    แตะสายแรงได้ยินทันทีที่ค่าอิ่มตัวของเกนแรก แล้วขึ้นทีละเกนจนถึงขั้นจริงใน ~0.8 วินาที ไม่มีช่วงเงียบ
+    (Analog ~0.1 วินาที) เพิ่มเกนยังรอ 500 ms เหมือนเดิม
+  - หน้าต่างที่อิ่มตัว (ค่า p-p >= 1900 ที่เกนสูงกว่าต่ำสุด) เป็นแค่ขั้นต่ำ: นับต่ำลง 1.2 dB (เผื่อความคลาดเคลื่อน
+    ของตารางขั้นเกนที่วัดจากเครื่องเดียว) และไม่ลดค่าที่แสดง
+  - ค่าลดลงจริงเกิน 2.5 dB เดินครึ่งทางต่อหน้าต่าง (เดิม 1/8 ซึ่งบนค่าที่นิ่งแล้วใช้ ~1 วินาทีกับ 6 dB): ลด 6 dB เห็นขั้นใหม่ใน ~0.6 วินาที
+  - ทุกอย่างอื่นเท่า PN1.29: 10 ขั้น 3 dB, กฎปุ่ม K, NCV, เสียงดัง, เกต, การตรวจจับ, Analog
+
+ผลอีมูเลเตอร์ (ไม่ใช่ค่าจากเครื่อง)
+  - สัญญาณนิ่ง ปุ่มสุด: PN1.29 หน้าต่างต่ำ 29/125 (ถึง -6 dB) จังหวะเปลี่ยน 0.8-1.2 ครั้ง/วินาที
+    PN1.30 หน้าต่างต่ำ 12/125 (แค่ -1.6 dB) จังหวะเปลี่ยน 0 ครั้ง
+  - แตะสาย 30000 ที่ปุ่ม 19 %: เกนลงตัว 0.73 วินาที (เดิม 1.5), จังหวะไม่ถอย; Analog 66 ms (เดิม 1.5 วินาที)
+  - ตู้สาย (cabinet_scorecard, 24 กรณี/โหมด): Digital 14 = PN1.29 ทุกแถว, Analog 18 (PN1.29 19: คู่ข้างเคียง
+    หนึ่งคู่ที่แรงกว่าขั้นถัดไปแค่ 0.02 dB แสดงขั้นจริงของมัน ซึ่งเท่าคู่ที่ต่อ TX ที่อยู่ต่ำกว่าขั้นถัดไป 0.007 dB)
+    ความแม่นที่ลูปนี้วัดได้ = ความต่างของคู่เดิมระหว่างการแตะแต่ละครั้ง ลดจาก 0.043 เป็น 0.007 (Digital)
+    และ 0.015 เป็น 0.001 (Analog); ที่ปุ่ม 19 % แยกถูกทั้ง 3 ความแรงทั้งสองโหมด คู่ที่ต่อ TX ดังเท่ากันทุกครั้ง
+
+เช็กลิสต์ทดสอบบนเครื่อง
+  A. เข้าไดรฟ์ BOOTLOADER อีกครั้ง ต้องเห็น PN1.30.TXT
+  B. โพรบนิ่งบนสายเส้นเดียว 10 วินาที ทุกตำแหน่งปุ่ม: จังหวะต้องนิ่ง ไม่กระโดดไป-มาสองขั้น
+     (ถ้าอยู่ตรงรอยต่อขั้นพอดีอาจสลับได้บ้าง แต่ต้องน้อยกว่า PN1.29 ชัดเจน)
+  C. แตะสายแรง (ปุ่มราว 1/5): ต้องได้ยินทันที จังหวะเร็วขึ้นเป็นขั้น ๆ ภายในราว 1 วินาทีแล้วนิ่ง
+     ไม่มีช่วงเงียบ ไม่มีจังหวะช้าลงก่อนแล้วค่อยเร็ว
+  D. แตะคู่เดิมซ้ำ 3 ครั้งสลับกับคู่อื่น: จังหวะต้องเท่าเดิมทุกครั้ง
+  E. จากคู่แรงไปคู่อ่อน: จังหวะช้าลงภายในราวครึ่งวินาที
+  F. ขยับโพรบเร็ว ๆ ทั้ง Digital และ Analog: เสียงไม่ขาด (ตรวจ dropout ที่เคยเจอใน PN1.23F)
+  G. NCV ใช้ได้; ปุ่มลงสุด = เงียบ; Analog ยังได้ยินจากราว 15 % ขึ้นไปเหมือนเดิม
+
+ย้อนกลับ: PN1.29 (archive/APP_LPM-10RX_PN1.29-levels-update.bin / release rx-v1.29)
+
+---------------------------------------------------------------------------
+English
+---------------------------------------------------------------------------
+Bugs found in PN1.29 (real firmware in the emulator, 2026-09-24; the device confirmation is the owner's
+"1.30 test pass flicker fixed")
+  1. Digital strength dips. The receiver reads the ADC in the last 2 ms of each 5 ms slot while
+     the transmitter's chip is 5.05 ms, so the chip edges drift into the readings every ~0.55 s;
+     the samples that follow an edge are then mixes, and the median-high minus median-low
+     estimator reads 5/6, 2/3 or 1/2 of the true contrast (-1.6 / -3.5 / -6 dB) for up to
+     200 ms. A steady signal 0.6-1.0 dB above a level threshold flickered between two levels
+     about once a second; one 0.2 dB above showed the level below.
+  2. Slow gain settle at a touch: the gain stepped only at the 500 ms tick (7 -> 2 -> 1 -> 0 in
+     1.5 s), reading the saturation of a too-high gain (a lower bound) meanwhile.
+  3. The display walked down through those lower bounds before rising (trace: level 8 -> 5 ->
+     7 -> 8 over 2 s).
+
+PN1.30 (from the exact PN1.29 image, 684 bytes appended; 8 bytes of RAM at 0x20000218)
+  - Edge-free Digital estimator: in the code 10110110 each "high before a low" with the high
+    before it and the low after it (15 ms apart) gives 2 max - min - low = the true contrast
+    whichever way the edge falls; the median over the window's 3-4 triplets rejects the one a
+    change of pair can corrupt. Clean windows score exactly as before.
+  - The gain decides at every displayed window (Digital ~280 ms, Analog ~21 ms) instead of every
+    500 ms: a strong touch is heard at once at the first gain's saturation and rises one gain at
+    a time to its level in ~0.8 s with no gap (Analog ~0.1 s). A step up still holds 500 ms.
+  - A saturated window (p-p >= 1900 at a gain above the lowest) is a lower bound: it is counted
+    1.2 dB lower (a margin for the gain-step table, measured on one unit) and never lowers the
+    display.
+  - A real drop of 2.5 dB or more moves half way per window (was 1/8, which takes ~1 s for 6 dB
+    on a steady estimate): a 6 dB drop shows its new level in ~0.6 s.
+  - Everything else is PN1.29's: ten 3 dB levels, knob law K, NCV, beep, gates, detection, Analog.
+
+Emulator results (not device measurements)
+  - Steady signal, full knob: PN1.29 29/125 windows low (to -6 dB), 0.8-1.2 level changes/s;
+    PN1.30 12/125 windows low (-1.6 dB only), 0 changes.
+  - Touch at 30000, knob 19 %: gain settled in 0.73 s (was 1.5 s), display never fell;
+    Analog 66 ms (was 1.5 s). A 6 dB drop: level 7 at +90 ms, level 6 at +571 ms (PN1.29 +642 ms,
+    helped by its own dips; 1/8 alone on a steady estimate: +1007 ms).
+  - cabinet_scorecard (24 cases per mode): Digital 14 identified as PN1.29 (the same verdict on every
+    row), Analog 18 (PN1.29 19: one neighbour 0.02 dB above a level threshold now shows its own
+    level, which is also the toned pair's, 0.007 dB under the next); what the loop can measure
+    of precision, the spread of one pair's tone fraction across its visits, falls from 0.043 to
+    0.007 (Digital) and 0.015 to 0.001 (Analog) on average;
+    at 19 % all three contact strengths identified in both modes, the toned pair identical on every visit.
+
+Validation: python -m unittest test_rx_clean_strength test_rx_knob_response -v (26 tests);
+            python cabinet_scorecard.py pn1.29 pn1.30; python steady_probe.py
+Build:      python build.py --write  (rx-sdk; = python clean_strength.py --write)
+
+SHA-256 (experimental/RX-PN1.30-SHA256SUMS.txt; the update is also in the folder root's SHA256SUMS.txt):
+  raw     407b0ba3b80883e4f640ef7e2040a56004ca780a5bd8b81cf3a371ca04a67135  APP_LPM-10RX_PN1.30-clean-strength.bin
+  update  bf723bdd7b51ef850388cc485c02b471a8eb6a48e414701a24924ca336900180  APP_LPM-10RX_PN1.30-clean-strength-update.bin
