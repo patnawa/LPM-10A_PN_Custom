@@ -2,7 +2,7 @@
 
 This prerelease fixes two reproducible PN1.30 defects: sparse ADC impulses could make a weak Digital tone sound stronger than a clean stronger tone, and a timer interrupt could change gain before the first valid frame reached sound publication.
 
-**Hardware issue reported, 2026-09-26:** the owner reports Analog RX signal dropouts on RX PN1.31 paired with TX PN2.34, both while held still and while moving. The cause and PN1.30 comparison are not yet established. Do not treat this prerelease as hardware-validated; use the PN1.30 rollback below if affected.
+**Hardware issue reported, 2026-09-26:** the owner reports Analog RX signal dropouts on RX PN1.31 paired with TX PN2.34, both while held still and moving, with the knob from half to maximum. TX is confirmed in Analog 817 Hz mode. The owner reports PN1.30 does not drop with the same TX/setup, pointing to the RX update; the responsible change is still under investigation. Do not treat this prerelease as hardware-validated; use the PN1.30 rollback below if affected.
 
 Validation so far is ARM CPU emulation and reproducible builds. No new range, acoustic loudness, or physical selectivity claim is made. The successful modeled tests below do not negate the reported hardware dropout.
 

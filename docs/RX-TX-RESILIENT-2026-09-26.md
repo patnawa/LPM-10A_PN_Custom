@@ -1,6 +1,6 @@
 # RX PN1.31 / TX PN2.34 — fixes and validation
 
-Status: prereleases with **an unresolved hardware report**. After publication, the owner reports Analog RX signal dropouts on RX PN1.31 paired with TX PN2.34, both while held still and moving, with the knob from half to maximum. Cause and PN1.30 comparison are not yet established. These releases are not hardware-validated. No connected RX, TX, or debug probe was available for the emulator checks below. PN1.30 and PN2.33 remain the previous device-tested rollback pair; their binaries and historical build profiles are unchanged.
+Status: prereleases with **an unresolved hardware report**. After publication, the owner reports Analog RX signal dropouts on RX PN1.31 paired with TX PN2.34, both while held still and moving, with the knob from half to maximum. TX is confirmed in Analog 817 Hz mode; the owner reports PN1.30 does not drop with the same TX/setup. This points to the RX update, but the responsible change is not yet established. These releases are not hardware-validated. No connected RX, TX, or debug probe was available for the emulator checks below. PN1.30 and PN2.33 remain the previous device-tested rollback pair; their binaries and historical build profiles are unchanged.
 
 This implements the authorized follow-up to the [bug hunt](RX-TX-BUG-HUNT-2026-09-26.md). Reproductions execute the actual ARM firmware with modeled ADC samples, interrupts, queues, and peripheral state. This is not a measurement of pickup distance, acoustic loudness, real switch-port behavior, or failure frequency on hardware.
 
@@ -76,9 +76,15 @@ TX full SDK discovery passes **609 tests in 565.971 s, with one skip**. The skip
 
 RX full discovery completed **709 tests in 2,232.922 s**, with one absent optional device-accepted container fixture skipped. It reported 11 failing subtests and two errors, all in `test_rx_release_profile.py`: four test methods still assumed the default was PN1.30. No firmware-behavior assertion failed. The narrow reproduction confirmed those outdated expectations; tests now exercise PN1.31 default/explicit/alias output, exact hashes, verifier rejection, import order, and its parent chain while retaining PN1.30's exact hashes, named/alias builds, and rejection of PN1.29's payload. The final corrected profile and integrity run passes **16 tests in 1.896 s** (`python -m unittest test_rx_release_profile test_release_integrity -q`).
 
-The 37-minute monolithic RX run was not repeated after this test-only expectation correction. Four bounds tests and the interrupted-scorecard regression added after discovery are covered by the successful focused runs above. Current discovery contains 714 tests. These details are recorded explicitly rather than representing the initial full run as green; no firmware bytes changed for the test correction.
+The 37-minute monolithic RX run was not repeated after this test-only expectation correction. Four bounds tests and the interrupted-scorecard regression added after discovery are covered by the successful focused runs above. Discovery at that checkpoint contained 714 tests. These details are recorded explicitly rather than representing the initial full run as green; no firmware bytes changed for the test correction.
 
 A subsequent final-tree full run was started, but terminated with Windows interruption status `0xC000013A` before completion. It is not counted as a passing full-suite run. Investigation now prioritizes the owner's Analog dropout report above.
+
+### Hardware dropout isolation, not a fix
+
+The confirmed TX mode and same-setup PN1.30 control narrow the regression to the RX update. Further actual-ARM comparisons have not reproduced the PN1.31-only Analog dropout. See the [paired comparison summary and model blind spots](debug/2026-09-26-rx-tx/release_analog_drop_summary.json) and [TX/layout audit](debug/2026-09-26-rx-tx/tx_analog_dropout_audit.md). Immediate modeled ADC conversion, instantaneous gain response and serialized timer schedules are not substitutes for physical sampling/interrupt timing.
+
+Two local diagnostic builds isolate the changes: PN1.31A adds only the Digital estimator to PN1.30, while PN1.31B adds only the shared publication change. Eight new build/isolation tests pass, with independent artifact and Analog smoke review. Neither is a confirmed fix, promoted profile, or GitHub release; no canonical release bytes change. Follow the [owner A/B checklist](RX-ANALOG-DROPOUT-AB-2026-09-26.md) and retain PN1.30 for ordinary use while hardware results are pending.
 
 ### Corrected cabinet matrix
 

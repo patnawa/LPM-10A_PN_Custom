@@ -1,0 +1,160 @@
+{
+  "scope": "Actual TX GPIO and ARM RX execution with modeled ADC/link/interrupt arrivals, not hardware evidence",
+  "conclusion": "Owner-reported PN1.31-only Analog dropout was not reproduced in these serialized schedules; owner A/B evidence is not contradicted by these negative controls",
+  "tx_sha256": "92ebb4cd60e7b652f32ca65cfa21401c1657fa63ee1b945864fed3c74a422227",
+  "rx_sha256": {
+    "pn1.30": "407b0ba3b80883e4f640ef7e2040a56004ca780a5bd8b81cf3a371ca04a67135",
+    "pn1.31": "3e03d8ac13884a0fb3ad752b551ad346eb8e77e11998d7be9ca599923752094c"
+  },
+  "duration_ms_per_run": 4000,
+  "total_runs": 66,
+  "differential_pairs": 33,
+  "pickup_levels": [
+    30,
+    60,
+    120,
+    300,
+    1200,
+    2400,
+    6000,
+    30000
+  ],
+  "knobs": [
+    2048,
+    3072,
+    4095
+  ],
+  "clock_ratios": [
+    0.997,
+    1,
+    1.003
+  ],
+  "phases": [
+    0,
+    0.375,
+    3.875
+  ],
+  "noise_counts": [
+    0,
+    30,
+    60
+  ],
+  "threshold_note": "180ms identifies sustained quiet beyond the modeled maximum146ms regular pause; exact differential timelines also compared",
+  "blind_spots": [
+    "Immediate ADC conversion and modeled pickup/front-end clipping",
+    "Instantaneous gain response; gain ratios measured previously for Digital reused for Analog",
+    "TIM5 then TIM1 then analysis serialized; instruction execution does not advance timer clock",
+    "No physical bootloader/flash execution timing"
+  ],
+  "groups": [
+    {
+      "group": "controls",
+      "complete": true,
+      "runs": 4,
+      "identical_pairs": 2,
+      "differing_cases": [],
+      "max_quiet_ms_after_1s": 936.9852500000002,
+      "over_180ms_cases": [
+        {
+          "case": "contact-loss-negative-control",
+          "version": "pn1.30",
+          "long_quiet_spans": [
+            [
+              2066.0905,
+              3003.07575,
+              936.9852500000002
+            ]
+          ]
+        },
+        {
+          "case": "contact-loss-negative-control",
+          "version": "pn1.31",
+          "long_quiet_spans": [
+            [
+              2066.0905,
+              3003.07575,
+              936.9852500000002
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "group": "level",
+      "complete": true,
+      "runs": 16,
+      "identical_pairs": 8,
+      "differing_cases": [],
+      "max_quiet_ms_after_1s": 145.29075000000012,
+      "over_180ms_cases": []
+    },
+    {
+      "group": "clock",
+      "complete": true,
+      "runs": 10,
+      "identical_pairs": 5,
+      "differing_cases": [],
+      "max_quiet_ms_after_1s": 35.22200000000021,
+      "over_180ms_cases": []
+    },
+    {
+      "group": "noise",
+      "complete": true,
+      "runs": 12,
+      "identical_pairs": 6,
+      "differing_cases": [],
+      "max_quiet_ms_after_1s": 145.29075000000012,
+      "over_180ms_cases": []
+    },
+    {
+      "group": "envelope",
+      "complete": true,
+      "runs": 6,
+      "identical_pairs": 3,
+      "differing_cases": [],
+      "max_quiet_ms_after_1s": 70.04375000000027,
+      "over_180ms_cases": []
+    },
+    {
+      "group": "knob",
+      "complete": true,
+      "runs": 18,
+      "identical_pairs": 9,
+      "differing_cases": [],
+      "max_quiet_ms_after_1s": 85.25325000000021,
+      "over_180ms_cases": []
+    }
+  ],
+  "local_full_reports": [
+    {
+      "filename": "release_analog_drop_controls.json",
+      "bytes": 95375,
+      "sha256": "b2579496c1f4fb9cdcaab082cc81e1cb8f123a8373dc99bf1428495e3d167bcb"
+    },
+    {
+      "filename": "release_analog_drop_level.json",
+      "bytes": 372885,
+      "sha256": "030daadb7f7e93bd270f073f5c7a6a8abec52367411eba7c53de31881628f2d9"
+    },
+    {
+      "filename": "release_analog_drop_clock.json",
+      "bytes": 244077,
+      "sha256": "97eed2c0396a9d497462b1ba8e59d0240364418cd98ff080d1da1e10d98f450e"
+    },
+    {
+      "filename": "release_analog_drop_noise.json",
+      "bytes": 262085,
+      "sha256": "720a005033e31976397fd586ea5985fe9e1d92ce9da64391b86ce5ea9c2e7aba"
+    },
+    {
+      "filename": "release_analog_drop_envelope.json",
+      "bytes": 171855,
+      "sha256": "dd67272a7c12c5e4d9cdbf8449a7493d312c67e57066998904f4afe39d162227"
+    },
+    {
+      "filename": "release_analog_drop_knob.json",
+      "bytes": 465359,
+      "sha256": "c6d20dff1e3661f6905692d35823c2de505f940c03f2a0428a0f3d108fd9c009"
+    }
+  ]
+}
