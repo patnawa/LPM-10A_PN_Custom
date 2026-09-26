@@ -11,7 +11,23 @@ Built by patching the shipped binaries — no vendor source — and verified by 
 
 </div>
 
-## Current firmware
+## New validation releases — RX PN1.31 / TX PN2.34
+
+The September 26 bug hunt produced two RX fixes (impulse-resistant Digital strength and an atomic
+sound/gain handoff) and a TX fix (queued Cable Test requests canceled by Back). These builds have
+CPU-emulation regression coverage; **device testing is pending**. The owner-tested releases below
+remain available for rollback. No new physical range, loudness, or selectivity claim is made.
+
+| Device | Prerelease | Install file |
+|---|---|---|
+| RX probe | [rx-v1.31](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.31) | `APP_LPM-10RX_PN1.31-resilient-update.bin` |
+| TX tester | [v2.34](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/v2.34) | `LPM-10A-TX_PN2.34-cable-session.bin` |
+
+[Validation and device checklist](docs/RX-TX-RESILIENT-2026-09-26.md) ·
+[RX notes](docs/releases/rx-v1.31.md) · [TX notes](docs/releases/v2.34.md).
+The SDK default profiles are now PN1.31 and PN2.34; numbered earlier profiles stay reproducible.
+
+## Current device-tested firmware
 
 | Device | Version | Download | File to copy |
 |---|---|---|---|
@@ -38,9 +54,9 @@ down. See the [PN1.30 analysis and validation](docs/RX-CLEAN-STRENGTH-PN1.30-202
 Each release carries its notes and a SHA-256 file. **TX and RX firmware are not interchangeable.**
 FNIRSI's own files are not redistributed here.
 
-The default TX build reproduces the exact owner-tested PN2.33 file. PN2.27A is the previous release
+`--profile pn2.33` reproduces the exact owner-tested TX file. PN2.27A is the previous release
 (device-tested 2026-09-22; its files are in `LPM-10A/Firmware File/archive/`): flash it to roll back.
-The default RX build reproduces the exact owner-tested PN1.30 file; PN1.29 is the previous RX release
+`--profile pn1.30` reproduces the exact owner-tested RX file; PN1.29 is the previous RX release
 (device-tested 2026-09-23; its files are in `archive/` too).
 
 > **สรุปภาษาไทย:** TX ใช้ PN 2.33, RX ใช้ PN 1.30 (ปุ่มสุด = Locate หามัด/ตู้, ราว 1/5 = Isolate แยกคู่; จังหวะนิ่งไม่กระตุก แตะสายแรงลงตัวใน ~0.8 วิ) ·

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify an RX release against an exact rebuild of its named profile.
 
-    python verify_release.py                      # current published update
+    python verify_release.py                      # latest available profile update
     python verify_release.py image.bin --profile pn1.22
 
 Accepts either a raw image or an update container. This checks artifact
@@ -49,15 +49,25 @@ def verify_release(path, profile, stock_path=None):
     return kind, hashlib.sha256(payload).hexdigest()
 
 
+def default_image(profile):
+    """Find a named profile in the current, candidate, or archived location.
+
+    Prefer a current copy and verify it even if corrupt: never silently fall
+    back from a present but mismatched release to another artifact.
+    """
+    output = Path(profile.output)
+    name = output.stem + '-update.bin'
+    candidates = (FW / name, FW / output.parent / name, FW / 'archive' / name)
+    return next((path for path in candidates if path.is_file()), candidates[0])
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("image", nargs="?", type=Path)
     parser.add_argument("--profile", choices=PROFILES, default=LATEST)
     args = parser.parse_args(argv)
     profile = PROFILES[args.profile]
-    output = Path(profile.output)
-    default_image = FW / (output.stem + "-update.bin")
-    path = args.image if args.image is not None else default_image
+    path = args.image if args.image is not None else default_image(profile)
     try:
         with redirect_stdout(io.StringIO()):
             kind, digest = verify_release(path, profile)

@@ -143,6 +143,11 @@ _CHAIN = [
         "Edge-free Digital strength, a gain decision at every displayed window, saturated lower bound, faster real drop"),
      "pn1.29", "PN1.30 steady Digital strength (chip-edge dips removed), fast gain settle, no walk-down at a touch", True,
      "Hardware test passed: owner reports '1.30 test pass flicker fixed', 2026-09-24"),
+    ("pn1.31", "resilient", ReleaseStage("rx_resilient", "rx-resilient",
+        "experimental/APP_LPM-10RX_PN1.31-resilient.bin",
+        "Impulse-resistant Digital ranking and atomic feedback/gain handoff"),
+     "pn1.30", "PN1.31 robust Digital strength and reliable first-contact feedback", True,
+     "CPU-emulation validation; PN1.31 hardware validation pending (2026-09-26)"),
 ]
 
 PROFILES = OrderedDict((n, Profile(n, *rest)) for n, *rest in _CHAIN)

@@ -1,13 +1,22 @@
 # LPM-10A receiver (probe) firmware SDK
 
-**Current release: PN1.30.** `python build.py --write` builds the latest profile
-and its update container. `python verify_release.py` verifies the published
-current update against an exact rebuild; pass an image path and `--profile pn1.xx`
+**Latest validation prerelease: PN1.31.** `python build.py --write` builds the latest profile
+and its update container. `python verify_release.py` verifies the latest available
+profile update against an exact rebuild; pass an image path and `--profile pn1.xx`
 to check another registered profile. The older `verify.py` models historical
 PN 1.0–1.2 behavior. Notes for earlier versions below are historical.
 
+PN1.31 adds `impulse_strength.py` (robust full-frame triplet estimates, exact-only
+fallback kept at 16 samples) and `publication_commit.py` (accepted sound state and
+fast-gain generation committed together) to the exact PN1.30 parent. No new RAM.
+The raw image grows by 200 bytes. `python -m unittest test_rx_resilient
+test_rx_impulse_strength test_rx_impulse_bounds test_rx_publication_commit
+test_current_pair test_cabinet_scorecard` covers the final composition. Physical
+validation is pending; [notes](../../../docs/releases/rx-v1.31.md) and
+[validation](../../../docs/RX-TX-RESILIENT-2026-09-26.md).
+
 **Clean-strength release PN1.30 (2026-09-24):** the owner reports "1.30 test pass flicker fixed" on the
-probe. The default build reproduces the exact tested raw image and RX update container
+probe. `--profile pn1.30` reproduces the exact tested raw image and RX update container
 ([release rx-v1.30](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.30)); `python clean_strength.py --write`
 retains copies in `experimental/`. Running PN1.29 in the emulator on one steady signal (`steady_probe.py`, new) showed that the
 transmitter's 5.05 ms chip edges drift through the sampler's last-2-ms readings every ~0.55 s and
@@ -289,7 +298,7 @@ rx-sdk/
     symbols.py    recovered symbol database: 156 functions, RAM map, constants
     image.py      raw-image loader, patch primitives, stock-image lookup
   rx_patches.py   the patch set
-  build.py        build a PN profile (default: latest, PN1.30) + its -update.bin; --default = PN 1.0
+  build.py        build a PN profile (default: latest, PN1.31) + its -update.bin; --default = PN 1.0
   cabinet_scorecard.py  the owner's cabinet task on the real firmware: identified pairs per build
   steady_probe.py       one steady signal: every window's raw score, level changes, gain steps
   verify.py       post-build verification (bytes + disassembly + emulation)
@@ -307,7 +316,7 @@ transmitter SDK (`../sdk/lpm10a/thumb.py`).
 ```bash
 python build.py --list          # what patches exist
 python build.py                 # dry run: instruction-level diff
-python build.py --write         # emit PN1.30 raw image and -update.bin in ../experimental/
+python build.py --write         # emit PN1.31 raw image and -update.bin in ../experimental/
 python verify_release.py        # verify the current update against an exact rebuild
 python boot_emu.py              # clock tree and timer rates, from the running code
 python disasm.py funcs          # survey every function
@@ -337,7 +346,7 @@ checks reject truncated reads, unterminated strings and resized-image writes.
 The earlier two-patch digital command writes
 `../APP_LPM-10RX_PN1.1-digital-experimental.bin`, not PN 1.0 or PN 1.2.
 Those historical checks target PN 1.0/1.1; the default build and release verifier
-now target PN1.30. The historical internal vendor version string was deliberately
+now target the latest available profile. The historical internal vendor version string was deliberately
 unchanged (`3.0.0`); use each candidate's hash to identify it.
 Stock's five-read trimmed sampler is retained: this is not oversampling or
 sub-slot clock recovery. The added contrast threshold needs bench calibration.

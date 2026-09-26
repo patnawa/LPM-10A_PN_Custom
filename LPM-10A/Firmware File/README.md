@@ -1,6 +1,13 @@
 # Firmware files
 
-**Copy these two — nothing else in this folder is needed to update a device:**
+New **hardware-pending prereleases**: [TX PN2.34](experimental/LPM-10A-TX_PN2.34-cable-session.bin)
+and [RX PN1.31 update](experimental/APP_LPM-10RX_PN1.31-resilient-update.bin).
+They fix the September 26 queue, impulse-ranking and feedback-handoff defects.
+[Validation/checklist](../../docs/RX-TX-RESILIENT-2026-09-26.md),
+[TX notes](../../docs/releases/v2.34.md), [RX notes](../../docs/releases/rx-v1.31.md).
+The two files at this folder's top level remain the previous **device-tested** rollback pair.
+
+**Previous device-tested pair:**
 
 | Device | File | How |
 |---|---|---|

@@ -100,8 +100,28 @@ class ReleaseVerifier(unittest.TestCase):
         self.assertEqual(error.exception.code, 1)
 
 
-class CurrentPublishedRelease(unittest.TestCase):
-    def test_published_update_rebuilds_as_latest_profile(self):
+class ReleaseLookup(unittest.TestCase):
+    def test_default_lookup_finds_archived_or_experimental_update(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            profile = SimpleNamespace(output='experimental/APP_LPM-10RX_PN1.29-levels.bin')
+            name = 'APP_LPM-10RX_PN1.29-levels-update.bin'
+            (root / 'archive').mkdir()
+            archived = root / 'archive' / name
+            archived.write_bytes(b'archive fixture')
+            with patch.object(verify_release, 'FW', root):
+                self.assertEqual(verify_release.default_image(profile), archived)
+                (root / 'experimental').mkdir()
+                experimental = root / 'experimental' / name
+                experimental.write_bytes(b'experimental fixture')
+                self.assertEqual(verify_release.default_image(profile), experimental)
+                published = root / name
+                published.write_bytes(b'published fixture')
+                self.assertEqual(verify_release.default_image(profile), published)
+
+
+class LatestAvailableRelease(unittest.TestCase):
+    def test_available_update_rebuilds_as_latest_profile(self):
         with redirect_stdout(io.StringIO()):
             self.assertEqual(verify_release.main([]), 0)
 

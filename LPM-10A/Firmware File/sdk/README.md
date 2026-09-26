@@ -1,8 +1,20 @@
 # LPM-10A firmware SDK
 
+**PN2.34 validation prerelease (2026-09-26):** the default `python build.py --write`
+now builds `experimental/LPM-10A-TX_PN2.34-cable-session.bin`. `cable_session.py`
+adds visit/mode ownership and pending-request coalescing to Cable Test on the exact
+PN2.33 parent. Back and stale queued keys cannot start a canceled or wrong-mode
+test. Keys during measurement are ignored, including an already-dispatched Back.
+Electrical decisions are unchanged. `test_cable_session.py` and
+`test_cable_session_integration.py` exercise actual ARM key/queue/draw paths and
+current-image Length/QC/SPEED/tone behavior. Hardware validation is pending; PN2.33
+remains the previous device-tested rollback. See the
+[implementation and validation report](../../../docs/RX-TX-RESILIENT-2026-09-26.md)
+and [release notes](../../../docs/releases/v2.34.md).
+
 **PN2.33 release (2026-09-24):** the owner reports "2.33 test pass" on the device;
-RX stays PN1.29, no RX change is needed. `python build.py --write` (the default
-profile `pn2.33`, alias `--cable-safe`; or `python build.py --profile pn2.33 --write`)
+RX stayed PN1.29 for that release. `python build.py --profile pn2.33 --write`
+(alias `--cable-safe`)
 builds `experimental/LPM-10A-TX_PN2.33-cable-safe.bin`, byte-identical to the
 released file: SHA-256 `84f9fb991a5bf43f0e29d978277ebe76baa58ff21714b430c1b6cef040751e91`,
 401 408 bytes. It is four modules on PN2.27A, each pinning its exact parent's
@@ -102,7 +114,7 @@ OK stops/starts a new session; Right starts a new session; existing Init and
 Back remain available. Actual Thumb/GUI tests cover timer sharing, cancellation,
 rapid reentry and stale queued messages. Device validation is pending.
 See [operation and validation](../../../docs/TX-QC-FLEX-PN2.23Q-2026-09-22.md).
-The default release profile is now PN2.33; Q remains a historical experiment.
+The default build profile is now PN2.34 (hardware-pending); Q remains a historical experiment.
 
 **Build profiles (2026-09-21):** `python build.py --write` emits the latest profile;
 `profiles.py` lists every PN version as its parent plus one module, with its output file

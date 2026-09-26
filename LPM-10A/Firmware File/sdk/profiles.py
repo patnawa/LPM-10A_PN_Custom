@@ -163,6 +163,9 @@ _CHAIN = [
     ("pn2.33", "cable-safe", ReleaseStage("cable_safe"), "pn2.30", "experimental/LPM-10A-TX_PN2.33-cable-safe.bin",
      "PN2.33 Switch mode decides and draws as PN2.27A (LAN colours); RX-unit plausibility and key guard kept",
      "owner reported '2.33 test pass', 2026-09-24 (release v2.33)"),
+    ("pn2.34", "cable-session", ReleaseStage("cable_session"), "pn2.33", "experimental/LPM-10A-TX_PN2.34-cable-session.bin",
+     "PN2.34 Cable Test: queued keys and redraws belong to one visit/mode; repeated pending Starts coalesce",
+     "emulator-validated prerelease, 2026-09-26; physical device validation pending; PN2.33 remains the owner-tested rollback"),
 ]
 
 PROFILES = OrderedDict((n, Profile(n, *rest)) for n, *rest in _CHAIN)

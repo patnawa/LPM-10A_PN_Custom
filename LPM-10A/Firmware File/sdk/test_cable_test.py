@@ -260,10 +260,34 @@ class CableDiagLatest(CableDiag):
         cls.img = build(LATEST, extra=("cable-diag",))
         cls.data = bytes(cls.img.finalize().data)
 
+    def harness(self, mode, kind, *, lang=1):
+        # The current image requires real generation-tagged key/GUI traffic.
+        # Historical diagnostic fixtures above intentionally retain raw GUI 0x11.
+        from test_cable_session import SessionHarness
+        h = SessionHarness(self.data, mode=mode, lang=lang, reading=far_end(kind))
+        h.send(2)
+        h.flush()
+        h.status = list(h.s.uc.mem_read(0x2000023E, 9))
+        h.texts = [(t, x, y, fg) for k, t, x, y, fg, ex in h.s.log if k == 'ascii' and y == 271]
+        return h
+
+    def test_diag_prints_the_deciding_numbers_per_row(self):
+        h = self.harness(SWITCH, 'switch-open3')
+        rows = [(t, x, y) for k, t, x, y, fg, ex in h.s.log if k == 'ascii' and ex['size'] == 12]
+        self.assertEqual(len(rows), 9)
+        for i, (t, x, y) in enumerate(rows):
+            self.assertEqual((x, y), (CT.DIAG_X, CT.ROW0_Y - 6 + CT.ROW_PITCH * i))
+        self.assertEqual(rows[0][0], '2   60   60')
+        self.assertEqual(rows[2][0], '- 4095 4095')
+        self.assertEqual(rows[8][0], '- 4095 4095')
+        self.assertEqual(h.status, [OK, OK, OPEN, OK, OK, OPEN, OK, OK, OPEN])
+        h = self.harness(SWITCH, 'floating')
+        self.assertEqual(h.texts, [('Not connected', 68, 271, 0xF800)])
+
     def test_rx_unit_diagnostics_keep_one_row_per_wire_in_both_languages(self):
         for lang in (1, 2):
             with self.subTest(lang=lang):
-                h = Harness(self.data, FAR_END, "remote", lang=lang)
+                h = self.harness(FAR_END, 'remote', lang=lang)
                 rows = [t for k, t, x, y, fg, ex in h.s.log if k == "ascii" and ex["size"] == 12]
                 self.assertEqual(len(rows), 9, "the compact cable-values hook must not also draw")
                 self.assertEqual([int(t[1:6]) for t in rows], TAB)

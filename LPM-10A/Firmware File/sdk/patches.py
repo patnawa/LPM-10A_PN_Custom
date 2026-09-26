@@ -2073,3 +2073,5 @@ _register_release_stage('cable_fix', 'Cable Test: partner check tolerant of cent
                         'cable-colours')
 _register_release_stage('cable_safe', 'Cable Test: Switch mode decides as stock, LAN colours kept',
                         'cable-fix')
+_register_release_stage('cable_session', 'Cable Test: generation-bound queued keys and redraws, pending Start coalescing',
+                        'cable-safe')

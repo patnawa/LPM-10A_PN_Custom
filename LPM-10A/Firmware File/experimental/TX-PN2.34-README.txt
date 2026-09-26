@@ -1,0 +1,30 @@
+TX PN2.34 - Cable Test request lifecycle
+2026-09-26 - PRERELEASE - emulator validated; device validation pending
+
+INSTALL ON TX: LPM-10A-TX_PN2.34-cable-session.bin
+
+Fixes delayed OK requests starting an old or wrong-mode Cable Test after Back.
+Requests belong to their screen visit and selected mode; pending requests are
+coalesced. The existing measurement/classifier is unchanged. Other functions
+have no intentional changes; current-image tests cover Length/QC/SPEED/tone.
+Switch-mode continuity limitations are unchanged.
+
+Tester off -> hold M + Power -> connect USB-C -> copy file -> wait until copy
+finishes -> long-press Power off, then power on. About: Software:PN2.34.
+If required by the loader, rename the copy LPM-10A-TX_V2.0.7_260610.bin.
+If QC requests Init, disconnect cables and hold Right until successful.
+
+Test Switch and RX-unit good cables, rapid OK presses, Back before a test,
+mode changes/reentry, ordinary Retry, and keys during measurement. Confirm
+no canceled test or wrong-mode result appears. Check Length/QC/SPEED/FLASH,
+PoE with suitable equipment, and Digital/Analog tone as usual.
+
+Rollback: TX PN2.33 from release v2.33, same update procedure.
+Compatible RX: PN1.30 or PN1.31.
+
+Full notes: docs/releases/v2.34.md
+Validation: docs/RX-TX-RESILIENT-2026-09-26.md
+Checksums: TX-PN2.34-SHA256SUMS.txt
+
+ไทย: รุ่นทดสอบ แก้กด OK ค้างในคิวแล้วเริ่มทดสอบหลังจากกด Back
+ผ่านอีมูเลเตอร์แล้ว แต่ยังรอทดสอบบนเครื่องจริง ย้อนกลับ PN2.33 ได้

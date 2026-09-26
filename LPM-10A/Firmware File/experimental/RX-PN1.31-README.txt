@@ -1,0 +1,32 @@
+RX PN1.31 - robust Digital ranking and atomic feedback/gain handoff
+2026-09-26 - PRERELEASE - emulator validated; device validation pending
+
+INSTALL ON RX: APP_LPM-10RX_PN1.31-resilient-update.bin
+Do not copy the raw APP_LPM-10RX_PN1.31-resilient.bin to the device.
+
+Fixes PN1.30 impulse-noise strength misranking and a timer race that discards
+the first valid strong frame before feedback publication. Keeps chip-edge
+compensation, the ten levels, knob law, mode pitches, and detection thresholds.
+No new persistent RAM; +44 bytes of estimator stack.
+Raw image 28752 bytes; update container 36864 bytes.
+
+Probe off -> hold SCAN -> connect USB -> copy -update.bin with Explorer onto
+BOOTLOADER -> wait for drive disappearance -> unplug and power on.
+Re-entering update mode without a copy should show PN1.31.TXT.
+
+Test both Digital and Analog on the same known cable before/after updating:
+brief/repeated contacts, strong continuous contact, neighboring pairs,
+Locate/Isolate/off knob positions, loss of signal, mode changes, NCV and chirps.
+Report boot failure, dropouts, delayed first sound, flicker or wrong ranking.
+Pickup distance and loudness have not been measured for this version.
+
+Rollback: RX PN1.30 -update.bin from release rx-v1.30, same update procedure.
+Compatible TX: PN2.33 or PN2.34.
+
+Full notes: docs/releases/rx-v1.31.md
+Validation: docs/RX-TX-RESILIENT-2026-09-26.md
+Checksums: RX-PN1.31-SHA256SUMS.txt
+
+ไทย: รุ่นทดสอบ แก้ค่าความแรงเพี้ยนจากสัญญาณรบกวนและจังหวะเปลี่ยนเกน
+ผ่านอีมูเลเตอร์แล้ว แต่ยังรอทดสอบบนเครื่องจริง ใช้ไฟล์ -update.bin เท่านั้น
+หากผิดปกติย้อนกลับ PN1.30 ได้ด้วยขั้นตอนเดิม

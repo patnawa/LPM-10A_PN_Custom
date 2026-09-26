@@ -1,5 +1,17 @@
 # Experimental builds
 
+## September 26 validation releases
+
+RX PN1.31: [update container](APP_LPM-10RX_PN1.31-resilient-update.bin),
+[raw image](APP_LPM-10RX_PN1.31-resilient.bin), [notes](RX-PN1.31-README.txt),
+[checksums](RX-PN1.31-SHA256SUMS.txt).
+TX PN2.34: [firmware](LPM-10A-TX_PN2.34-cable-session.bin),
+[notes](TX-PN2.34-README.txt), [checksums](TX-PN2.34-SHA256SUMS.txt).
+Both are emulator-tested prereleases awaiting physical testing.
+[Implementation and validation](../../../docs/RX-TX-RESILIENT-2026-09-26.md).
+
+## Earlier builds
+
 **RX PN1.30 clean-strength release (2026-09-24):** the owner reports "1.30 test pass flicker fixed" on
 the probe. Built from the exact PN1.29 image: the Digital strength estimator ignores the samples that
 hold a chip edge (the transmitter's 5.05 ms chip drifts through the receiver's 5 ms slot's last-2-ms
@@ -10,7 +22,7 @@ when a still probe sat 0.6–1.0 dB above a level threshold), the gain decides o
 window. Emulator: 0 level changes on a steady signal (PN1.29 0.8–1.2/s), a strong pair settles in 0.73 s
 (1.5 s), Analog in 66 ms, a 6 dB drop shows in 0.57 s; scorecard verdicts as PN1.29 on every Digital row
 and all but one boundary row in Analog, visit-to-visit spread down from 0.043 to 0.007 (Digital) and
-0.015 to 0.001 (Analog). The default build (`python build.py --write`, profile pn1.30) and
+0.015 to 0.001 (Analog). The named build (`python build.py --profile pn1.30 --write`) and
 [published release](https://github.com/patnawa/LPM-10A_PN_Custom/releases/tag/rx-v1.30) retain the exact tested bytes archived here.
 [Default RX update file](../APP_LPM-10RX_PN1.30-clean-strength-update.bin),
 [archived copy](APP_LPM-10RX_PN1.30-clean-strength-update.bin), [raw image](APP_LPM-10RX_PN1.30-clean-strength.bin),
