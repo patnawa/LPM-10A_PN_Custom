@@ -1,6 +1,6 @@
 # RX PN1.31 / TX PN2.34 — fixes and validation
 
-Status: software-validated prereleases; **physical validation is pending**. The owner can test both units after publication. No connected RX, TX, or debug probe was available for these checks. PN1.30 and PN2.33 remain the previous device-tested rollback pair; their binaries and historical build profiles are unchanged.
+Status: prereleases with **an unresolved hardware report**. After publication, the owner reports Analog RX signal dropouts on RX PN1.31 paired with TX PN2.34, both while held still and moving, with the knob from half to maximum. Cause and PN1.30 comparison are not yet established. These releases are not hardware-validated. No connected RX, TX, or debug probe was available for the emulator checks below. PN1.30 and PN2.33 remain the previous device-tested rollback pair; their binaries and historical build profiles are unchanged.
 
 This implements the authorized follow-up to the [bug hunt](RX-TX-BUG-HUNT-2026-09-26.md). Reproductions execute the actual ARM firmware with modeled ADC samples, interrupts, queues, and peripheral state. This is not a measurement of pickup distance, acoustic loudness, real switch-port behavior, or failure frequency on hardware.
 
@@ -78,6 +78,8 @@ RX full discovery completed **709 tests in 2,232.922 s**, with one absent option
 
 The 37-minute monolithic RX run was not repeated after this test-only expectation correction. Four bounds tests and the interrupted-scorecard regression added after discovery are covered by the successful focused runs above. Current discovery contains 714 tests. These details are recorded explicitly rather than representing the initial full run as green; no firmware bytes changed for the test correction.
 
+A subsequent final-tree full run was started, but terminated with Windows interruption status `0xC000013A` before completion. It is not counted as a passing full-suite run. Investigation now prioritizes the owner's Analog dropout report above.
+
 ### Corrected cabinet matrix
 
 The final PN1.31 matrix completed all 48 trials in 234.70 s using two independent mode workers. Three target amplitudes and eight knob settings are tested in each mode. Its verdicts match the PN1.30 baseline; these calm-signal trials establish no general selectivity improvement. The improvement demonstrated separately is resistance to sparse-impulse strength misranking.
@@ -108,6 +110,8 @@ The raw RX grows by only 200 bytes, but the update container crosses its next 4 
 ## Device acceptance checklist
 
 Keep the previous release files available before updating. Install only the RX `-update.bin` on the RX bootloader drive; the raw RX image is for analysis. TX takes its own `.bin`. Installation and rollback details are in [RX notes](releases/rx-v1.31.md) and [TX notes](releases/v2.34.md).
+
+For before/after comparisons, change one unit's firmware at a time and keep the other unit's firmware fixed. Pair RX Analog with TX **Analog 817 Hz**, and RX Digital with TX Digital. Where practical, record successful contacts out of total attempts and estimate first-tone/release timing from a short video; this makes intermittent failures easier to compare without claiming laboratory timing accuracy.
 
 1. RX: confirm `PN1.31.TXT` in update mode; compare against PN1.30 with the same cable, position, knob, and TX mode. Check weak and strong tones, repeated brief contact, continuous contact, Locate/Isolate/off, and removal of the tone. Note delayed first sound, dropouts, flicker, reversed target/neighbor ordering, and stuck sound.
 2. RX: check Analog and Digital, mode-change chirps, and NCV using the normal safe operating procedure. Record the knob position and exact mode for any failure.

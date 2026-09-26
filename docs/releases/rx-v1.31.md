@@ -2,7 +2,9 @@
 
 This prerelease fixes two reproducible PN1.30 defects: sparse ADC impulses could make a weak Digital tone sound stronger than a clean stronger tone, and a timer interrupt could change gain before the first valid frame reached sound publication.
 
-**Validation: ARM CPU emulation and reproducible builds. Physical PN1.31 testing is pending.** The owner will test both units after publication; no new range, acoustic loudness, or physical selectivity claim is made.
+**Hardware issue reported, 2026-09-26:** the owner reports Analog RX signal dropouts on RX PN1.31 paired with TX PN2.34, both while held still and while moving. The cause and PN1.30 comparison are not yet established. Do not treat this prerelease as hardware-validated; use the PN1.30 rollback below if affected.
+
+Validation so far is ARM CPU emulation and reproducible builds. No new range, acoustic loudness, or physical selectivity claim is made. The successful modeled tests below do not negate the reported hardware dropout.
 
 Install **`APP_LPM-10RX_PN1.31-resilient-update.bin`** on the RX probe. The raw `.bin` is included for analysis and must not be copied to the update drive.
 

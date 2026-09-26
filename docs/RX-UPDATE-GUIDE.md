@@ -98,7 +98,7 @@ python -m lpm10rx.container wrap "<path>/APP_LPM-10RX_V3.0.0_260416.bin" APP_LPM
 ## 6. สร้างไฟล์อัปเดตเอง / ตรวจไฟล์
 
 ```
-python build.py --write                       # PN 1.30 (โปรไฟล์ล่าสุด): ได้ทั้ง .bin และ -update.bin ใน experimental/
+python build.py --profile pn1.30 --write       # PN 1.30 (รุ่นผ่านการทดสอบบนเครื่อง): ได้ทั้ง .bin และ -update.bin ใน experimental/
 python -m lpm10rx.container check <ไฟล์.bin>  # บอกว่าเป็น container (ใช้ได้) หรือ image ดิบ (ใช้ไม่ได้)
 ```
 
@@ -214,7 +214,7 @@ section 1 (verified on the device 2026-09-21). The 3.0.1 build the probe shipped
 ## 6. Building or checking an update file
 
 ```
-python build.py --write                       # PN 1.30 (latest profile): writes .bin and -update.bin to experimental/
+python build.py --profile pn1.30 --write       # PN 1.30 (device-tested profile): writes .bin and -update.bin to experimental/
 python -m lpm10rx.container check <file.bin>  # says whether it is a container (usable) or a raw image (ignored)
 ```
 
