@@ -39,7 +39,7 @@ class Probe:
     def wb(s,a,v): s.mu.mem_write(a,bytes([v]))
     def st(s):
         d=bytes(s.mu.mem_read(ST,STN)); k="prevk start parity off lmode vol theme peak_on peak armed ph mute".split()
-        r=dict(zip(k,d[:12])); r["req"]=d[16]; r["accent"]=d[17]; r["seq"]=struct.unpack_from("<I",d,20)[0]; r["save_at"]=struct.unpack_from("<I",d,40)[0]; r["auto"]=d[52]; return r
+        r=dict(zip(k,d[:12])); r["req"]=d[16]; r["accent"]=d[17]; r["seq"]=struct.unpack_from("<I",d,20)[0]; r["save_at"]=struct.unpack_from("<I",d,40)[0]; r["auto"]=d[52]; r["locked"]=d[54]; r["swallow"]=d[55]; return r
     def call(s, entry, r0=0, r1=0, r5=0, stops=(0x08000000,), limit=4000):
         mu=s.mu; mu.reg_write(UC_ARM_REG_R0,r0); mu.reg_write(UC_ARM_REG_R1,r1); mu.reg_write(UC_ARM_REG_R5,r5)
         mu.reg_write(UC_ARM_REG_SP,0x20001600); mu.reg_write(UC_ARM_REG_LR,0x08000001)
@@ -81,6 +81,18 @@ class Probe:
         elif key==1: s.wb(MODE,2)
         else: s.wb(MODE,0 if s.b(MODE)==1 else 1)
         s.wb(KEEP,100); return "stock"
+    def hold2(s,k1,k2,ms):
+        """two keys held together, released one after the other"""
+        n=0
+        for i in range(ms):
+            if i%5==0:
+                n+=1
+                for k in (k1,k2): s.mu.mem_write(HOLD+2*k, struct.pack("<H",n))
+            s.run(1)
+        res=[]
+        for k in (k1,k2):
+            s.mu.mem_write(HOLD+2*k, struct.pack("<H",0)); pc=s.call(s.cave+8, r1=n, r5=k); res.append("handled" if pc==SKIP else "stock"); s.run(20)
+        return res
     def notes(s,t0=0,t1=None):
         """sound as [(start ms, length ms, Hz, amplitude)] from the speaker duty writes"""
         ev=[(t,v) for t,v in s.ccr if t>=t0 and (t1 is None or t<t1) and v!=800]; out=[]; i=0

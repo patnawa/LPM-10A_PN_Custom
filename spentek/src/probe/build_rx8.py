@@ -1,4 +1,4 @@
-"""RX PN1.30 -> probe build 6 (C): power-on tune, tracing sound themes, volume steps, peak hold, signal-lost alarm,
+"""RX PN1.30 -> probe build 8 (C): power-on tune, tracing sound themes, volume steps, peak hold, signal-lost alarm,
 mode announce, low-battery warning, idle reminder, lamp modes with strobe, battery blips, 15-minute auto-off."""
 import hashlib, struct, sys
 from keystone import Ks, KS_ARCH_ARM, KS_MODE_THUMB
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     assert wrap(parent) == open(sys.argv[2], "rb").read(), "wrap() does not reproduce the repo's PN1.30 container"
     raw, cave, n = build(parent)
     cont = wrap(raw)
-    open(sys.argv[3] + "/APP_LPM-10RX_PN1.30-spence6.bin", "wb").write(raw)
-    open(sys.argv[3] + "/APP_LPM-10RX_PN1.30-spence6-update.bin", "wb").write(cont)
+    open(sys.argv[3] + "/APP_LPM-10RX_PN1.30-spence8.bin", "wb").write(raw)
+    open(sys.argv[3] + "/APP_LPM-10RX_PN1.30-spence8-update.bin", "wb").write(cont)
     print(f"code at {cave:#x}, {n} bytes; raw {len(parent)} -> {len(raw)}; container {len(cont)} bytes")
     print("container sha256", hashlib.sha256(cont).hexdigest())

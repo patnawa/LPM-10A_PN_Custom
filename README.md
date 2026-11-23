@@ -58,7 +58,7 @@ If you are not comfortable recovering a device that will not boot, do not flash 
 |---|---|---|
 | Tester | `LPM-10A-TX_PN2.35F-space.bin` | Latest. Emulator-tested; **not yet confirmed on hardware** |
 | Tester | `LPM-10A-TX_PN2.35C-settings.bin` | **Confirmed on hardware.** Has Thai, 5 themes, no Tetris resume |
-| Probe | `APP_LPM-10RX_PN1.30-spence6-update.bin` | Latest. Emulator-tested; **not yet confirmed on hardware** |
+| Probe | `APP_LPM-10RX_PN1.30-spence8-update.bin` | Latest. Emulator-tested; **not yet confirmed on hardware** |
 | Probe | `APP_LPM-10RX_PN1.30-spence4-update.bin` | **Confirmed on hardware.** No saved settings, no auto mode |
 
 ---
@@ -133,7 +133,9 @@ strength and its own detection fixes (see [README-UPSTREAM.md](README-UPSTREAM.m
   muted. Switch it off and on again to start fresh.
 - **Auto mode** (optional, off by default): when no tone has been heard for about a second, the
   probe switches between Digital and Analog by itself, silently, and locks onto whichever the
-  tester is sending. It does nothing in Mains mode.
+  tester is sending. If a strong signal drops while auto is on, the probe checks the other mode
+  before sounding the signal-lost alarm, so a tester that changes mode does not set it off. It does
+  nothing in Mains mode.
 - **Mode announce**: 1 blip for Digital, 2 for Analog, 3 for Mains, so you know the mode without
   looking at the LEDs.
 
@@ -163,6 +165,10 @@ strength and its own detection fixes (see [README-UPSTREAM.md](README-UPSTREAM.m
   the table below). Short presses do what they always did.
 - Silent mode also silences the signal-lost alarm, the low-battery warning and the idle reminder.
   Key feedback and mode announcements still sound.
+- **Key lock**: hold Mode and Lamp together for about a second to lock or unlock the keys, so the
+  probe does not change modes in a pocket. While locked, a key press only gives a short low blip;
+  tracing, alarms and auto mode carry on, and the power key still works. The probe always powers on
+  unlocked.
 
 ### Probe key gestures
 
@@ -174,6 +180,7 @@ action happens on release.
 | Mode | Digital / Analog | Volume | Sound theme |
 | Mains | Mains mode | Peak hold on / off | Auto mode on / off |
 | Lamp | Flashlight | Lamp mode | (unused) |
+| Mode + Lamp together | | Key lock on / off (about 1 s) | |
 
 ---
 
@@ -211,7 +218,7 @@ system. **They contain hard-coded paths and will need editing before they run on
 - **Tester**: a chain of binary patch stages on upstream's `PN2.34-cable-session` image:
   `build_tx.py` → `build_diag.py` → `build_theme.py` → `build_cyber.py` → `build_x.py`
   (which runs `build_apps6.py` and `build_v.py` and compiles `tetris.c`).
-- **Probe**: `build_rx6.py` appends the compiled `probe.c` to upstream's `PN1.30` raw image and
+- **Probe**: `build_rx8.py` appends the compiled `probe.c` to upstream's `PN1.30` raw image and
   redirects three call sites.
 - Tools needed: Python 3 with `keystone-engine`, `capstone`, `unicorn` and `Pillow`; `clang` with ARM
   targets, `ld.lld` and `llvm-objcopy`.
@@ -249,7 +256,7 @@ no-warranty and no-liability terms apply in full, in addition to the disclaimer 
 | Unit | Version | File | SHA-256 |
 |---|---|---|---|
 | Tester | PN2.35F | [`LPM-10A-TX_PN2.35F-space.bin`](spentek/firmware/tester/LPM-10A-TX_PN2.35F-space.bin) | `383ea45f380110b32629411cb7727a82e875e7a6735e3888c844cbfb4587c843` |
-| Probe | PN1.30 build 6 | [`APP_LPM-10RX_PN1.30-spence6-update.bin`](spentek/firmware/probe/APP_LPM-10RX_PN1.30-spence6-update.bin) | `002667afeed9c76d76ecd079a494d4bc57fe56d31d5118149e2aab729c48b962` |
+| Probe | PN1.30 build 8 | [`APP_LPM-10RX_PN1.30-spence8-update.bin`](spentek/firmware/probe/APP_LPM-10RX_PN1.30-spence8-update.bin) | `e65439c7f5b11c63d9949002d65d20a535605d6d3f7740a5257be5ea5eddf9d4` |
 
 Both are emulator-tested and **not yet confirmed on hardware**. The last hardware-confirmed builds are
 `LPM-10A-TX_PN2.35C-settings.bin` and `APP_LPM-10RX_PN1.30-spence4-update.bin`, in the same folders.
@@ -271,7 +278,7 @@ chmod +x tools/lpmflash.py tools/fatpush.py
 ```
 (cd firmware && sha256sum -c SHA256SUMS)
 tools/lpmflash.py check firmware/tester/LPM-10A-TX_PN2.35F-space.bin
-tools/lpmflash.py check firmware/probe/APP_LPM-10RX_PN1.30-spence6-update.bin
+tools/lpmflash.py check firmware/probe/APP_LPM-10RX_PN1.30-spence8-update.bin
 ```
 
 Every line must say `OK` or `a valid ... update image`. Stop if one does not.
@@ -300,7 +307,7 @@ If the tester hangs or shows nothing, press its reset button and repeat from ste
 4. Run:
 
 ```
-sudo tools/lpmflash.py rx firmware/probe/APP_LPM-10RX_PN1.30-spence6-update.bin
+sudo tools/lpmflash.py rx firmware/probe/APP_LPM-10RX_PN1.30-spence8-update.bin
 ```
 
 5. Type `yes` when asked. The drive disappearing is the success signal. Unplug and power on: you
