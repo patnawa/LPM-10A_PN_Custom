@@ -37,6 +37,29 @@ PN2.34 tester build and PN1.30 probe build. His original README is kept as
 
 If you are not comfortable recovering a device that will not boot, do not flash this.
 
+### ⚡ ELECTRICAL SAFETY: RISK OF SERIOUS INJURY OR DEATH
+
+The probe has a **Mains mode**, a non-contact voltage (NCV) detector that beeps when it senses the
+field around live AC wiring. **Mains electricity can injure or kill you.**
+
+- **NEVER use this probe, with stock or modified firmware, to decide that a wire, outlet, switch or
+  circuit is safe to touch or work on.** It is a cable tracer with a convenience feature, not a
+  safety instrument, and it carries no safety rating or certification that this project knows of.
+- **Silence does not mean dead.** A non-contact detector can miss a live conductor: shielded or
+  armoured cable, a wire deep in a wall or conduit, DC, low voltage, a weak battery, the wrong
+  sensitivity setting, or simply the way the probe is held.
+- **This firmware changes the probe's sound, volume and keys.** A low volume setting, the silent
+  lamp mode or the key lock can make a real detection quieter or easier to miss. The modified
+  firmware has **not been tested for detection accuracy** and may behave differently from stock in
+  ways nobody has found yet.
+- **Always isolate the circuit at the breaker and prove it dead with a properly rated two-pole
+  voltage tester**, checked on a known live source before and after, and follow your local
+  electrical code. If you are not qualified to work on mains wiring, do not.
+- **The authors and contributors of this repository and of the upstream project accept no
+  liability for electric shock, burns, fire, any other bodily injury, death or property damage**
+  arising from the use of, or reliance on, this firmware or the probe's Mains mode. You use it
+  entirely at your own risk.
+
 ---
 
 ## What is here
@@ -155,6 +178,14 @@ strength and its own detection fixes (see [README-UPSTREAM.md](README-UPSTREAM.m
   nothing in Mains mode.
 - **Mode announce**: 1 blip for Digital, 2 for Analog, 3 for Mains, so you know the mode without
   looking at the LEDs.
+
+**Mains (NCV) mode**
+- A stock feature of the probe, reached with a short press of the Mains key: it listens for the
+  field around live AC wiring instead of the tester's tone, and beeps at a higher pitch.
+- This firmware only applies the volume setting and the mode announce to it. Sound themes, peak
+  hold, the signal-lost alarm and auto mode do not act in Mains mode.
+- **It is a hint, never a safety check.** Read the electrical safety warning at the top of this
+  page before using it near mains wiring.
 
 **Lamp**
 - **Four lamp modes**: normal flashlight; lamp flashes with each tracing pulse, with sound; lamp
