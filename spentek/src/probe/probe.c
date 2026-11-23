@@ -36,7 +36,8 @@ struct S {
     u8 req, accent, batt_done, seq_div;
     const u8 *seq;
     u32 note_end, t_pulse, t_act, next_batt, save_at, t_sig, t_switch;
-    u8 autom, hush;
+    u8 autom, hush, locked, swallow;
+    u32 lost_at;
 };
 #define st ((struct S *)0x20001800)
 
@@ -61,6 +62,9 @@ static const u8 PKON[]  = {15, 7, 10, 9, 0, 0};
 static const u8 PKOFF[] = {10, 7, 15, 9, 0, 0};
 static const u8 AUTON[] = {19, 5, 13, 5, 8, 9, 0, 0};
 static const u8 AUTOFF[] = {8, 5, 13, 5, 19, 9, 0, 0};
+static const u8 LOCKED[] = {14, 6, 0, 3, 14, 6, 0, 3, 24, 14, 0, 0};
+static const u8 UNLOCK[] = {24, 6, 0, 3, 24, 6, 0, 3, 14, 14, 0, 0};
+static const u8 DENY[]   = {26, 5, 0, 0};
 static const u16 AMP[3] = {300, 110, 40};
 
 static void play(struct S *s, const u8 *p, u32 t)
@@ -104,17 +108,22 @@ static void save(struct S *s)                        /* about 30 ms with the pro
 static void house(struct S *s, u32 t)                /* every 1.6 ms */
 {
     u32 ms = MS, quiet = s->lmode == 2;
-    for (int i = 0; i < 3; i++) {                    /* a key being held reaches the long / extra-long mark */
-        u32 h = HOLD[i], lv = h >= XLONG ? 2 : h >= LONG ? 1 : 0;
-        if (lv > s->lvl[i]) { s->lvl[i] = lv; play(s, lv == 2 ? HOLD2 : HOLD1, t); }
+    if (HOLD[K_MODE] >= 200 && HOLD[K_LAMP] >= 200) {    /* Mode + Lamp held together for a second: key lock */
+        if (s->swallow != 5) { s->swallow = 5; s->locked ^= 1; play(s, s->locked ? LOCKED : UNLOCK, t); }
+    } else if (!s->locked && !s->swallow) {
+        for (int i = 0; i < 3; i++) {                /* a key being held reaches the long / extra-long mark */
+            u32 h = HOLD[i], lv = h >= XLONG ? 2 : h >= LONG ? 1 : 0;
+            if (lv > s->lvl[i]) { s->lvl[i] = lv; play(s, lv == 2 ? HOLD2 : HOLD1, t); }
+        }
     }
     u32 r = s->req;
     if (r) {
         s->req = 0; s->t_act = t;
-        if (r != 4) s->save_at = ms + 3000;         /* volume, theme and lamp mode are kept across power-off */
+        if (r == 8) play(s, DENY, t);                /* a key was pressed while locked */
+        else if (r != 4) s->save_at = ms + 3000;         /* volume, theme and lamp mode are kept across power-off */
         if (r == 2) { s->vol = s->vol >= 2 ? 0 : s->vol + 1; play(s, VOLS, t); }
         else if (r == 3) { s->theme = s->theme >= 2 ? 0 : s->theme + 1; play(s, THS[s->theme], t); }
-        else if (r == 5) { s->autom ^= 1; s->t_switch = t; play(s, s->autom ? AUTON : AUTOFF, t); }
+        else if (r == 5) { s->autom ^= 1; s->t_switch = t; s->lost_at = 0; play(s, s->autom ? AUTON : AUTOFF, t); }
         else if (r == 4) { s->peak_on ^= 1; s->peak = 8; s->mute = 0; play(s, s->peak_on ? PKON : PKOFF, t); }
         else if (r == 6) { s->lmode = (s->lmode + 1) & 3; if (!s->lmode) LAMP_OFF; play(s, BLIPS[s->lmode], t); }
     }
@@ -135,6 +144,13 @@ static void house(struct S *s, u32 t)                /* every 1.6 ms */
     }
     if (s->armed >= 3 && t - s->t_pulse > 12000) {   /* a strong signal went quiet for 0.3 s */
         s->armed = 0;
+        if (s->autom && m < 2 && !PENDING) {         /* auto: look in the other mode first, alarm only if it is not there */
+            s->lost_at = t | 1; s->t_switch = t;
+            set_mode(s, m ^ 1);
+        } else if (!quiet) play(s, LOST, t);
+    }
+    if (s->lost_at && (int)(t - s->lost_at) > 52000) {      /* 1.3 s in the other mode and still nothing */
+        s->lost_at = 0;
         if (!quiet) play(s, LOST, t);
     }
     if (!s->batt_done) {
@@ -172,11 +188,11 @@ u32 helper(u32 t)
     s->prevk = k;
     if (k > pk && mode != 2) {
         s->start = k;
-        if (k == 100 && GAP == 160) s->t_sig = t;    /* the weakest analog level beeps 100 ms with a 160 ms pause */
+        if (k == 100 && GAP == 160) { s->t_sig = t; s->lost_at = 0; }    /* the weakest analog level beeps 100 ms with a 160 ms pause */
         if (k == TRACE) {                            /* a tracing pulse begins: the pause after it tells the strength */
             u32 g = GAP, off = g > 20 ? (g - 20) * 58 >> 10 : 0;
             if (off > 7) off = 7;
-            s->off = off; s->parity ^= 1; s->t_pulse = t; s->t_act = t; s->t_sig = t;
+            s->off = off; s->parity ^= 1; s->t_pulse = t; s->t_act = t; s->t_sig = t; s->lost_at = 0;
             if (off <= 3) { if (s->armed < 3) s->armed++; } else s->armed = 0;
             s->accent = 0; s->mute = 0;
             if (s->peak_on) {
@@ -210,6 +226,8 @@ u32 key_release(u32 key, u32 held)
     s->t_act = TICK40;
     u32 lv = s->lvl[key];
     s->lvl[key] = 0;
+    if (s->swallow & (1u << key)) { s->swallow &= ~(1u << key); return 0; }   /* this release ends the lock gesture */
+    if (s->locked) { s->req = 8; return 0; }
     if (lv) { s->req = 2 * key + lv + 1; return 0; }     /* 2,3 mode key  4,5 mains key  6,7 lamp key */
     if (key == K_LAMP && s->lmode) return 0;             /* the lamp is automatic: the key does not toggle it */
     return 1;
