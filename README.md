@@ -58,7 +58,7 @@ If you are not comfortable recovering a device that will not boot, do not flash 
 |---|---|---|
 | Tester | `LPM-10A-TX_PN2.35F-space.bin` | Latest. Emulator-tested; **not yet confirmed on hardware** |
 | Tester | `LPM-10A-TX_PN2.35C-settings.bin` | **Confirmed on hardware.** Has Thai, 5 themes, no Tetris resume |
-| Probe | `APP_LPM-10RX_PN1.30-spence8-update.bin` | Latest. Emulator-tested; **not yet confirmed on hardware** |
+| Probe | `APP_LPM-10RX_PN1.30-spence10-update.bin` | Latest. Emulator-tested; **not yet confirmed on hardware** |
 | Probe | `APP_LPM-10RX_PN1.30-spence4-update.bin` | **Confirmed on hardware.** No saved settings, no auto mode |
 
 ---
@@ -120,10 +120,27 @@ strength and its own detection fixes (see [README-UPSTREAM.md](README-UPSTREAM.m
   rising and falling.
 - **Pitch follows strength**: the stronger the signal, the higher the whole sweep, in eight steps.
   This is on top of upstream's faster-beeps-when-stronger behaviour.
-- **Three sound themes** for the tracing pulses: Waka sweep (default), plain beeps, and a short
-  Geiger-style click.
+- **Fourteen sound themes** for the tracing pulses, all original sounds (table below). Most also
+  drop in pitch as the signal weakens.
 - **Three volume levels**: full, medium and low. They apply to every sound the probe makes,
   including key beeps and mains mode.
+
+| # | Theme | What each pulse does |
+|---|---|---|
+| 0 | Waka | Sweep, alternating up and down (default) |
+| 1 | Beeps | Plain fixed beep |
+| 2 | Geiger | Short click |
+| 3 | Sonar | One note that fades out |
+| 4 | Laser | Fast falling sweep |
+| 5 | Rise | Fast rising sweep |
+| 6 | Two-tone | High then low within the pulse |
+| 7 | Trill | Two pitches swapping every 2 ms |
+| 8 | Metal detector | Steady tone whose pitch is the signal strength |
+| 9 | Heartbeat | Two low thumps in turn |
+| 10 | Cricket | Three short chirps |
+| 11 | Telegraph | Dot, dash, dot, dash |
+| 12 | Arpeggio | Three rising notes |
+| 13 | Siren | High and low pulses in turn |
 
 **Finding the right cable**
 - **Signal-lost alarm**: four falling notes when a strong signal suddenly stops, so you know you
@@ -180,6 +197,7 @@ action happens on release.
 | Mode | Digital / Analog | Volume | Sound theme |
 | Mains | Mains mode | Peak hold on / off | Auto mode on / off |
 | Lamp | Flashlight | Lamp mode | (unused) |
+| Mode, held past the double tick | | | Steps to the next sound theme every second, with a sample of each |
 | Mode + Lamp together | | Key lock on / off (about 1 s) | |
 
 ---
@@ -218,7 +236,7 @@ system. **They contain hard-coded paths and will need editing before they run on
 - **Tester**: a chain of binary patch stages on upstream's `PN2.34-cable-session` image:
   `build_tx.py` → `build_diag.py` → `build_theme.py` → `build_cyber.py` → `build_x.py`
   (which runs `build_apps6.py` and `build_v.py` and compiles `tetris.c`).
-- **Probe**: `build_rx8.py` appends the compiled `probe.c` to upstream's `PN1.30` raw image and
+- **Probe**: `build_rx10.py` appends the compiled `probe.c` to upstream's `PN1.30` raw image and
   redirects three call sites.
 - Tools needed: Python 3 with `keystone-engine`, `capstone`, `unicorn` and `Pillow`; `clang` with ARM
   targets, `ld.lld` and `llvm-objcopy`.
@@ -256,7 +274,7 @@ no-warranty and no-liability terms apply in full, in addition to the disclaimer 
 | Unit | Version | File | SHA-256 |
 |---|---|---|---|
 | Tester | PN2.35F | [`LPM-10A-TX_PN2.35F-space.bin`](spentek/firmware/tester/LPM-10A-TX_PN2.35F-space.bin) | `383ea45f380110b32629411cb7727a82e875e7a6735e3888c844cbfb4587c843` |
-| Probe | PN1.30 build 8 | [`APP_LPM-10RX_PN1.30-spence8-update.bin`](spentek/firmware/probe/APP_LPM-10RX_PN1.30-spence8-update.bin) | `e65439c7f5b11c63d9949002d65d20a535605d6d3f7740a5257be5ea5eddf9d4` |
+| Probe | PN1.30 build 10 | [`APP_LPM-10RX_PN1.30-spence10-update.bin`](spentek/firmware/probe/APP_LPM-10RX_PN1.30-spence10-update.bin) | `de1c7b33be5fd51190f6d094e645d806c7836680147447c9b2891f216a74d4a8` |
 
 Both are emulator-tested and **not yet confirmed on hardware**. The last hardware-confirmed builds are
 `LPM-10A-TX_PN2.35C-settings.bin` and `APP_LPM-10RX_PN1.30-spence4-update.bin`, in the same folders.
@@ -278,7 +296,7 @@ chmod +x tools/lpmflash.py tools/fatpush.py
 ```
 (cd firmware && sha256sum -c SHA256SUMS)
 tools/lpmflash.py check firmware/tester/LPM-10A-TX_PN2.35F-space.bin
-tools/lpmflash.py check firmware/probe/APP_LPM-10RX_PN1.30-spence8-update.bin
+tools/lpmflash.py check firmware/probe/APP_LPM-10RX_PN1.30-spence10-update.bin
 ```
 
 Every line must say `OK` or `a valid ... update image`. Stop if one does not.
@@ -307,7 +325,7 @@ If the tester hangs or shows nothing, press its reset button and repeat from ste
 4. Run:
 
 ```
-sudo tools/lpmflash.py rx firmware/probe/APP_LPM-10RX_PN1.30-spence8-update.bin
+sudo tools/lpmflash.py rx firmware/probe/APP_LPM-10RX_PN1.30-spence10-update.bin
 ```
 
 5. Type `yes` when asked. The drive disappearing is the success signal. Unplug and power on: you
