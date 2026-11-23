@@ -112,22 +112,57 @@ Screenshots are from the emulator with the theme colours applied.
 
 ## Probe features
 
-**Tracing**
-- Tracing pulses sweep in pitch, and the pitch rises with signal strength.
-- **Signal-lost alarm**: four falling notes when a strong signal stops.
-- **Peak hold**: remembers the strongest signal so far, accents a new best and mutes anything
-  clearly weaker. For picking one cable out of a bundle.
-- **Auto mode** (optional, off by default): searches Digital and Analog in turn and locks onto
-  whichever the tester is sending.
-- Mode announce: 1, 2 or 3 blips for Digital, Analog and Mains.
+Everything below is added on top of upstream's PN1.30 probe build, which already brings graded signal
+strength and its own detection fixes (see [README-UPSTREAM.md](README-UPSTREAM.md)).
 
-**Sound and lamp**
-- Power-on tune, then 1 to 4 blips for battery level.
-- Three volume levels and three tracing sound themes (sweep, plain beeps, Geiger click).
-- Lamp modes: normal flashlight, lamp follows the signal with sound, lamp only (silent), strobe.
-- Low-battery double blip once a minute; idle reminder chirp after 3 minutes with no signal.
-- Auto power-off extended from 5 to 15 minutes.
-- Volume, sound theme, lamp mode and auto mode are saved across power-off.
+**Tracing sound**
+- **"Waka" tracing pulses**: each pulse sweeps in pitch, and successive pulses alternate between
+  rising and falling.
+- **Pitch follows strength**: the stronger the signal, the higher the whole sweep, in eight steps.
+  This is on top of upstream's faster-beeps-when-stronger behaviour.
+- **Three sound themes** for the tracing pulses: Waka sweep (default), plain beeps, and a short
+  Geiger-style click.
+- **Three volume levels**: full, medium and low. They apply to every sound the probe makes,
+  including key beeps and mains mode.
+
+**Finding the right cable**
+- **Signal-lost alarm**: four falling notes when a strong signal suddenly stops, so you know you
+  slid off the cable. A signal that fades out gradually does not trigger it.
+- **Peak hold**: remembers the strongest signal since it was switched on. A new best plays as a
+  high-pitched pulse, signals within one step of the best sound normally, and anything weaker is
+  muted. Switch it off and on again to start fresh.
+- **Auto mode** (optional, off by default): when no tone has been heard for about a second, the
+  probe switches between Digital and Analog by itself, silently, and locks onto whichever the
+  tester is sending. It does nothing in Mains mode.
+- **Mode announce**: 1 blip for Digital, 2 for Analog, 3 for Mains, so you know the mode without
+  looking at the LEDs.
+
+**Lamp**
+- **Four lamp modes**: normal flashlight; lamp flashes with each tracing pulse, with sound; lamp
+  only, with the tracing sound off (silent mode); and a 10 Hz strobe.
+- In the two follow-the-signal modes and in strobe the lamp is automatic, so a short press of the
+  lamp key does not toggle it.
+- Each lamp mode is announced by 1 to 4 blips.
+
+**Power and battery**
+- **Power-on tune**: a short rising fanfare in place of the stock beep.
+- **Battery level at power-on**: 1 to 4 blips after the tune (under 3.70 V, 3.70 V, 3.85 V, 4.00 V
+  and up).
+- **Low-battery warning in use**: a low double blip once a minute below 3.60 V.
+- **Idle reminder**: one high chirp after 3 minutes with no signal and no key press, repeating
+  every 3 minutes, so the probe does not get left switched on.
+- **Auto power-off** extended from 5 to 15 minutes.
+
+**Settings that survive power-off**
+- Volume, sound theme, lamp mode and auto mode are written to the probe's flash 3 seconds after the
+  last change. Peak hold always starts off, and strobe is stored as the normal lamp mode so the
+  probe never powers on flashing.
+
+**Keys**
+- Every key now has long and extra-long holds, with a tick to tell you when each is reached (see
+  the table below). Short presses do what they always did.
+- Silent mode also silences the signal-lost alarm, the low-battery warning and the idle reminder.
+  Key feedback and mode announcements still sound.
 
 ### Probe key gestures
 
