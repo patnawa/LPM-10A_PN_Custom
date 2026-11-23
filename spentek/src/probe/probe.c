@@ -57,7 +57,21 @@ static const u8 VOLS[]  = {10, 14, 0, 0};
 static const u8 TH0[]   = {16, 3, 13, 3, 10, 3, 8, 3, 6, 4, 0, 0};
 static const u8 TH1[]   = {8, 12, 0, 0};
 static const u8 TH2[]   = {5, 1, 0, 6, 5, 1, 0, 6, 5, 1, 0, 0};
-static const u8 *const THS[3] = {TH0, TH1, TH2};
+static const u8 TH3[]   = {9, 7, 0, 0};
+static const u8 TH4[]   = {4, 1, 6, 1, 9, 1, 13, 1, 18, 1, 0, 0};
+static const u8 TH5[]   = {18, 1, 13, 1, 9, 1, 6, 1, 4, 1, 0, 0};
+static const u8 TH6[]   = {8, 3, 12, 3, 0, 0};
+static const u8 TH7[]   = {7, 1, 10, 1, 7, 1, 10, 1, 7, 1, 10, 1, 0, 0};
+static const u8 TH8[]   = {5, 3, 9, 3, 15, 3, 0, 0};
+static const u8 TH9[]   = {28, 4, 0, 8, 22, 4, 0, 0};
+static const u8 TH10[]  = {5, 1, 0, 1, 5, 1, 0, 1, 5, 1, 0, 0};
+static const u8 TH11[]  = {8, 1, 0, 6, 8, 3, 0, 0};
+static const u8 TH12[]  = {19, 1, 15, 1, 13, 1, 0, 0};
+static const u8 TH13[]  = {7, 3, 0, 5, 10, 3, 0, 0};
+/* 0 waka sweep, 1 plain beeps, 2 Geiger click, 3 sonar ping, 4 laser, 5 rise, 6 two-tone, 7 trill,
+   8 metal detector, 9 heartbeat, 10 cricket, 11 telegraph, 12 arpeggio, 13 siren */
+enum { NTHEME = 14 };
+static const u8 *const THS[NTHEME] = {TH0, TH1, TH2, TH3, TH4, TH5, TH6, TH7, TH8, TH9, TH10, TH11, TH12, TH13};
 static const u8 PKON[]  = {15, 7, 10, 9, 0, 0};
 static const u8 PKOFF[] = {10, 7, 15, 9, 0, 0};
 static const u8 AUTON[] = {19, 5, 13, 5, 8, 9, 0, 0};
@@ -72,11 +86,13 @@ static void play(struct S *s, const u8 *p, u32 t)
     s->seq = p; s->seq_div = p[0]; s->note_end = t + p[1] * 400u;
 }
 
-static void flip(struct S *s)
+static void flipa(struct S *s, u32 a)
 {
     s->ph ^= 1;
-    SET_CCR(s->ph & 1 ? 800 + AMP[s->vol] : 800 - AMP[s->vol]);
+    SET_CCR(s->ph & 1 ? 800 + a : 800 - a);
 }
+
+static void flip(struct S *s) { flipa(s, AMP[s->vol]); }
 
 static u32 millivolts(void)
 {
@@ -113,7 +129,15 @@ static void house(struct S *s, u32 t)                /* every 1.6 ms */
     } else if (!s->locked && !s->swallow) {
         for (int i = 0; i < 3; i++) {                /* a key being held reaches the long / extra-long mark */
             u32 h = HOLD[i], lv = h >= XLONG ? 2 : h >= LONG ? 1 : 0;
-            if (lv > s->lvl[i]) { s->lvl[i] = lv; play(s, lv == 2 ? HOLD2 : HOLD1, t); }
+            if (i == K_MODE && h >= XLONG + 200) lv = 2 + (h - XLONG) / 200;   /* still held: one theme a second */
+            if (lv > 250) lv = 250;
+            if (lv > s->lvl[i]) {
+                s->lvl[i] = lv;
+                if (lv > 2) {
+                    s->theme = s->theme >= NTHEME - 1 ? 0 : s->theme + 1;
+                    s->save_at = ms + 3000; play(s, THS[s->theme], t);
+                } else play(s, lv == 2 ? HOLD2 : HOLD1, t);
+            }
         }
     }
     u32 r = s->req;
@@ -122,7 +146,7 @@ static void house(struct S *s, u32 t)                /* every 1.6 ms */
         if (r == 8) play(s, DENY, t);                /* a key was pressed while locked */
         else if (r != 4) s->save_at = ms + 3000;         /* volume, theme and lamp mode are kept across power-off */
         if (r == 2) { s->vol = s->vol >= 2 ? 0 : s->vol + 1; play(s, VOLS, t); }
-        else if (r == 3) { s->theme = s->theme >= 2 ? 0 : s->theme + 1; play(s, THS[s->theme], t); }
+        else if (r == 3) { s->theme = s->theme >= NTHEME - 1 ? 0 : s->theme + 1; play(s, THS[s->theme], t); }
         else if (r == 5) { s->autom ^= 1; s->t_switch = t; s->lost_at = 0; play(s, s->autom ? AUTON : AUTOFF, t); }
         else if (r == 4) { s->peak_on ^= 1; s->peak = 8; s->mute = 0; play(s, s->peak_on ? PKON : PKOFF, t); }
         else if (r == 6) { s->lmode = (s->lmode + 1) & 3; if (!s->lmode) LAMP_OFF; play(s, BLIPS[s->lmode], t); }
@@ -184,7 +208,7 @@ u32 helper(u32 t)
         else if (!(t & 7)) SET_CCR(800);
         return END;
     }
-    u32 k = KEEP, mode = MODE, pk = s->prevk, n;
+    u32 k = KEEP, mode = MODE, pk = s->prevk, n, amp = AMP[s->vol];
     s->prevk = k;
     if (k > pk && mode != 2) {
         s->start = k;
@@ -208,13 +232,24 @@ u32 helper(u32 t)
     else if (s->accent) n = 5;                       /* a new strongest reading in peak hold */
     else if (s->theme == 1) n = mode ? 16 : 8;
     else if (s->theme == 2) n = k >= 28 ? 5 : 0;
+    else if (s->theme == 3) { n = 9 + s->off; amp = amp * k / 30; }             /* sonar: one pitch, fading out */
+    else if (s->theme == 4) n = 4 + ((30 - k) >> 1) + s->off;                   /* laser: fast falling sweep */
+    else if (s->theme == 5) n = 4 + (k >> 1) + s->off;                          /* rise: fast rising sweep */
+    else if (s->theme == 6) n = (k > 15 ? 8 : 12) + s->off;                     /* two-tone: high then low */
+    else if (s->theme == 7) n = (k & 2 ? 7 : 10) + s->off;                      /* trill: two pitches swapping every 2 ms */
+    else if (s->theme == 8) n = 5 + 2 * s->off;                                 /* metal detector: steady tone, pitch is the strength */
+    else if (s->theme == 9) n = s->parity & 1 ? 22 : 28;                        /* heartbeat: two low thumps in turn */
+    else if (s->theme == 10) n = (30 - k) % 10 < 4 ? 5 + s->off : 0;            /* cricket: three short chirps */
+    else if (s->theme == 11) n = (s->parity & 1) || k > 20 ? 8 + s->off : 0;    /* telegraph: dot, dash, dot, dash */
+    else if (s->theme == 12) n = (k > 20 ? 19 : k > 10 ? 15 : 13) + s->off;     /* arpeggio: three rising notes */
+    else if (s->theme == 13) n = (s->parity & 1 ? 7 : 10) + s->off;             /* siren: high and low pulses in turn */
     else {
         u32 v = mode ? k >> 1 : k / 3;
         n = mode ? (s->parity & 1 ? 25 - v : 10 + v) : (s->parity & 1 ? 16 - v : 6 + v);
         n += s->off;
     }
     if (!n) { if (!(t & 7)) SET_CCR(800); }
-    else if (t % n == 0) flip(s);
+    else if (t % n == 0) flipa(s, amp);
     return END;
 }
 
@@ -228,6 +263,7 @@ u32 key_release(u32 key, u32 held)
     s->lvl[key] = 0;
     if (s->swallow & (1u << key)) { s->swallow &= ~(1u << key); return 0; }   /* this release ends the lock gesture */
     if (s->locked) { s->req = 8; return 0; }
+    if (lv > 2) return 0;                                /* themes were already stepped through during the hold */
     if (lv) { s->req = 2 * key + lv + 1; return 0; }     /* 2,3 mode key  4,5 mains key  6,7 lamp key */
     if (key == K_LAMP && s->lmode) return 0;             /* the lamp is automatic: the key does not toggle it */
     return 1;
@@ -242,7 +278,7 @@ void boot(u32 ms)
     if (SAVED[0] == SAVE_TAG) {
         u32 v = SAVED[1];
         if ((v & 0xFF) < 3) s->vol = v;
-        if ((v >> 8 & 0xFF) < 3) s->theme = v >> 8;
+        if ((v >> 8 & 0xFF) < NTHEME) s->theme = v >> 8;
         if ((v >> 16 & 0xFF) < 3) s->lmode = v >> 16;
         if ((v >> 24) == 1) s->autom = 1;
     }
