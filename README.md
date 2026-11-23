@@ -206,3 +206,81 @@ system. **They contain hard-coded paths and will need editing before they run on
 
 The code in this repository is under the MIT licence; see [LICENSE](LICENSE). The licence's
 no-warranty and no-liability terms apply in full, in addition to the disclaimer above.
+
+---
+
+## Current release
+
+| Unit | Version | File | SHA-256 |
+|---|---|---|---|
+| Tester | PN2.35F | [`LPM-10A-TX_PN2.35F-space.bin`](spentek/firmware/tester/LPM-10A-TX_PN2.35F-space.bin) | `383ea45f380110b32629411cb7727a82e875e7a6735e3888c844cbfb4587c843` |
+| Probe | PN1.30 build 6 | [`APP_LPM-10RX_PN1.30-spence6-update.bin`](spentek/firmware/probe/APP_LPM-10RX_PN1.30-spence6-update.bin) | `002667afeed9c76d76ecd079a494d4bc57fe56d31d5118149e2aab729c48b962` |
+
+Both are emulator-tested and **not yet confirmed on hardware**. The last hardware-confirmed builds are
+`LPM-10A-TX_PN2.35C-settings.bin` and `APP_LPM-10RX_PN1.30-spence4-update.bin`, in the same folders.
+Read the disclaimer at the top of this page before going further.
+
+### How to apply it (Linux)
+
+**1. Get the files and tools**
+
+```
+git clone https://github.com/spen1995/LPM-10A_PN_Custom_Firmware
+cd LPM-10A_PN_Custom_Firmware/spentek
+sudo pacman -S mtools python        # Arch; on Debian/Ubuntu: sudo apt install mtools python3
+chmod +x tools/lpmflash.py tools/fatpush.py
+```
+
+**2. Check the images before touching a device**
+
+```
+(cd firmware && sha256sum -c SHA256SUMS)
+tools/lpmflash.py check firmware/tester/LPM-10A-TX_PN2.35F-space.bin
+tools/lpmflash.py check firmware/probe/APP_LPM-10RX_PN1.30-spence6-update.bin
+```
+
+Every line must say `OK` or `a valid ... update image`. Stop if one does not.
+
+**3. Flash the tester**
+
+1. Power the tester off.
+2. Hold **M**, then press **Power**, and keep holding while you plug in the USB-C cable.
+3. A 448 KB drive appears. Do **not** mount it or open it in a file manager.
+4. Run:
+
+```
+sudo tools/lpmflash.py tx firmware/tester/LPM-10A-TX_PN2.35F-space.bin
+```
+
+5. Type `yes` when asked. When it finishes, unplug and power on. **Settings → About** should show
+   `PN2.35F`.
+
+If the tester hangs or shows nothing, press its reset button and repeat from step 1.
+
+**4. Flash the probe**
+
+1. Power the probe off.
+2. Hold **SCAN** and plug in the USB cable.
+3. A 100 MB drive labelled `BOOTLOADER` appears. Do **not** mount it.
+4. Run:
+
+```
+sudo tools/lpmflash.py rx firmware/probe/APP_LPM-10RX_PN1.30-spence6-update.bin
+```
+
+5. Type `yes` when asked. The drive disappearing is the success signal. Unplug and power on: you
+   should hear the power-on tune, then 1 to 4 blips for the battery level.
+
+If the drive is still there afterwards and holds a file called `UNKOWN.TXT`, the bootloader rejected
+the image. Unplug, start again from step 1, and run the command once more.
+
+**5. Going back**
+
+Flash an older image the same way. The hardware-confirmed builds above are in this repository, and
+upstream's original builds are under `LPM-10A/Firmware File/`.
+
+The flasher refuses to write unless the drive matches what it expects (size, label, not mounted), and
+it picks the drive itself; pass the device as a last argument, for example `/dev/sdb`, only if it
+tells you to.
+
+Windows and macOS are not covered here. Upstream's README describes its own update procedure.
